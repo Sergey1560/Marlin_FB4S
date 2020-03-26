@@ -37,6 +37,10 @@
 // Release PB4 (Y_ENABLE_PIN) from JTAG NRST role
 //
 #define DISABLE_DEBUG
+#undef JTAGSWD_DISABLE
+
+//Case LED in instead E1
+#define CASE_LED_INSTEAD_E1
 
 //
 // Limit Switches
@@ -69,9 +73,13 @@
 #define E0_STEP_PIN                         PD6
 #define E0_DIR_PIN                          PD3
 
-#define E1_ENABLE_PIN                       PA3
-#define E1_STEP_PIN                         PA6
-#define E1_DIR_PIN                          PA1
+#ifdef CASE_LED_INSTEAD_E1
+  #define LED_CASE_PIN                      PA3
+#else
+ #define E1_ENABLE_PIN                      PA3
+ #define E1_STEP_PIN                        PA6
+ #define E1_DIR_PIN                         PA1
+#endif
 
 //
 // Temperature Sensors
@@ -99,7 +107,10 @@
 // Misc. Functions
 //
 #define POWER_LOSS_PIN                      PA2   // PW_DET
-#define PS_ON_PIN                           PA3   // PW_OFF
+#ifndef CASE_LED_INSTEAD_E1
+  #define PS_ON_PIN                          PA3   // PW_OFF
+#endif
+
 
 #define LED_PIN                             PB2
 
@@ -123,8 +134,12 @@
   #define FSMC_CS_PIN                       PD7   // NE4
   #define FSMC_RS_PIN                       PD11  // A0
 
-  #define LCD_RESET_PIN                     PC6   // FSMC_RST
+  //#define LCD_RESET_PIN                     PC6   // FSMC_RST
   #define NO_LCD_REINIT                           // Suppress LCD re-initialization
+
+  #define LCD_USE_DMA_FSMC 
+  #define FSMC_DMA_DEV DMA2
+  #define FSMC_DMA_CHANNEL DMA_CH5
 
   #define LCD_BACKLIGHT_PIN                 PD13
 
