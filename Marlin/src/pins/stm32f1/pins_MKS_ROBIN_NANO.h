@@ -150,3 +150,14 @@
     #define TOUCH_MOSI_PIN                  PB15  // SPI2_MOSI
   #endif
 #endif
+
+/*
+Инита нет. Подтяжка на плате
+
+*/
+
+#define MKS_WIFI
+#ifdef MKS_WIFI
+ #define MKS_WIFI_IO0                       PA8
+ #define MKS_WIFI_IO4                       PC7
+#endif
