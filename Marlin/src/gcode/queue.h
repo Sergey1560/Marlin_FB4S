@@ -27,6 +27,7 @@
  */
 
 #include "../inc/MarlinConfig.h"
+#include "../module/mks_wifi/mks_wifi.h"
 
 class GCodeQueue {
 public:

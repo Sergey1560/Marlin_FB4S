@@ -160,4 +160,5 @@
 #ifdef MKS_WIFI
  #define MKS_WIFI_IO0                       PA8
  #define MKS_WIFI_IO4                       PC7
+ #define MKS_WIFI_IO_RST                    PA5
 #endif

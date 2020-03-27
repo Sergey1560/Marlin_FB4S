@@ -1,0 +1,17 @@
+
+Работа Марлин с Serial:
+Вызов manage_inactivity(){
+     if (queue.length < BUFSIZE) queue.get_available_commands();
+}
+
+
+queue.get_available_commands(){
+    get_serial_commands();
+    get_sdcard_commands();
+}
+}
+
+get_serial_commands(){
+
+    
+}
