@@ -1,8 +1,12 @@
 #include "mks_wifi.h"
 
 ESP_PROTOC_FRAME esp_frame;
-uint8_t mks_buffer[ESP_PACKET_DATA_MAX_SIZE];
+
+uint8_t mks_in_buffer[ESP_PACKET_DATA_MAX_SIZE];
+
 uint8_t mks_out_buffer[ESP_PACKET_DATA_MAX_SIZE];
+uint32_t line_index=0;
+
 uint8_t esp_packet[ESP_PACKET_DATA_MAX_SIZE];
 
 
@@ -25,8 +29,8 @@ void mks_wifi_init(void){
 	
 //	safe_delay(2000);	
 //	mks_wifi_set_param();
-    // SET_INPUT_PULLUP(MKS_WIFI_IO0);
-    // attachInterrupt(MKS_WIFI_IO0, mks_wifi_io0_irq, FALLING);
+// SET_INPUT_PULLUP(MKS_WIFI_IO0);
+// attachInterrupt(MKS_WIFI_IO0, mks_wifi_io0_irq, FALLING);
 }
 
 
@@ -68,12 +72,42 @@ void mks_wifi_io0_irq(void){
 }
 
 /*
-Принимает по символу из входных данных.
-Сладывает в буфер, формирует пакет.
-Возвращаемые занчения:
-1 - найден признак начала пакета, отдавать байт мардину не надо
-0 - начало пакета не найдено, передать байт дальше марлину
+Получает данные из всех функций, как только
+есть перевод строки 0x0A, формирует пакет для
+ESP и отправляет
 */
+void mks_wifi_out_add(uint8_t *data, uint32_t size){
+	uint32_t datalen;
+	uint32_t packet_size;
+	uint8_t *data_ptr;
+
+	data_ptr=data; //чтобы не трогать адрес
+
+	while (size--){
+		if(*data_ptr == 0x0a){
+			//Переводы строки внутри формирования пакета
+			//Перевод строки => сформировать пакет, отправить, сбросить индекс
+			datalen=strnlen((char *)mks_out_buffer,ESP_PACKET_DATA_MAX_SIZE);
+			packet_size=mks_wifi_build_packet(esp_packet,ESP_TYPE_FILE_FIRST,mks_out_buffer,datalen);
+
+			//выпихнуть в uart
+			mks_wifi_send(esp_packet, packet_size);
+			//очистить буфер
+			memset(mks_out_buffer,0,ESP_SERIAL_OUT_MAX_SIZE);
+			//сбросить индекс
+			line_index=0;
+		}else{
+			//писать в буфер			
+			mks_out_buffer[line_index++]=*data_ptr++;
+		}
+
+		if(line_index >= ESP_SERIAL_OUT_MAX_SIZE){
+			ERROR("Max line size");
+			line_index=0;
+		}
+	}
+}
+
 uint8_t mks_wifi_input(uint8_t data){
 	static uint8_t packet_start_flag=0;
 	static uint8_t packet_type=0;
@@ -86,25 +120,25 @@ uint8_t mks_wifi_input(uint8_t data){
 		payload_size = ESP_PACKET_DATA_MAX_SIZE;
 		packet_start_flag=1;
 		packet_index=0;
-		memset(mks_buffer,0,ESP_PACKET_DATA_MAX_SIZE);
+		memset(mks_in_buffer,0,ESP_PACKET_DATA_MAX_SIZE);
 	}
 
 	if(packet_start_flag){
-		mks_buffer[packet_index]=data;
+		mks_in_buffer[packet_index]=data;
 	}
 
 	if(packet_index == 1){
-		packet_type = mks_buffer[1];
+		packet_type = mks_in_buffer[1];
 	}
 
 	if(packet_index == 3){
-		payload_size = uint16_t(mks_buffer[3] << 8) | mks_buffer[2];
+		payload_size = uint16_t(mks_in_buffer[3] << 8) | mks_in_buffer[2];
 	}
 
 	if( (packet_index >= (payload_size+4)) || (packet_index >= ESP_PACKET_DATA_MAX_SIZE) ){
 		esp_frame.type = packet_type;
 		esp_frame.dataLen = payload_size;
-		esp_frame.data = &mks_buffer[4];
+		esp_frame.data = &mks_in_buffer[4];
 
 		mks_wifi_parse_packet(&esp_frame);
 
@@ -162,74 +196,34 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 
 
 void mks_wifi_out(uint8_t count, ...){
-	static uint16_t line_index=0;
 	va_list args;
 	uint8_t data;
-	uint16_t datalen;
-	uint16_t packet_size;
 
 	va_start(args, count);
 
     while (count--) {
-
-
         data = va_arg(args, unsigned);
-		if(data == 0x0a){
-
-			if(mks_out_buffer[line_index-1] == 't'){
-				DEBUG("Line");
-			}
-
-			//сформировать пакет
-			datalen=strnlen((char *)mks_out_buffer,ESP_PACKET_DATA_MAX_SIZE);
-			packet_size=mks_wifi_build_packet(esp_packet,ESP_TYPE_FILE_FIRST,mks_out_buffer,datalen);
-
-			//выпихнуть в uart
-			mks_wifi_send(esp_packet, packet_size);
-
-			DEBUG("%s",mks_out_buffer);
-
-			//очистить буфер
-			memset(mks_out_buffer,0,ESP_SERIAL_OUT_MAX_SIZE);
-			//сбросить индекс
-			line_index=0;
-		}else{
-			mks_out_buffer[line_index++]=data;
-		}
-
-		if(line_index >= ESP_SERIAL_OUT_MAX_SIZE){
-			DEBUG("Max line size");
-			line_index=0;
-		}
+		mks_wifi_out_add(&data, 1);
     }
     va_end(args);
 }
 
 
 void mks_println(const char *s){
-	uint16_t datalen;
-	uint16_t packet_size;
-
-	DEBUG("%s",s);
-
-	//сформировать пакет
-	datalen=strnlen((char *)mks_out_buffer,ESP_PACKET_DATA_MAX_SIZE);
-	packet_size=mks_wifi_build_packet(esp_packet,ESP_TYPE_FILE_FIRST,mks_out_buffer,datalen);
-
-	//выпихнуть в uart
-	mks_wifi_send(esp_packet, packet_size);
+	DEBUG("char* %s",s);
+	mks_wifi_out_add((uint8_t *)s, strnlen((char *)s,ESP_PACKET_DATA_MAX_SIZE));
 }
 
 void mks_println_ln(const char *s){
-
-	DEBUG("NEW LN %s");
-
+	mks_wifi_out_add((uint8_t *)s, strnlen((char *)s,ESP_PACKET_DATA_MAX_SIZE));
 }
 
 void mks_println_ln(float f){
-	
-	DEBUG("NEW LN float %d",(uint32_t)f);
-
+	uint32_t data=(uint32_t)f;
+	char str[30];
+	DEBUG("Float");
+	sprintf(str,"%ld\n",data);
+	mks_wifi_out_add((uint8_t *)str, strnlen((char *)str,ESP_PACKET_DATA_MAX_SIZE));
 }
 
 uint16_t mks_wifi_build_packet(uint8_t *packet, uint8_t type, uint8_t *data, uint16_t count){
@@ -256,12 +250,13 @@ uint16_t mks_wifi_build_packet(uint8_t *packet, uint8_t type, uint8_t *data, uin
 
 
 void mks_wifi_send(uint8_t *packet, uint16_t size){
-	for( uint32_t i=0; i < (uint32_t)(size); i++){
+	for( uint32_t i=0; i < (uint32_t)(size+1); i++){
 		MYSERIAL1.write(packet[i]);
 	}
 }
 
 void mks_println(int i){
-	DEBUG("int %d",i);
-	SERIAL_OUT(print, i);
+	char str[30];
+	sprintf(str,"%d",i);
+	mks_wifi_out_add((uint8_t *)str, strnlen((char *)str,ESP_PACKET_DATA_MAX_SIZE));
 }
