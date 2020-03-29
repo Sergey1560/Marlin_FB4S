@@ -3002,7 +3002,9 @@ void Temperature::tick() {
         default: k = 'B'; break;
       #endif
     }
+    #if DISABLED(MKS_WIFI)
     SERIAL_CHAR(' ');
+    #endif
     SERIAL_CHAR(k);
     #if HOTENDS > 1
       if (e >= 0) SERIAL_CHAR('0' + e);
