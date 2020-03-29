@@ -47,12 +47,12 @@ void mks_wifi_out_add(uint8_t *data, uint32_t size);
 uint16_t mks_wifi_build_packet(uint8_t *packet, uint8_t type, uint8_t *data, uint16_t count);
 void mks_wifi_send(uint8_t *packet, uint16_t size);
 
-void mks_wifi_out(uint8_t count, ...);
+void mks_wifi_print_var(uint8_t count, ...);
 
-void mks_println(const char *s);
-void mks_println(int i);
+void mks_wifi_print(const char *s);
+void mks_wifi_print(int i);
 
-void mks_println_ln(const char *s);
-void mks_println_ln(float);
+void mks_wifi_println(const char *s);
+void mks_wifi_println(float);
 
 #endif

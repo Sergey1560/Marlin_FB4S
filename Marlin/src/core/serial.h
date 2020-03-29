@@ -70,7 +70,7 @@ extern uint8_t marlin_debug_flags;
 #if ENABLED(MKS_WIFI)
 #define SERIAL_ECHO(x) do{ \
     if (!serial_port_index || serial_port_index == SERIAL_BOTH) SERIAL_OUT(print, x); \
-    if ( serial_port_index) mks_println(x); \
+    if ( serial_port_index) mks_wifi_print(x); \
   }while(0)
 #else
 #define SERIAL_ECHO(x)          SERIAL_OUT(print, x)
@@ -81,7 +81,7 @@ extern uint8_t marlin_debug_flags;
 #if ENABLED(MKS_WIFI)
 #define SERIAL_ECHOLN(x) do{ \
     if (!serial_port_index || serial_port_index == SERIAL_BOTH) SERIAL_OUT(println, x); \
-    if ( serial_port_index) mks_println_ln(x); \
+    if ( serial_port_index) mks_wifi_println(x); \
   }while(0)
 #else
 #define SERIAL_ECHOLN(x)        SERIAL_OUT(println, x)
@@ -117,7 +117,7 @@ extern uint8_t marlin_debug_flags;
 #if ENABLED(MKS_WIFI)
 #define SERIAL_CHAR(V...) do{ \
     if (!serial_port_index || serial_port_index == SERIAL_BOTH) _CHAR_N(NUM_ARGS(V),V); \
-    if ( serial_port_index) mks_wifi_out(NUM_ARGS(V),V); \
+    if ( serial_port_index) mks_wifi_print_var(NUM_ARGS(V),V); \
   }while(0)
 #else
 #define SERIAL_CHAR(V...) _CHAR_N(NUM_ARGS(V),V)
