@@ -26,6 +26,7 @@ typedef struct
 #define ESP_TYPE_WIFI_LIST		    (uint8_t)0x4
 
 #define ESP_PACKET_DATA_MAX_SIZE	1024
+#define ESP_SERIAL_OUT_MAX_SIZE		1024
 
 #define ESP_NET_WIFI_CONNECTED		(uint8_t)0x0A
 #define ESP_NET_WIFI_EXCEPTION		(uint8_t)0x0E
@@ -37,5 +38,15 @@ void mks_wifi_init(void);
 void mks_wifi_io0_irq(void);
 uint8_t mks_wifi_input(uint8_t data);
 void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet);
+void mks_wifi_set_param(void);
+void mks_wifi_out(uint8_t count, ...);
+
+void mks_println(const char *s);
+void mks_println(int i);
+
+uint16_t mks_wifi_build_packet(uint8_t *packet, uint8_t type, uint8_t *data, uint16_t count);
+void mks_wifi_send(uint8_t *packet, uint16_t size);
+void mks_println_ln(const char *s);
+void mks_println_ln(float);
 
 #endif

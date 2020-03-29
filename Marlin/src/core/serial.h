@@ -22,7 +22,8 @@
 #pragma once
 
 #include "../inc/MarlinConfig.h"
-
+#include "../module/mks_wifi/mks_wifi.h"
+#include <stdio.h>
 /**
  * Define debug bit-masks
  */
@@ -66,9 +67,26 @@ extern uint8_t marlin_debug_flags;
 #define PORT_REDIRECT(p)        _PORT_REDIRECT(1,p)
 #define PORT_RESTORE()          _PORT_RESTORE(1)
 
+#if ENABLED(MKS_WIFI)
+#define SERIAL_ECHO(x) do{ \
+    if (!serial_port_index || serial_port_index == SERIAL_BOTH) SERIAL_OUT(print, x); \
+    if ( serial_port_index) mks_println(x); \
+  }while(0)
+#else
 #define SERIAL_ECHO(x)          SERIAL_OUT(print, x)
+#endif
+
 #define SERIAL_ECHO_F(V...)     SERIAL_OUT(print, V)
+
+#if ENABLED(MKS_WIFI)
+#define SERIAL_ECHOLN(x) do{ \
+    if (!serial_port_index || serial_port_index == SERIAL_BOTH) SERIAL_OUT(println, x); \
+    if ( serial_port_index) mks_println_ln(x); \
+  }while(0)
+#else
 #define SERIAL_ECHOLN(x)        SERIAL_OUT(println, x)
+#endif
+
 #define SERIAL_PRINT(x,b)       SERIAL_OUT(print, x, b)
 #define SERIAL_PRINTLN(x,b)     SERIAL_OUT(println, x, b)
 #define SERIAL_PRINTF(V...)     SERIAL_OUT(printf, V)
@@ -96,7 +114,14 @@ extern uint8_t marlin_debug_flags;
 #define _CHAR_9(a,V...)   do{ _CHAR_1(a); _CHAR_8(V); }while(0)
 #define _CHAR_10(a,V...)  do{ _CHAR_1(a); _CHAR_9(V); }while(0)
 
+#if ENABLED(MKS_WIFI)
+#define SERIAL_CHAR(V...) do{ \
+    if (!serial_port_index || serial_port_index == SERIAL_BOTH) _CHAR_N(NUM_ARGS(V),V); \
+    if ( serial_port_index) mks_wifi_out(NUM_ARGS(V),V); \
+  }while(0)
+#else
 #define SERIAL_CHAR(V...) _CHAR_N(NUM_ARGS(V),V)
+#endif
 
 // Print up to 12 pairs of values. Odd elements auto-wrapped in PSTR().
 #define __SEP_N(N,V...)   _SEP_##N(V)

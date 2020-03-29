@@ -851,6 +851,11 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 422: M422(); break;                                  // M422: Set Z Stepper automatic alignment position using probe
       #endif
 
+      #if ENABLED(MKS_WIFI)
+				case 991: M105(); return;
+
+      #endif
+      
       #if ENABLED(PLATFORM_M997_SUPPORT)
         case 997: M997(); break;                                  // M997: Perform in-application firmware update
       #endif
