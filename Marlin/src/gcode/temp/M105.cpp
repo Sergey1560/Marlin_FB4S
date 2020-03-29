@@ -31,8 +31,10 @@ void GcodeSuite::M105() {
   const int8_t target_extruder = get_target_extruder_from_command();
   if (target_extruder < 0) return;
 
-  #if DISABLED(MKS_WIFI)
+  
   SERIAL_ECHOPGM(STR_OK);
+  #if ENABLED(MKS_WIFI)
+  SERIAL_EOL();
   #endif
   
   #if HAS_TEMP_SENSOR

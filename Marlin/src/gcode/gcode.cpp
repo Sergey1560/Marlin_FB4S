@@ -36,6 +36,10 @@ GcodeSuite gcode;
 #include "queue.h"
 #include "../module/motion.h"
 
+#if ENABLED(MKS_WIFI)
+#include "../module/mks_wifi/mks_wifi_gcodes.h"
+#endif
+
 #if ENABLED(PRINTCOUNTER)
   #include "../module/printcounter.h"
 #endif
@@ -852,8 +856,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #endif
 
       #if ENABLED(MKS_WIFI)
-				case 991: M105(); return;
-
+				case 991: mks_m991(); return;
+				case 997: mks_m997(); return;
       #endif
       
       #if ENABLED(PLATFORM_M997_SUPPORT)
