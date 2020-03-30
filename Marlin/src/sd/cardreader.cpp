@@ -258,9 +258,13 @@ void CardReader::printListing(SdFile parent, const char * const prepend/*=nullpt
       if (prepend) SERIAL_ECHO(prepend);
 
       #if ENABLED(MKS_WIFI)
-      printLongPath(filename);
+      if (serial_port_index){
+        printLongPath(filename);
+      }else{
+        SERIAL_ECHO(filename);
+      }
       #else
-      SERIAL_ECHO(filename);
+        SERIAL_ECHO(filename);
       #endif
       SERIAL_CHAR(' ');
       SERIAL_ECHOLN(p.fileSize);
@@ -317,7 +321,11 @@ void CardReader::ls() {
       #endif
 
       // Print /LongNamePart to serial output
-      #if DISABLED(MKS_WIFI)
+      #if ENABLED(MKS_WIFI)
+      if(!serial_port_index){
+      SERIAL_CHAR('/');
+      };
+      #else
       SERIAL_CHAR('/');
       #endif
       SERIAL_ECHO(longFilename[0] ? longFilename : "???");
@@ -341,7 +349,11 @@ void CardReader::ls() {
 
     } // while i<pathLen
     
-    #if DISABLED(MKS_WIFI)  
+    #if ENABLED(MKS_WIFI)  
+    if(!serial_port_index){
+      SERIAL_EOL();
+      };
+    #else
     SERIAL_EOL();
     #endif
   }
