@@ -856,8 +856,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #endif
 
       #if ENABLED(MKS_WIFI)
-				case 991: mks_m991(); return;
-				case 997: mks_m997(); return;
+				case 991: if ( serial_port_index) {mks_m991();}; return;
+				case 997: if ( serial_port_index) {mks_m997();}; return;
       #endif
       
       #if ENABLED(PLATFORM_M997_SUPPORT)
