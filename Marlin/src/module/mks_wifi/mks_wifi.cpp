@@ -11,17 +11,18 @@ void mks_wifi_init(void){
 	
     DEBUG("Init MKS WIFI");
 
-	WRITE(MKS_WIFI_IO4, HIGH);
+	
 	SET_OUTPUT(MKS_WIFI_IO4);
+	WRITE(MKS_WIFI_IO4, HIGH);
 
 	SET_OUTPUT(MKS_WIFI_IO_RST);
 	WRITE(MKS_WIFI_IO_RST, LOW);
 
-	safe_delay(2000);	
+	safe_delay(1000);	
 	WRITE(MKS_WIFI_IO_RST, HIGH);
+	safe_delay(1000);	
+	WRITE(MKS_WIFI_IO4, LOW);
 
-	safe_delay(2000);	
-	mks_wifi_set_param();
 }
 
 
@@ -36,16 +37,16 @@ void mks_wifi_set_param(void){
 
 	memset(mks_out_buffer, 0, sizeof(ESP_PACKET_DATA_MAX_SIZE));
 
-	mks_out_buffer[4] = WIFI_MODE_STA;
+	mks_out_buffer[0] = WIFI_MODE_STA;
 
-	mks_out_buffer[5] = ap_len;
-	strncpy((char *)&mks_out_buffer[6], (const char *)WIFI_SSID, ap_len);
+	mks_out_buffer[1] = ap_len;
+	strncpy((char *)&mks_out_buffer[2], (const char *)WIFI_SSID, ap_len);
 
-	mks_out_buffer[6+ap_len] = key_len;
-	strncpy((char *)&mks_out_buffer[6 + ap_len + 1], (const char *)WIFI_KEY, key_len);
+	mks_out_buffer[2+ap_len] = key_len;
+	strncpy((char *)&mks_out_buffer[2 + ap_len + 1], (const char *)WIFI_KEY, key_len);
 
 	esp_frame.type=ESP_TYPE_NET;
-	esp_frame.dataLen=strnlen((char *)mks_out_buffer,ESP_PACKET_DATA_MAX_SIZE);
+	esp_frame.dataLen= 2 + ap_len + key_len + 1;
 	esp_frame.data=mks_out_buffer;
 	packet_size=mks_wifi_build_packet(esp_packet,&esp_frame);
 
@@ -96,11 +97,13 @@ void mks_wifi_out_add(uint8_t *data, uint32_t size){
 
 uint8_t mks_wifi_input(uint8_t data){
 	ESP_PROTOC_FRAME esp_frame;
+	static uint8_t get_packet_from_esp=0;
 	static uint8_t packet_start_flag=0;
 	static uint8_t packet_type=0;
 	static uint16_t packet_index=0;
 	static uint16_t payload_size=ESP_PACKET_DATA_MAX_SIZE;
 	uint8_t ret_val=1;
+
 
 
 	if(data == ESP_PROTOC_HEAD){
@@ -128,6 +131,12 @@ uint8_t mks_wifi_input(uint8_t data){
 		esp_frame.data = &mks_in_buffer[4];
 
 		mks_wifi_parse_packet(&esp_frame);
+
+		if(!get_packet_from_esp){
+			DEBUG("Fisrt packet from ESP, send config");
+			mks_wifi_set_param();
+			get_packet_from_esp=1;
+		}
 
 		packet_start_flag=0;
 		packet_index=0;
@@ -225,17 +234,20 @@ uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
 	packet[0] = ESP_PROTOC_HEAD;
 	packet[1] = esp_frame->type;
 
-	*((uint16_t *)&packet[2]) = esp_frame->dataLen + 2; //Два байта на 0x0d 0x0a
-
 	for(uint32_t i=0; i < esp_frame->dataLen; i++){
 		packet[i+4]=esp_frame->data[i]; //4 байта заголовка отступить
 	}
 
 	packet_size = esp_frame->dataLen + 4;
-	packet[esp_frame->dataLen + 4] = 0x0d;
-	packet[esp_frame->dataLen + 5] = 0x0a; 
+
+	if(esp_frame->type != ESP_TYPE_NET){
+		packet[packet_size++] = 0x0d;
+		packet[packet_size++] = 0x0a; 
+		esp_frame->dataLen = esp_frame->dataLen + 2; //Два байта на 0x0d 0x0a
+	}
 	
-	packet_size = esp_frame->dataLen + 6; //Два байта на 0x0d 0x0a
+	*((uint16_t *)&packet[2]) = esp_frame->dataLen;
+
 	packet[packet_size] = ESP_PROTOC_TAIL;
 	return packet_size;
 }
