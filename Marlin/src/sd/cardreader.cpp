@@ -256,7 +256,12 @@ void CardReader::printListing(SdFile parent, const char * const prepend/*=nullpt
     else if (is_dir_or_gcode(p)) {
       createFilename(filename, p);
       if (prepend) SERIAL_ECHO(prepend);
+
+      #if ENABLED(MKS_WIFI)
+      printLongPath(filename);
+      #else
       SERIAL_ECHO(filename);
+      #endif
       SERIAL_CHAR(' ');
       SERIAL_ECHOLN(p.fileSize);
     }
@@ -277,9 +282,11 @@ void CardReader::ls() {
   // Get a long pretty path based on a DOS 8.3 path
   //
   void CardReader::printLongPath(char * const path) {
-
+    #if ENABLED(MKS_WIFI)
+    char f_name_buf[100];
+    #endif
     int i, pathLen = strlen(path);
-
+    
     // SERIAL_ECHOPGM("Full Path: "); SERIAL_ECHOLN(path);
 
     // Zero out slashes to make segments
@@ -302,10 +309,17 @@ void CardReader::ls() {
 
       // Find the item, setting the long filename
       diveDir.rewind();
+      #if ENABLED(MKS_WIFI)
+      strcpy(f_name_buf,segment);
+      selectByName(diveDir, f_name_buf);
+      #else
       selectByName(diveDir, segment);
+      #endif
 
       // Print /LongNamePart to serial output
+      #if DISABLED(MKS_WIFI)
       SERIAL_CHAR('/');
+      #endif
       SERIAL_ECHO(longFilename[0] ? longFilename : "???");
 
       // If the filename was printed then that's it
@@ -326,8 +340,10 @@ void CardReader::ls() {
       diveDir = dir;
 
     } // while i<pathLen
-
+    
+    #if DISABLED(MKS_WIFI)  
     SERIAL_EOL();
+    #endif
   }
 
 #endif // LONG_FILENAME_HOST_SUPPORT

@@ -255,6 +255,9 @@ uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
 
 void mks_wifi_send(uint8_t *packet, uint16_t size){
 	for( uint32_t i=0; i < (uint32_t)(size+1); i++){
+		while(MYSERIAL1.availableForWrite()==0){
+			safe_delay(10);				
+		}
 		MYSERIAL1.write(packet[i]);
 	}
 }
