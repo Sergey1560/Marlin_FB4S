@@ -7,13 +7,25 @@
 
 #define MKS_WIFI_SERIAL_NUM        (uint8_t)1
 
+#define WIFI_MODE_STA				(uint8_t)0
+#define WIFI_MODE_AP				(uint8_t)1
+
+#define WIFI_SSID					"MikroTik2"
+#define WIFI_KEY					"vg3Apswqvg3Aps"
+/*
+const char home_ssid[] = "MikroTik2";
+const char home_passwd[] = "vg3Apswqvg3Aps";
+const char wifi_ap[]="bus_station";
+const char wifi_key[]="RAnRZj2JQbSMD5djh3";
+const uint8_t wifi_mode_sel=0;
+*/
+
+
 typedef struct
 {
-	uint8_t head; //0xa5
 	uint8_t type; 
 	uint16_t dataLen;
 	uint8_t *data; 
-	uint8_t tail; // 0xfc
 } ESP_PROTOC_FRAME;
 
 #define ESP_PROTOC_HEAD				(uint8_t)0xa5
@@ -44,7 +56,9 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet);
 
 void mks_wifi_out_add(uint8_t *data, uint32_t size);
 
-uint16_t mks_wifi_build_packet(uint8_t *packet, uint8_t type, uint8_t *data, uint16_t count);
+//uint16_t mks_wifi_build_packet(uint8_t *packet, uint8_t type, uint8_t *data, uint16_t count);
+uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame);
+
 void mks_wifi_send(uint8_t *packet, uint16_t size);
 
 void mks_wifi_print_var(uint8_t count, ...);

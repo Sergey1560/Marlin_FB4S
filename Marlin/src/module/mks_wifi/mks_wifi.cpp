@@ -1,68 +1,56 @@
 #include "mks_wifi.h"
 
-ESP_PROTOC_FRAME esp_frame;
-
 uint8_t mks_in_buffer[ESP_PACKET_DATA_MAX_SIZE];
-
 uint8_t mks_out_buffer[ESP_PACKET_DATA_MAX_SIZE];
 uint32_t line_index=0;
 
 uint8_t esp_packet[ESP_PACKET_DATA_MAX_SIZE];
 
 
-/*
-const char home_ssid[] = "MikroTik2";
-const char home_passwd[] = "vg3Apswqvg3Aps";
-*/
-const char wifi_ap[]="bus_station";
-const char wifi_key[]="RAnRZj2JQbSMD5djh3";
-const uint8_t wifi_mode_sel=0;
-
 void mks_wifi_init(void){
 	
     DEBUG("Init MKS WIFI");
+
+	WRITE(MKS_WIFI_IO4, HIGH);
+	SET_OUTPUT(MKS_WIFI_IO4);
+
 	SET_OUTPUT(MKS_WIFI_IO_RST);
 	WRITE(MKS_WIFI_IO_RST, LOW);
 
 	safe_delay(2000);	
 	WRITE(MKS_WIFI_IO_RST, HIGH);
-	
-//	safe_delay(2000);	
-//	mks_wifi_set_param();
-// SET_INPUT_PULLUP(MKS_WIFI_IO0);
-// attachInterrupt(MKS_WIFI_IO0, mks_wifi_io0_irq, FALLING);
+
+	safe_delay(2000);	
+	mks_wifi_set_param();
 }
 
 
 void mks_wifi_set_param(void){
-	char buf_to_wifi[256];
-	int index_to_wifi = 0;
+	uint32_t packet_size;
+	ESP_PROTOC_FRAME esp_frame;
 
-	int data_offset = 4;
-	int apLen = strlen((const char *)wifi_ap);
-	int keyLen = strlen((const char *)wifi_key);
-		
-	memset(buf_to_wifi, 0, sizeof(buf_to_wifi));
-	index_to_wifi = 0;
 
-	buf_to_wifi[data_offset] = wifi_mode_sel;
-	buf_to_wifi[data_offset + 1]  = apLen;
-	strncpy(&buf_to_wifi[data_offset + 2], (const char *)wifi_ap, apLen);
-	buf_to_wifi[data_offset + apLen + 2]  = keyLen;
-	strncpy(&buf_to_wifi[data_offset + apLen + 3], (const char *)wifi_key, keyLen);
-	buf_to_wifi[data_offset + apLen + keyLen + 3] = ESP_PROTOC_TAIL;
-	index_to_wifi = apLen + keyLen + 3;
+	uint32_t ap_len = strlen((const char *)WIFI_SSID);
+	uint32_t key_len = strlen((const char *)WIFI_KEY);
 
-	buf_to_wifi[0] = ESP_PROTOC_HEAD;
-	buf_to_wifi[1] = 0;
-	buf_to_wifi[2] = index_to_wifi & 0xff;
-	buf_to_wifi[3] = (index_to_wifi >> 8) & 0xff;
 
-	DEBUG("Sending config %d",(uint32_t)(5 + index_to_wifi));
-	for( uint32_t i=0; i< (uint32_t)(5 + index_to_wifi); i++){
-		while(MYSERIAL1.availableForWrite() == 0){NOP;};
-		MYSERIAL1.write(buf_to_wifi[i]);
-	}
+	memset(mks_out_buffer, 0, sizeof(ESP_PACKET_DATA_MAX_SIZE));
+
+	mks_out_buffer[4] = WIFI_MODE_STA;
+
+	mks_out_buffer[5] = ap_len;
+	strncpy((char *)&mks_out_buffer[6], (const char *)WIFI_SSID, ap_len);
+
+	mks_out_buffer[6+ap_len] = key_len;
+	strncpy((char *)&mks_out_buffer[6 + ap_len + 1], (const char *)WIFI_KEY, key_len);
+
+	esp_frame.type=ESP_TYPE_NET;
+	esp_frame.dataLen=strnlen((char *)mks_out_buffer,ESP_PACKET_DATA_MAX_SIZE);
+	esp_frame.data=mks_out_buffer;
+	packet_size=mks_wifi_build_packet(esp_packet,&esp_frame);
+
+	//выпихнуть в uart
+	mks_wifi_send(esp_packet, packet_size);
 }
 
 /* Тестовая функция на обработчик EXTI прерывания */
@@ -76,15 +64,17 @@ void mks_wifi_io0_irq(void){
 ESP и отправляет
 */
 void mks_wifi_out_add(uint8_t *data, uint32_t size){
-	uint32_t datalen;
 	uint32_t packet_size;
+	ESP_PROTOC_FRAME esp_frame;
 
 	while (size--){
 		if(*data == 0x0a){
 			//Переводы строки внутри формирования пакета
 			//Перевод строки => сформировать пакет, отправить, сбросить индекс
-			datalen=strnlen((char *)mks_out_buffer,ESP_PACKET_DATA_MAX_SIZE);
-			packet_size=mks_wifi_build_packet(esp_packet,ESP_TYPE_FILE_FIRST,mks_out_buffer,datalen);
+			esp_frame.type=ESP_TYPE_FILE_FIRST;
+			esp_frame.dataLen=strnlen((char *)mks_out_buffer,ESP_PACKET_DATA_MAX_SIZE);
+			esp_frame.data=mks_out_buffer;
+			packet_size=mks_wifi_build_packet(esp_packet,&esp_frame);
 
 			//выпихнуть в uart
 			mks_wifi_send(esp_packet, packet_size);
@@ -105,6 +95,7 @@ void mks_wifi_out_add(uint8_t *data, uint32_t size){
 }
 
 uint8_t mks_wifi_input(uint8_t data){
+	ESP_PROTOC_FRAME esp_frame;
 	static uint8_t packet_start_flag=0;
 	static uint8_t packet_type=0;
 	static uint16_t packet_index=0;
@@ -227,24 +218,24 @@ void mks_wifi_println(float f){
 	mks_wifi_out_add((uint8_t *)str, strnlen((char *)str,ESP_PACKET_DATA_MAX_SIZE));
 }
 
-uint16_t mks_wifi_build_packet(uint8_t *packet, uint8_t type, uint8_t *data, uint16_t count){
+uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
 	uint16_t packet_size;
 
 	memset(packet,0,ESP_PACKET_DATA_MAX_SIZE);
 	packet[0] = ESP_PROTOC_HEAD;
-	packet[1] = type;
+	packet[1] = esp_frame->type;
 
-	*((uint16_t *)&packet[2]) = count + 2; //Два байта на 0x0d 0x0a
+	*((uint16_t *)&packet[2]) = esp_frame->dataLen + 2; //Два байта на 0x0d 0x0a
 
-	for(uint32_t i=0; i < count; i++){
-		packet[i+4]=data[i]; //4 байта заголовка отступить
+	for(uint32_t i=0; i < esp_frame->dataLen; i++){
+		packet[i+4]=esp_frame->data[i]; //4 байта заголовка отступить
 	}
 
-	packet_size = count + 4;
-	packet[count + 4] = 0x0d;
-	packet[count + 5] = 0x0a; 
+	packet_size = esp_frame->dataLen + 4;
+	packet[esp_frame->dataLen + 4] = 0x0d;
+	packet[esp_frame->dataLen + 5] = 0x0a; 
 	
-	packet_size = count + 6; //Два байта на 0x0d 0x0a
+	packet_size = esp_frame->dataLen + 6; //Два байта на 0x0d 0x0a
 	packet[packet_size] = ESP_PROTOC_TAIL;
 	return packet_size;
 }
