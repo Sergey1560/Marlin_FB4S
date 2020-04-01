@@ -3002,11 +3002,7 @@ void Temperature::tick() {
         default: k = 'B'; break;
       #endif
     }
-    #if ENABLED(MKS_WIFI)
-    if (!serial_port_index){
-      SERIAL_CHAR(' ');
-    }
-    #endif
+    SERIAL_CHAR(' ');
     SERIAL_CHAR(k);
     #if HOTENDS > 1
       if (e >= 0) SERIAL_CHAR('0' + e);

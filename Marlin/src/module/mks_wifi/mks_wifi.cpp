@@ -1,5 +1,7 @@
 #include "mks_wifi.h"
 
+
+
 uint8_t mks_in_buffer[ESP_PACKET_DATA_MAX_SIZE];
 uint8_t mks_out_buffer[ESP_PACKET_DATA_MAX_SIZE];
 uint32_t line_index=0;
@@ -77,6 +79,7 @@ void mks_wifi_out_add(uint8_t *data, uint32_t size){
 			esp_frame.data=mks_out_buffer;
 			packet_size=mks_wifi_build_packet(esp_packet,&esp_frame);
 
+			//DEBUG("Send %s",mks_out_buffer);
 			//выпихнуть в uart
 			mks_wifi_send(esp_packet, packet_size);
 			//очистить буфер
@@ -254,6 +257,7 @@ uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
 
 
 void mks_wifi_send(uint8_t *packet, uint16_t size){
+	safe_delay(10);				
 	for( uint32_t i=0; i < (uint32_t)(size+1); i++){
 		while(MYSERIAL1.availableForWrite()==0){
 			safe_delay(10);				

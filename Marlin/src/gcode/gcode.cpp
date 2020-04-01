@@ -408,7 +408,18 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 24: M24(); break;                                    // M24: Start SD print
         case 25: M25(); break;                                    // M25: Pause SD print
         case 26: M26(); break;                                    // M26: Set SD index
-        case 27: M27(); break;                                    // M27: Get SD status
+        case 27: 
+          #if ENABLED(MKS_WIFI)
+            if(!serial_port_index){
+              M27();           
+            }else{
+              mks_m27();
+              return;
+            }
+          #else
+          M27();           
+          #endif
+        break;                                    // M27: Get SD status
         case 28: M28(); break;                                    // M28: Start SD write
         case 29: M29(); break;                                    // M29: Stop SD write
         case 30: M30(); break;                                    // M30 <filename> Delete File
@@ -457,7 +468,17 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 109: M109(); break;                                  // M109: Wait for hotend temperature to reach target
       #endif
 
-      case 105: M105(); return;                                   // M105: Report Temperatures (and say "ok")
+      case 105: 
+      #if ENABLED(MKS_WIFI)
+      if(serial_port_index){
+        mks_m105();
+      }else{
+        M105(); 
+      }
+      #else
+      M105(); 
+      #endif
+      return;                                   // M105: Report Temperatures (and say "ok")
 
       #if FAN_COUNT > 0
         case 106: M106(); break;                                  // M106: Fan On
@@ -529,7 +550,18 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 85: M85(); break;                                      // M85: Set inactivity stepper shutdown timeout
       case 92: M92(); break;                                      // M92: Set the steps-per-unit for one or more axes
       case 114: M114(); break;                                    // M114: Report current position
-      case 115: M115(); break;                                    // M115: Report capabilities
+      case 115: 
+      #if ENABLED(MKS_WIFI)  
+      if(serial_port_index){
+        mks_m115();
+        return;
+      }else{
+        M115(); 
+      }
+      #else
+        M115(); 
+      #endif
+        break;                                    // M115: Report capabilities
       case 117: M117(); break;                                    // M117: Set LCD message text, if possible
       case 118: M118(); break;                                    // M118: Display a message in the host console
       case 119: M119(); break;                                    // M119: Report endstop states

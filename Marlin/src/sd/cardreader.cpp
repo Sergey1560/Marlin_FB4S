@@ -261,13 +261,16 @@ void CardReader::printListing(SdFile parent, const char * const prepend/*=nullpt
       if (serial_port_index){
         printLongPath(filename);
       }else{
-        SERIAL_ECHO(filename);
+        SERIAL_ECHOLN(filename);
+        SERIAL_CHAR(' ');
+        SERIAL_ECHOLN(p.fileSize);
       }
       #else
-        SERIAL_ECHO(filename);
-      #endif
+      SERIAL_ECHO(filename);
       SERIAL_CHAR(' ');
       SERIAL_ECHOLN(p.fileSize);
+      #endif
+
     }
   }
 }
@@ -349,13 +352,7 @@ void CardReader::ls() {
 
     } // while i<pathLen
     
-    #if ENABLED(MKS_WIFI)  
-    if(!serial_port_index){
-      SERIAL_EOL();
-      };
-    #else
     SERIAL_EOL();
-    #endif
   }
 
 #endif // LONG_FILENAME_HOST_SUPPORT

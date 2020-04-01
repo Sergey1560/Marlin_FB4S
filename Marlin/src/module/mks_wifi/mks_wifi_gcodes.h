@@ -8,5 +8,8 @@
 
 void mks_m991(void);
 void mks_m997(void);
+void mks_m115(void);
+void mks_m105(void);
+void mks_m27(void);
 
 #endif

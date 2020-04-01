@@ -33,11 +33,6 @@ void GcodeSuite::M105() {
 
   
   SERIAL_ECHOPGM(STR_OK);
-  #if ENABLED(MKS_WIFI)
-  if ( serial_port_index){
-    SERIAL_EOL();
-  };
-  #endif
   
   #if HAS_TEMP_SENSOR
 
