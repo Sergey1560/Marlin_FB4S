@@ -1,6 +1,6 @@
 #include "mks_wifi.h"
 
-
+#include "../../lcd/ultralcd.h"
 
 uint8_t mks_in_buffer[ESP_PACKET_DATA_MAX_SIZE];
 uint8_t mks_out_buffer[ESP_PACKET_DATA_MAX_SIZE];
@@ -19,6 +19,7 @@ void mks_wifi_init(void){
 
 	SET_OUTPUT(MKS_WIFI_IO_RST);
 	WRITE(MKS_WIFI_IO_RST, LOW);
+	ui.set_status((const char *)"WIFI init",false);
 
 	safe_delay(1000);	
 	WRITE(MKS_WIFI_IO_RST, HIGH);
@@ -161,11 +162,18 @@ uint8_t mks_wifi_input(uint8_t data){
 }
 
 void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
-	
+	static uint8_t show_ip_once=0;
+	char ip_str[30];
+
 	switch(packet->type){
 		case ESP_TYPE_NET:
 			
 			if(packet->data[6] == ESP_NET_WIFI_CONNECTED){
+				if(show_ip_once==0){
+					show_ip_once=1;
+					sprintf(ip_str,"IP %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);
+					ui.set_status((const char *)ip_str,true);
+				}
 				DEBUG("[Net] connected, IP: %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);
 			}else if(packet->data[6] == ESP_NET_WIFI_EXCEPTION){
 				DEBUG("[Net] wifi exeption");
