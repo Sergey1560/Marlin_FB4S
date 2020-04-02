@@ -10,9 +10,10 @@ uint8_t esp_packet[ESP_PACKET_DATA_MAX_SIZE];
 
 
 void mks_wifi_init(void){
-	
-    DEBUG("Init MKS WIFI");
 
+	SERIAL_ECHO_MSG("Init MKS WIFI");	
+    DEBUG("Init MKS WIFI");
+	
 	
 	SET_OUTPUT(MKS_WIFI_IO4);
 	WRITE(MKS_WIFI_IO4, HIGH);
@@ -171,8 +172,11 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 			if(packet->data[6] == ESP_NET_WIFI_CONNECTED){
 				if(show_ip_once==0){
 					show_ip_once=1;
-					sprintf(ip_str,"IP %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);
+					sprintf(ip_str,"; IP %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);
 					ui.set_status((const char *)ip_str,true);
+					SERIAL_ECHO_START();
+					SERIAL_ECHOLN((char*)ip_str);	
+					
 				}
 				DEBUG("[Net] connected, IP: %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);
 			}else if(packet->data[6] == ESP_NET_WIFI_EXCEPTION){
