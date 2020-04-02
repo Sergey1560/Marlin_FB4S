@@ -67,7 +67,12 @@ DRESULT disk_read (
 uint8_t res=0;
 	
 	if(pdrv == DEV_SD){
-		return RES_ERROR;
+		res=sd_read((uint8_t*)buff,sector,count);
+		if(res){
+			return RES_ERROR;
+		}else{
+			return RES_OK;
+		}
 	};
 	return RES_PARERR;	
 }
@@ -88,7 +93,12 @@ DRESULT disk_write (
 uint8_t res;
 
 	if(pdrv == DEV_SD){
-				return RES_ERROR;
+		res=sd_write((uint8_t*)buff,sector,count);
+		if(res){
+			return RES_ERROR;
+		}else{
+			return RES_OK;
+		}
 	};
 return RES_PARERR;
 }

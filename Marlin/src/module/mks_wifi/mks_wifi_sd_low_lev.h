@@ -3,6 +3,9 @@
 
 #include "mks_wifi.h"
 
+
 uint8_t sd_init(void);
+uint8_t sd_read(uint8_t *buf, uint32_t sector,uint32_t count);
+uint8_t sd_write(uint8_t *buf, uint32_t sector,uint32_t count);
 
 #endif

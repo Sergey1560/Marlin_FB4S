@@ -422,7 +422,17 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         break;                                    // M27: Get SD status
         case 28: M28(); break;                                    // M28: Start SD write
         case 29: M29(); break;                                    // M29: Stop SD write
-        case 30: M30(); break;                                    // M30 <filename> Delete File
+        case 30: 
+        #if ENABLED(MKS_WIFI)
+            if(!serial_port_index){
+              M30();           
+            }else{
+              mks_m30(parser.string_arg);
+            }
+        #else
+        M30(); 
+        #endif
+        break;                                    // M30 <filename> Delete File
         case 32: M32(); break;                                    // M32: Select file and start SD print
 
         #if ENABLED(LONG_FILENAME_HOST_SUPPORT)

@@ -77,3 +77,11 @@ void mks_m27(void){
     SERIAL_ECHOLN(100);
   }
 }
+
+void mks_m30(char *filename){
+  
+  filename[0]='0';
+  DEBUG("M30: %s",filename);
+  sd_delete_file(filename);
+
+}
