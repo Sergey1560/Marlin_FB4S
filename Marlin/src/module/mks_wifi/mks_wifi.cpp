@@ -1,6 +1,7 @@
 #include "mks_wifi.h"
 
 #include "../../lcd/ultralcd.h"
+#include "mks_wifi_sd.h"
 
 uint8_t mks_in_buffer[ESP_PACKET_DATA_MAX_SIZE];
 uint8_t mks_out_buffer[ESP_PACKET_DATA_MAX_SIZE];
@@ -14,7 +15,8 @@ void mks_wifi_init(void){
 	SERIAL_ECHO_MSG("Init MKS WIFI");	
     DEBUG("Init MKS WIFI");
 	
-	
+	mks_wifi_sd_init();
+
 	SET_OUTPUT(MKS_WIFI_IO4);
 	WRITE(MKS_WIFI_IO4, HIGH);
 
