@@ -260,7 +260,7 @@ void CardReader::printListing(SdFile parent, const char * const prepend/*=nullpt
       if (serial_port_index){
         printLongPath(filename);
       }else{
-        SERIAL_ECHOLN(filename);
+        SERIAL_ECHO(filename);
         SERIAL_CHAR(' ');
         SERIAL_ECHOLN(p.fileSize);
       }
