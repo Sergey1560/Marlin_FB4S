@@ -166,7 +166,7 @@ uint8_t mks_wifi_input(uint8_t data){
 
 void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 	static uint8_t show_ip_once=0;
-	char ip_str[30];
+	char str[100];
 
 	switch(packet->type){
 		case ESP_TYPE_NET:
@@ -174,10 +174,10 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 			if(packet->data[6] == ESP_NET_WIFI_CONNECTED){
 				if(show_ip_once==0){
 					show_ip_once=1;
-					sprintf(ip_str,"; IP %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);
-					ui.set_status((const char *)ip_str,true);
+					sprintf(str,"; IP %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);
+					ui.set_status((const char *)str+2,true);
 					SERIAL_ECHO_START();
-					SERIAL_ECHOLN((char*)ip_str);	
+					SERIAL_ECHOLN((char*)str);	
 					
 				}
 				DEBUG("[Net] connected, IP: %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);
@@ -191,6 +191,7 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 			break;
 		case ESP_TYPE_FILE_FIRST:
 				DEBUG("[FILE_FIRST]");
+				mks_wifi_start_file_upload(packet);
 			break;
 		case ESP_TYPE_FILE_FRAGMENT:
 				DEBUG("[FILE_FRAGMENT]");
@@ -205,6 +206,13 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 	}
 
 }
+/*
+Функция парсер пакета:
+				//Получить размер фрагмента
+				//получить номер фрагмента
+				//Сохранить данные в файл
+				//Если последний фрагмент - вернуть флаг
+*/
 
 
 void mks_wifi_print_var(uint8_t count, ...){

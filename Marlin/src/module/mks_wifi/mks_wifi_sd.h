@@ -8,4 +8,6 @@ void mks_wifi_sd_init(void);
 void mks_wifi_sd_deinit(void);
 void sd_delete_file(char *filename);
 
+void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet);
+
 #endif
