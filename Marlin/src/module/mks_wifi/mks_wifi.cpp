@@ -17,6 +17,9 @@ void mks_wifi_init(void){
 	
 	mks_wifi_sd_init();
 
+	SET_OUTPUT(MKS_WIFI_IO0);
+	WRITE(MKS_WIFI_IO0, HIGH);
+
 	SET_OUTPUT(MKS_WIFI_IO4);
 	WRITE(MKS_WIFI_IO4, HIGH);
 
@@ -141,6 +144,7 @@ uint8_t mks_wifi_input(uint8_t data){
 
 		if(!get_packet_from_esp){
 			DEBUG("Fisrt packet from ESP, send config");
+		
 			mks_wifi_set_param();
 			get_packet_from_esp=1;
 		}
@@ -191,6 +195,7 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 			break;
 		case ESP_TYPE_FILE_FIRST:
 				DEBUG("[FILE_FIRST]");
+				WRITE(MKS_WIFI_IO4, HIGH);
 				mks_wifi_start_file_upload(packet);
 			break;
 		case ESP_TYPE_FILE_FRAGMENT:
