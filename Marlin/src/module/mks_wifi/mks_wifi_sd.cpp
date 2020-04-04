@@ -1,5 +1,6 @@
 #include "mks_wifi_sd.h"
 
+#include "../../lcd/ultralcd.h"
 #include "../../libs/fatfs/ff.h"
 
 FRESULT result;
@@ -40,11 +41,13 @@ void sd_delete_file(char *filename){
 void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 	char str[100];
    UINT bytes_writen=0;
-	uint32_t file_size, file_inc_size;
+	uint32_t file_size, file_inc_size, file_size_writen;
    uint32_t dma_count;
    uint32_t usart1_brr;
    
    FRESULT res;
+
+ 	mks_wifi_sd_init();
 
    //Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
    str[0]='0';
@@ -68,8 +71,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    //Выключить прием по UART RX, включить через DMA, изменить скорость, Выставить флаг приема по DMA
    USART1->CR1 = 0;
 
-   WRITE(MKS_WIFI_IO4, LOW);
-   safe_delay(200); 
+   safe_delay(100); 
    usart1_brr = USART1->BRR;
 
    USART1->CR1 = USART_CR1_UE;
@@ -78,14 +80,15 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    USART1->CR3 = USART_CR3_DMAR;
    USART1->CR1 |= USART_CR1_RE;
 
-
-   (void)USART1->DR;
-
    dma_buff_ptr=(uint8_t*)&dma_buff1;
    dma_buff_index=0;
 
+   /*
+   Прием пакета начинается примерно через 2 секунды
+   Без этой тупой задержки, UART успевает принять 
+   мусор, до пакета с данными и все ломается
+   */
    safe_delay(200);
-   USART1->SR &= ~USART_SR_RXNE;
 
    DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
    DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
@@ -95,8 +98,11 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    DMA1_Channel5->CCR |= DMA_CCR_EN;
    
 
-   dma_count=0;
-   dma_timeout = DMA_TIMEOUT;
+   dma_count = 0; //Счетчик принятых пакетов через DMA. Для отладки
+   file_inc_size=0; //Счетчик принятых данных, для записи в файл
+   file_size_writen = 0; //Счетчик записанных в файл данных
+   
+   dma_timeout = DMA_TIMEOUT; //Тайм-аут, на случай если передача зависла.
    while(dma_timeout > 0){
 
       if(DMA1->ISR & DMA_ISR_TCIF5){
@@ -120,20 +126,31 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
        	WRITE(MKS_WIFI_IO4, HIGH);
 
          data_size = (*(save+3) << 8) | *(save+2);
-         DEBUG("[%d]Save %d bytes",dma_count,data_size);
-
+         file_inc_size += (data_size - 4);
+         DEBUG("[%d]Save %d bytes (%d of %d) ",dma_count,data_size,file_inc_size,file_size);
+         
          res=f_write((FIL *)&upload_file,(uint8_t*)(save+8),(data_size-4),&bytes_writen);
          if(res){
             ERROR("Write err %d",res);
             break;
          }
-         
+
+         sprintf(str,"%ld/%ld",file_inc_size,file_size);
+         ui.set_status((const char *)str,false);
+
+         file_size_writen+=bytes_writen;
+
          f_sync((FIL *)&upload_file);
          WRITE(MKS_WIFI_IO4, LOW);
+         
+         if(*(save+7) == 0x80){
+            DEBUG("Last packet");
+            break;
+         }
+         
          memset((uint8_t*)save,0,1024);
          dma_count++;
          dma_timeout = DMA_TIMEOUT;
-
       }
 
       if(DMA1->ISR & DMA_ISR_TEIF5){
@@ -144,6 +161,15 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    }
    
    f_close((FIL *)&upload_file);
+
+   if( (file_size == file_inc_size) && (file_size == file_size_writen) ){
+         ui.set_status((const char *)"Upload done",false);
+         DEBUG("Upload ok");
+   }else{
+         ui.set_status((const char *)"Upload failed",false);
+         DEBUG("Upload failed: %d; Recieve %d; SD write %d",file_size,file_inc_size,file_size_writen);
+   }
+  
 
    USART1->CR1 = 0;
    USART1->CR1 = (USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE);
