@@ -50,7 +50,6 @@ typedef struct
 
 void mks_wifi_init(void);
 
-void mks_wifi_io0_irq(void);
 void mks_wifi_set_param(void);
 
 uint8_t mks_wifi_input(uint8_t data);

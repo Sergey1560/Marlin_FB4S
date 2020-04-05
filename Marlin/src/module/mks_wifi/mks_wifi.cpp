@@ -23,7 +23,7 @@ void mks_wifi_init(void){
 
 	SET_OUTPUT(MKS_WIFI_IO_RST);
 	WRITE(MKS_WIFI_IO_RST, LOW);
-	ui.set_status((const char *)"WIFI init",false);
+	ui.set_status((const char *)"WIFI: waiting... ",false);
 
 	safe_delay(1000);	
 	WRITE(MKS_WIFI_IO_RST, HIGH);
@@ -61,11 +61,6 @@ void mks_wifi_set_param(void){
 	mks_wifi_send(esp_packet, packet_size);
 }
 
-/* Тестовая функция на обработчик EXTI прерывания */
-void mks_wifi_io0_irq(void){
-    INFO("IO0 Irq");
-}
-
 /*
 Получает данные из всех функций, как только
 есть перевод строки 0x0A, формирует пакет для
@@ -79,12 +74,11 @@ void mks_wifi_out_add(uint8_t *data, uint32_t size){
 		if(*data == 0x0a){
 			//Переводы строки внутри формирования пакета
 			//Перевод строки => сформировать пакет, отправить, сбросить индекс
-			esp_frame.type=ESP_TYPE_FILE_FIRST;
+			esp_frame.type=ESP_TYPE_FILE_FIRST; //Название типа из прошивки MKS. Смысла не имееет.
 			esp_frame.dataLen=strnlen((char *)mks_out_buffer,ESP_PACKET_DATA_MAX_SIZE);
 			esp_frame.data=mks_out_buffer;
 			packet_size=mks_wifi_build_packet(esp_packet,&esp_frame);
 
-			//DEBUG("Send %s",mks_out_buffer);
 			//выпихнуть в uart
 			mks_wifi_send(esp_packet, packet_size);
 			//очистить буфер
@@ -111,8 +105,6 @@ uint8_t mks_wifi_input(uint8_t data){
 	static uint16_t packet_index=0;
 	static uint16_t payload_size=ESP_PACKET_DATA_MAX_SIZE;
 	uint8_t ret_val=1;
-
-
 
 	if(data == ESP_PROTOC_HEAD){
 		payload_size = ESP_PACKET_DATA_MAX_SIZE;
@@ -193,8 +185,11 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 			break;
 		case ESP_TYPE_FILE_FIRST:
 				DEBUG("[FILE_FIRST]");
-				//WRITE(MKS_WIFI_IO4, HIGH);
-				mks_wifi_start_file_upload(packet);
+				//Передача файла останавливает все процессы, 
+				//поэтому печать в этот момент не возможна.
+				if (!CardReader::isPrinting()){
+					mks_wifi_start_file_upload(packet);
+				}
 			break;
 		case ESP_TYPE_FILE_FRAGMENT:
 				DEBUG("[FILE_FRAGMENT]");
@@ -209,14 +204,6 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 	}
 
 }
-/*
-Функция парсер пакета:
-				//Получить размер фрагмента
-				//получить номер фрагмента
-				//Сохранить данные в файл
-				//Если последний фрагмент - вернуть флаг
-*/
-
 
 void mks_wifi_print_var(uint8_t count, ...){
 	va_list args;

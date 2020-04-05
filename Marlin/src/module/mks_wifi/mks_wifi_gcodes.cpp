@@ -44,7 +44,7 @@ void mks_m105(void){
 
 
 void mks_m997(void){
-  static uint8_t call_cnt=0;
+//  static uint8_t call_cnt=0;
 
   if(CardReader::isPrinting()){
     mks_wifi_out_add((uint8_t *)m997_printing,strlen(m997_printing));
@@ -54,10 +54,10 @@ void mks_m997(void){
     mks_wifi_out_add((uint8_t *)m997_idle,strlen(m997_idle));
   }
 
-  if(call_cnt == 0){
-      call_cnt=1;
-    	mks_wifi_send((uint8_t *)pak, 4); //Внутри +1
-  }
+  // if(call_cnt == 0){
+  //     call_cnt=1;
+  //   	mks_wifi_send((uint8_t *)pak, 4); //Внутри +1
+  // }
 
 }
 

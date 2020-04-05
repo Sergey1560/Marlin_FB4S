@@ -7,6 +7,9 @@
 #include "../../sd/cardreader.h"
 #include "small_cmsis.h"
 
+
+#define ESP_PACKET_SIZE     1024
+
 void mks_wifi_sd_init(void);
 void mks_wifi_sd_deinit(void);
 void sd_delete_file(char *filename);
