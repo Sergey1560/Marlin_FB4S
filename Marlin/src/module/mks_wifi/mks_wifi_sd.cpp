@@ -7,11 +7,17 @@ FRESULT result;
 FATFS FATFS_Obj;
 FIL upload_file;
 
+volatile uint8_t __attribute__ ((aligned (4))) file_buff[ESP_PACKET_SIZE*DMA_BUFF_COUNT];
 volatile uint8_t __attribute__ ((aligned (4))) dma_buff1[ESP_PACKET_SIZE];
 volatile uint8_t __attribute__ ((aligned (4))) dma_buff2[ESP_PACKET_SIZE];
 volatile uint8_t *dma_buff[] = {dma_buff1,dma_buff2};
 volatile uint8_t dma_buff_index=0;
 volatile uint8_t *buff;
+volatile uint8_t *fbuff;
+volatile uint32_t dma_count;
+volatile uint8_t dma_error_flag;
+volatile uint8_t dma_recieve_flag;
+
 
 void mks_wifi_sd_init(void){
    CardReader::release();
@@ -39,15 +45,14 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 	char str[100];
    UINT bytes_writen=0;
 	uint32_t file_size, file_inc_size, file_size_writen;
-   uint32_t dma_count;
    uint32_t usart1_brr;
    uint32_t dma_timeout;
    uint16_t data_size;
    FRESULT res;
+   uint32_t bytes_to_save;
+   uint8_t last_packet_flag;
 
- 	mks_wifi_sd_init();
-
-   //Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
+ 	//Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
    str[0]='0';
    str[1]=':';
    str[2]='/';
@@ -101,69 +106,97 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    DMA1_Channel5->CCR |= DMA_CCR_EN;
    
+   //nvic_irq_enable(NVIC_DMA_CH5);
 
    dma_count = 0; //Счетчик принятых пакетов через DMA. Для отладки
    file_inc_size=0; //Счетчик принятых данных, для записи в файл
    file_size_writen = 0; //Счетчик записанных в файл данных
-   
+   dma_error_flag = 0;
+   dma_recieve_flag = 0;
+   last_packet_flag = 0;
    dma_timeout = DMA_TIMEOUT; //Тайм-аут, на случай если передача зависла.
    
    while(dma_timeout-- > 0){
 
-      if(DMA1->ISR & DMA_ISR_TCIF5){
-         DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
-   
-         //Указатель на полученный буфер
-         buff=dma_buff[dma_buff_index];
-         //переключить индекс
-         dma_buff_index = (dma_buff_index) ? 0 : 1;
+         if(DMA1->ISR & DMA_ISR_TCIF5){
+               DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+               //переключить индекс
+               dma_buff_index++;
+               if(dma_buff_index == DMA_BUFF_COUNT){
+                  WRITE(MKS_WIFI_IO4, HIGH);
+                  dma_recieve_flag=1;
+               }else{
+                  DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
+                  DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
+                  DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
+                  DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
+                  DMA1_Channel5->CCR |= DMA_CCR_EN;
+               }
+         }
 
+         if(DMA1->ISR & DMA_ISR_TEIF5){
+            dma_error_flag=1;
+         }
+
+
+
+         if(dma_recieve_flag){
+            memset((uint8_t*)file_buff,0,DMA_BUFF_COUNT*ESP_PACKET_SIZE);
+            bytes_to_save=0;
+            fbuff = file_buff;
+            for(uint32_t i=0; i<DMA_BUFF_COUNT; i++){
+               buff=dma_buff[i];
+      
+               data_size = (*(buff+3) << 8) | *(buff+2);
+               file_inc_size += (data_size - 4); //4 байта с номером сегмента и флагами
+               bytes_to_save += (data_size - 4);
+               
+               memcpy((uint8_t *)fbuff,(uint8_t*)(buff+8),(data_size-4));
+               fbuff += (data_size-4);
+
+               if(*(buff+7) == 0x80){
+                  DEBUG("Last packet");
+                  last_packet_flag=1;
+               }
+
+            }
+
+         dma_buff_index=0;
+         dma_recieve_flag=0;
+         dma_timeout = DMA_TIMEOUT;
+         
          DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
          DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
          DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
          DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
          DMA1_Channel5->CCR |= DMA_CCR_EN;
 
-       	WRITE(MKS_WIFI_IO4, HIGH); //Остановить передачу от ESP
+         WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
 
-         if(*buff != ESP_PROTOC_HEAD){
-            ERROR("Wrong packet head");
-            break;
-         }
-
-         data_size = (*(buff+3) << 8) | *(buff+2);
-         file_inc_size += (data_size - 4); //4 байта с номером сегмента и флагами
-
-         DEBUG("[%d]Save %d bytes (%d of %d) ",dma_count,data_size,file_inc_size,file_size);
-         res=f_write((FIL *)&upload_file,(uint8_t*)(buff+8),(data_size-4),&bytes_writen);
+         DEBUG("Save %d bytes (%d of %d) ",bytes_to_save,file_inc_size,file_size);
+         //res=f_write((FIL *)&upload_file,(uint8_t*)(buff+8),(data_size-4),&bytes_writen);
+         res=FR_OK;
          if(res){
             ERROR("Write err %d",res);
             break;
          }
-         file_size_writen+=bytes_writen;
-         f_sync((FIL *)&upload_file);
 
+         //file_size_writen+=bytes_writen;
+         //f_sync((FIL *)&upload_file);
+         }
+
+         if(dma_error_flag){
+            break;
+         }
+
+         if(last_packet_flag){
+            break;
+         }
+/*
          sprintf(str,"Upload %ld%%",file_inc_size*100/file_size);
          ui.set_status((const char *)str,true);
          ui.update();
-
-         WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
-
-
-         if(*(buff+7) == 0x80){
-            DEBUG("Last packet");
-            break;
-         }
-         
-         memset((uint8_t*)buff,0,ESP_PACKET_SIZE);
-         dma_count++;
-         dma_timeout = DMA_TIMEOUT;
-      }
-
-      if(DMA1->ISR & DMA_ISR_TEIF5){
-         ERROR("DMA Error");
-      }
-
+*/
    }
    
    f_close((FIL *)&upload_file);
@@ -197,5 +230,31 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    WRITE(MKS_WIFI_IO4, LOW); //Включить передачу от ESP 
 
    DEBUG("Settings restored");
+
+}
+
+void __irq_dma1_channel5(void) {
+    if(DMA1->ISR & DMA_ISR_TCIF5){
+         DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+   
+         //переключить индекс
+         dma_buff_index++;
+
+         if(dma_buff_index == DMA_BUFF_COUNT){
+            WRITE(MKS_WIFI_IO4, HIGH);
+            dma_recieve_flag=1;
+            return;
+         }
+
+         DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
+         DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
+         DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
+         DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
+         DMA1_Channel5->CCR |= DMA_CCR_EN;
+    }
+
+    if(DMA1->ISR & DMA_ISR_TEIF5){
+       dma_error_flag=1;
+    }
 
 }
