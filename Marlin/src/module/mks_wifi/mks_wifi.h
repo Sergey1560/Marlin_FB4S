@@ -4,23 +4,12 @@
 #include "../../MarlinCore.h"
 #include "../../inc/MarlinConfig.h"
 #include "../../libs/Segger/log.h"
+#include "mks_wifi_settings.h"
 
 #define MKS_WIFI_SERIAL_NUM        (uint8_t)1
 
 #define WIFI_MODE_STA				(uint8_t)2
 #define WIFI_MODE_AP				(uint8_t)1
-
-#define WIFI_SSID					"MikroTik2"
-#define WIFI_KEY					"vg3Apswqvg3Aps"
-
-/*
-#define WIFI_SSID					"MikroTik2"
-#define WIFI_KEY					"vg3Apswqvg3Aps"
-
-const char wifi_ap[]="bus_station";
-const char wifi_key[]="RAnRZj2JQbSMD5djh3";
-const uint8_t wifi_mode_sel=0;
-*/
 
 
 typedef struct

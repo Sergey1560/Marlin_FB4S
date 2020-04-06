@@ -7,6 +7,10 @@ FRESULT result;
 FATFS FATFS_Obj;
 FIL upload_file;
 
+volatile uint8_t __attribute__ ((aligned (4))) file_buff[ESP_PACKET_SIZE*ESP_FILE_BUFF_COUNT];
+volatile uint8_t *file_buff_pos;
+volatile uint16_t file_data_size;
+
 volatile uint8_t __attribute__ ((aligned (4))) dma_buff1[ESP_PACKET_SIZE];
 volatile uint8_t __attribute__ ((aligned (4))) dma_buff2[ESP_PACKET_SIZE];
 volatile uint8_t *dma_buff[] = {dma_buff1,dma_buff2};
@@ -39,15 +43,18 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 	char str[100];
    UINT bytes_writen=0;
 	uint32_t file_size, file_inc_size, file_size_writen;
-   uint32_t dma_count;
+
+   uint16_t in_sector;
+   uint16_t last_sector;
+
    uint32_t usart1_brr;
    uint32_t dma_timeout;
    uint16_t data_size;
    FRESULT res;
 
- 	mks_wifi_sd_init();
+   uint8_t percent_done;
 
-   //Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
+ 	//Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
    str[0]='0';
    str[1]=':';
    str[2]='/';
@@ -55,9 +62,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    memcpy((uint8_t *)str+3,(uint8_t *)&packet->data[5],(packet->dataLen - 5));
    str[packet->dataLen - 5 + 3] = 0; 
  
-   //Установить размер файла
    file_size=(packet->data[4] << 24) | (packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1];
-   
    DEBUG("Start file %s size %d",str,file_size);
    
    //Отмонтировать SD от Marlin, Монтировать FATFs 
@@ -102,12 +107,13 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    DMA1_Channel5->CCR |= DMA_CCR_EN;
    
 
-   dma_count = 0; //Счетчик принятых пакетов через DMA. Для отладки
    file_inc_size=0; //Счетчик принятых данных, для записи в файл
    file_size_writen = 0; //Счетчик записанных в файл данных
-   
+   file_data_size = 0;
    dma_timeout = DMA_TIMEOUT; //Тайм-аут, на случай если передача зависла.
-   
+   last_sector = 0;
+   percent_done = 0;
+
    while(dma_timeout-- > 0){
 
       if(DMA1->ISR & DMA_ISR_TCIF5){
@@ -118,45 +124,87 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          //переключить индекс
          dma_buff_index = (dma_buff_index) ? 0 : 1;
 
+         //Запустить DMA на прием следующего пакета, пока обрабатывается этот
          DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
          DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
          DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
          DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
          DMA1_Channel5->CCR |= DMA_CCR_EN;
 
-       	WRITE(MKS_WIFI_IO4, HIGH); //Остановить передачу от ESP
-
          if(*buff != ESP_PROTOC_HEAD){
             ERROR("Wrong packet head");
             break;
          }
 
-         data_size = (*(buff+3) << 8) | *(buff+2);
-         file_inc_size += (data_size - 4); //4 байта с номером сегмента и флагами
-
-         DEBUG("[%d]Save %d bytes (%d of %d) ",dma_count,data_size,file_inc_size,file_size);
-         res=f_write((FIL *)&upload_file,(uint8_t*)(buff+8),(data_size-4),&bytes_writen);
-         if(res){
-            ERROR("Write err %d",res);
+         in_sector = (*(buff+5) << 8) | *(buff+4);
+         if((in_sector - last_sector) > 1){
+            ERROR("IN Sec: %d Prev sec: %d",in_sector,last_sector);
             break;
+         }else{
+            last_sector=in_sector;
          }
-         file_size_writen+=bytes_writen;
-         f_sync((FIL *)&upload_file);
 
-         sprintf(str,"Upload %ld%%",file_inc_size*100/file_size);
-         ui.set_status((const char *)str,true);
-         ui.update();
+         data_size = (*(buff+3) << 8) | *(buff+2);
+         data_size -= 4; //4 байта с номером сегмента и флагами
 
-         WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
+         //Если буфер полон и писать некуда, запись в файл
+         if((data_size + file_data_size) > (ESP_FILE_BUFF_COUNT*ESP_PACKET_SIZE)){
+           	
+            WRITE(MKS_WIFI_IO4, HIGH); //Остановить передачу от ESP
+            
+            file_inc_size += file_data_size; 
+            DEBUG("[%d]Save %d bytes (%d of %d) ",in_sector,file_data_size,file_inc_size,file_size);
+            
+            res=f_write((FIL *)&upload_file,(uint8_t*)file_buff,file_data_size,&bytes_writen);
+            if(res){
+               ERROR("Write err %d",res);
+               break;
+            }
+            file_size_writen+=bytes_writen;
+            f_sync((FIL *)&upload_file);
 
+            if((percent_done+5) == (uint8_t)(file_inc_size*100/file_size) ){ //Отображать прогресс только при изменении
+               percent_done = file_inc_size*100/file_size;
+               sprintf(str,"Upload %ld%%",file_inc_size*100/file_size);
+               ui.set_status((const char *)str,true);
+               ui.update();
+            }
+         
+            memset((uint8_t *)file_buff,0,(ESP_FILE_BUFF_COUNT*ESP_PACKET_SIZE));
+            file_data_size=0;
+            WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
+         }
+        
 
-         if(*(buff+7) == 0x80){
+         if(*(buff+7) == 0x80){ //Последний пакет с данными
             DEBUG("Last packet");
+            if(file_data_size != 0){ //В буфере что-то есть
+               file_inc_size += file_data_size; 
+
+               res=f_write((FIL *)&upload_file,(uint8_t*)file_buff,file_data_size,&bytes_writen);
+               if(res){
+                  ERROR("Write err %d",res);
+                  break;
+               }
+               file_size_writen+=bytes_writen;
+               
+               file_inc_size += data_size;
+               res=f_write((FIL *)&upload_file,(uint8_t*)(buff+8),data_size,&bytes_writen);
+               if(res){
+                  ERROR("Write err %d",res);
+                  break;
+               }
+               file_size_writen+=bytes_writen;
+               
+               f_sync((FIL *)&upload_file);
+            }
             break;
          }
          
+         memcpy((uint8_t *)file_buff+file_data_size,(uint8_t*)(buff+8),data_size);
+         file_data_size+=data_size;
+
          memset((uint8_t*)buff,0,ESP_PACKET_SIZE);
-         dma_count++;
          dma_timeout = DMA_TIMEOUT;
       }
 
@@ -170,13 +218,11 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
    if( (file_size == file_inc_size) && (file_size == file_size_writen) ){
          ui.set_status((const char *)"Upload done",true);
-         ui.update();
          DEBUG("Upload ok");
    }else{
          ui.set_status((const char *)"Upload failed",true);
-         DEBUG("Upload failed: %d; Recieve %d; SD write %d",file_size,file_inc_size,file_size_writen);
+         DEBUG("Upload failed! File size: %d; Recieve %d; SD write %d",file_size,file_inc_size,file_size_writen);
    }
-  
 
    //Восстановить USART1
    USART1->CR1 = 0;
@@ -188,14 +234,10 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    //Выключить DMA
    DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    DMA1_Channel5->CCR = 0;
-   DMA1_Channel5->CPAR = 0;
-   DMA1_Channel5->CMAR = 0;
-   DMA1_Channel5->CNDTR = 0;
 
    mks_wifi_sd_deinit();
 
    WRITE(MKS_WIFI_IO4, LOW); //Включить передачу от ESP 
 
    DEBUG("Settings restored");
-
 }

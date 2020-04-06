@@ -38,8 +38,8 @@ void mks_wifi_set_param(void){
 	ESP_PROTOC_FRAME esp_frame;
 
 
-	uint32_t ap_len = strlen((const char *)WIFI_SSID);
-	uint32_t key_len = strlen((const char *)WIFI_KEY);
+	uint32_t ap_len = strlen((const char *)MKS_WIFI_SSID);
+	uint32_t key_len = strlen((const char *)MKS_WIFI_KEY);
 
 
 	memset(mks_out_buffer, 0, sizeof(ESP_PACKET_DATA_MAX_SIZE));
@@ -47,10 +47,10 @@ void mks_wifi_set_param(void){
 	mks_out_buffer[0] = WIFI_MODE_STA;
 
 	mks_out_buffer[1] = ap_len;
-	strncpy((char *)&mks_out_buffer[2], (const char *)WIFI_SSID, ap_len);
+	strncpy((char *)&mks_out_buffer[2], (const char *)MKS_WIFI_SSID, ap_len);
 
 	mks_out_buffer[2+ap_len] = key_len;
-	strncpy((char *)&mks_out_buffer[2 + ap_len + 1], (const char *)WIFI_KEY, key_len);
+	strncpy((char *)&mks_out_buffer[2 + ap_len + 1], (const char *)MKS_WIFI_KEY, key_len);
 
 	esp_frame.type=ESP_TYPE_NET;
 	esp_frame.dataLen= 2 + ap_len + key_len + 1;
