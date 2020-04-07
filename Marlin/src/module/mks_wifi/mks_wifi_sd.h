@@ -11,6 +11,7 @@
 #define DMA_BUFF_SIZE       1024
 
 #define ESP_PACKET_SIZE     1024
+#define ESP_FILE_BUFF_COUNT 4
 
 void mks_wifi_sd_init(void);
 void mks_wifi_sd_deinit(void);
