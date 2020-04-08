@@ -181,6 +181,11 @@
   #include "libs/L64XX/L64XX_Marlin.h"
 #endif
 
+#ifdef MKS_WIFI
+  #include "module/mks_wifi/mks_wifi.h"
+#endif
+
+
 const char NUL_STR[] PROGMEM = "",
            M112_KILL_STR[] PROGMEM = "M112 Shutdown",
            G28_STR[] PROGMEM = "G28",
@@ -900,7 +905,7 @@ void setup() {
   SERIAL_ECHOLNPGM("start");
   SERIAL_ECHO_START();
 
-  #if HAS_TMC_SPI
+    #if HAS_TMC_SPI
     #if DISABLED(TMC_USE_SW_SPI)
       SPI.begin();
     #endif
@@ -949,7 +954,7 @@ void setup() {
     };
     #define SETUP_LOG(M) log_current_ms(PSTR(M))
   #else
-    #define SETUP_LOG(...) NOOP
+    #define SETUP_LOG(C) DEBUG(C)
   #endif
   #define SETUP_RUN(C) do{ SETUP_LOG(STRINGIFY(C)); C; }while(0)
 
@@ -1155,6 +1160,10 @@ void setup() {
 
   #if ENABLED(MAX7219_DEBUG)
     SETUP_RUN(max7219.init());
+  #endif
+
+  #if ENABLED(MKS_WIFI)
+    mks_wifi_init();
   #endif
 
   marlin_state = MF_RUNNING;
