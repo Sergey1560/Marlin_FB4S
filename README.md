@@ -1,76 +1,53 @@
-# Marlin 3D Printer Firmware
+# Marlin 3D Printer Firmware for Flying Bear 4S
 
-![GitHub](https://img.shields.io/github/license/marlinfirmware/marlin.svg)
-![GitHub contributors](https://img.shields.io/github/contributors/marlinfirmware/marlin.svg)
-![GitHub Release Date](https://img.shields.io/github/release-date/marlinfirmware/marlin.svg)
-[![Build Status](https://github.com/MarlinFirmware/Marlin/workflows/CI/badge.svg?branch=bugfix-2.0.x)](https://github.com/MarlinFirmware/Marlin/actions)
+## Версия с тестовой поддержкой WIFI модуля
 
-<img align="right" width=175 src="buildroot/share/pixmaps/logo/marlin-250.png" />
+Эта ветка содержит код для работы с WIFI модулем, установленным в FB4S. Загрузка файлов через стандартный plugin в Cura.
+Ветка основана на ветке FB4S_Config, с добавлением кода работы с WIFI модулем.
 
-Additional documentation can be found at the [Marlin Home Page](http://marlinfw.org/).
-Please let us know if Marlin misbehaves in any way. Volunteers are standing by!
+## Что работает, что не работает
 
-## Marlin 2.0
+### Работает (иногда)
 
-Marlin 2.0 takes this popular RepRap firmware to the next level by adding support for much faster 32-bit and ARM-based boards while improving support for 8-bit AVR boards. Read about Marlin's decision to use a "Hardware Abstraction Layer" below.
+* Отображение температуры в Cura
+* Просмотр содержимого SD карты
+* Удаление файлов с SD карты
+* Загрузка файлов на SD карту
+* Настройка WIFI модуля (сеть и пароль)
 
-Download earlier versions of Marlin on the [Releases page](https://github.com/MarlinFirmware/Marlin/releases).
+### Не работает (совсем)
 
-## Building Marlin 2.0
+* **Имена файлов на русском** Переименуйте файл в Cura
+* Запуск печати. При нажатии "Print over Flying Bear Ghost 4S" файл загружается, но печать автоматически не стартует. Надо из меню принтера выбрать "Print from media"
+* Отображение состояния принтера (печатает, не печатает) в Cura
+* Все остальное, что не в указано в "работает"
 
-To build Marlin 2.0 you'll need [Arduino IDE 1.8.8 or newer](https://www.arduino.cc/en/main/software) or [PlatformIO](http://docs.platformio.org/en/latest/ide.html#platformio-ide). Detailed build and install instructions are posted at:
+## Как работает, как настроить
 
-  - [Installing Marlin (Arduino)](http://marlinfw.org/docs/basics/install_arduino.html)
-  - [Installing Marlin (VSCode)](http://marlinfw.org/docs/basics/install_platformio_vscode.html).
+### Настройки WIFI
 
-### Supported Platforms
+В файле [mks_wifi_settings.h](./Marlin/src/module/mks_wifi/mks_wifi_settings.h)
 
-  Platform|MCU|Example Boards
-  --------|---|-------
-  [Arduino AVR](https://www.arduino.cc/)|ATmega|RAMPS, Melzi, RAMBo
-  [Teensy++ 2.0](http://www.microchip.com/wwwproducts/en/AT90USB1286)|AT90USB1286|Printrboard
-  [Arduino Due](https://www.arduino.cc/en/Guide/ArduinoDue)|SAM3X8E|RAMPS-FD, RADDS, RAMPS4DUE
-  [LPC1768](http://www.nxp.com/products/microcontrollers-and-processors/arm-based-processors-and-mcus/lpc-cortex-m-mcus/lpc1700-cortex-m3/512kb-flash-64kb-sram-ethernet-usb-lqfp100-package:LPC1768FBD100)|ARM® Cortex-M3|MKS SBASE, Re-ARM, Selena Compact
-  [LPC1769](https://www.nxp.com/products/processors-and-microcontrollers/arm-microcontrollers/general-purpose-mcus/lpc1700-cortex-m3/512kb-flash-64kb-sram-ethernet-usb-lqfp100-package:LPC1769FBD100)|ARM® Cortex-M3|Smoothieboard, Azteeg X5 mini, TH3D EZBoard
-  [STM32F103](https://www.st.com/en/microcontrollers-microprocessors/stm32f103.html)|ARM® Cortex-M3|Malyan M200, GTM32 Pro, MKS Robin, BTT SKR Mini
-  [STM32F401](https://www.st.com/en/microcontrollers-microprocessors/stm32f401.html)|ARM® Cortex-M4|ARMED, Rumba32, SKR Pro, Lerdge, FYSETC S6
-  [STM32F7x6](https://www.st.com/en/microcontrollers-microprocessors/stm32f7x6.html)|ARM® Cortex-M7|The Borg, RemRam V1
-  [SAMD51P20A](https://www.adafruit.com/product/4064)|ARM® Cortex-M4|Adafruit Grand Central M4
-  [Teensy 3.5](https://www.pjrc.com/store/teensy35.html)|ARM® Cortex-M4|
-  [Teensy 3.6](https://www.pjrc.com/store/teensy36.html)|ARM® Cortex-M4|
+### Как понять, что оно работает
 
-## Submitting Changes
+При включении принтера, на экране отобразится статус "WIFI init"
 
-- Submit **Bug Fixes** as Pull Requests to the ([bugfix-2.0.x](https://github.com/MarlinFirmware/Marlin/tree/bugfix-2.0.x)) branch.
-- Submit **New Features** to the ([dev-2.1.x](https://github.com/MarlinFirmware/Marlin/tree/dev-2.1.x)) branch.
-- Follow the [Coding Standards](http://marlinfw.org/docs/development/coding_standards.html) to gain points with the maintainers.
-- Please submit your questions and concerns to the [Issue Queue](https://github.com/MarlinFirmware/Marlin/issues).
+Если ESP модулю удалось подключиться к сети указанной в mks_wifi_settings.h, на экране будет IP адрес.
 
-## Marlin Support
+При старте передачи файла отображается "Upload file", в процессе загрузки отображается прогресс в процентах.
 
-For best results getting help with configuration and troubleshooting, please use the following resources:
+Если файл успешно принят отобразится "Upload done" и **прозвучит звуковой сигнал**
 
-- [Marlin Documentation](http://marlinfw.org) - Official Marlin documentation
-- [Marlin Discord](https://discord.gg/n5NJ59y) - Discuss issues with Marlin users and developers
-- Facebook Group ["Marlin Firmware"](https://www.facebook.com/groups/1049718498464482/)
-- RepRap.org [Marlin Forum](http://forums.reprap.org/list.php?415)
-- [Tom's 3D Forums](https://discuss.toms3d.org/)
-- Facebook Group ["Marlin Firmware for 3D Printers"](https://www.facebook.com/groups/3Dtechtalk/)
-- [Marlin Configuration](https://www.youtube.com/results?search_query=marlin+configuration) on YouTube
+Если во время приема файла были ошибки, отобразится надпись "Upload Failed" и **звукового сигнала не будет**
 
-## Credits
+### Что и где и зачем
 
-The current Marlin dev team consists of:
+Основной код работы лежит в Marlin/src/module/mks_wifi
 
- - Scott Lahteine [[@thinkyhead](https://github.com/thinkyhead)] - USA &nbsp; [Donate](http://www.thinkyhead.com/donate-to-marlin) / Flattr: [![Flattr Scott](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=thinkyhead&url=https://github.com/MarlinFirmware/Marlin&title=Marlin&language=&tags=github&category=software)
- - Roxanne Neufeld [[@Roxy-3D](https://github.com/Roxy-3D)] - USA
- - Chris Pepper [[@p3p](https://github.com/p3p)] - UK
- - Bob Kuhn [[@Bob-the-Kuhn](https://github.com/Bob-the-Kuhn)] - USA
- - João Brazio [[@jbrazio](https://github.com/jbrazio)] - Portugal
- - Erik van der Zalm [[@ErikZalm](https://github.com/ErikZalm)] - Netherlands &nbsp; [![Flattr Erik](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ErikZalm&url=https://github.com/MarlinFirmware/Marlin&title=Marlin&language=&tags=github&category=software)
+Для работы с файловой системой, в Marlin/src/libs/fatfs лежит FATFs и драйвер SDIO. Marlin зачем-то использует формат имен файлов в формате 8.3, а ESP модуль и plugin в Cura используют длинные имена файлов. Мне не удалось использовать для этого библиотеку из Marlin. Кроме того, драйвер SDIO используемый Marlin не умеет мультиблочное чтение/запись. Поэтому я использовал FATFs и свой драйвер SDIO. При начале передачи карта отключается от Marlin, заново происходит инит карты, и уже через FATFs запись файла. После передачи файла карта обратно подключается в Marlin.
 
-## License
+Во время передачи файла управление в цикл Marlin не возвращается. Это значит, что пока идет передача никакой функционал Marlina не работает, команды не исполняются, устройства не управляются. Предполагается, что загрузка файла происходит во время простоя принтера. Есть проверка на то, чтобы передача не началась во время печати, но лучше не пробовать.
 
-Marlin is published under the [GPL license](/LICENSE) because we believe in open development. The GPL comes with both rights and obligations. Whether you use Marlin firmware as the driver for your open or closed-source product, you must keep Marlin open, and you must provide your compatible Marlin source code to end users upon request. The most straightforward way to comply with the Marlin license is to make a fork of Marlin on Github, perform your modifications, and direct users to your modified fork.
+Почему такая убогая работа с DMA, с опросом флага в цикле. Я не смог использовать прерывание. Авторы libmapple зачем-то переименовали общепринятые названия обработчиков прерываний. Обработчик по умолчанию с "weak" я нашел, но почему-то мой обработчик с таким именем не работал. Если кто-то может показать как подключить свой обработчик прерывания DMA, это сделает код чище, проще и немного быстрее.
 
-While we can't prevent the use of this code in products (3D printers, CNC, etc.) that are closed source or crippled by a patent, we would prefer that you choose another firmware or, better yet, make your own.
+Скорость работы. Примерно такая же как у стандартного 4S. В целом упирается в ESP модуль, на карту можно писать и быстрее.
