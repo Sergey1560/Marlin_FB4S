@@ -1,8 +1,11 @@
+/*
 #include "mks_wifi_sd_low_lev.h"
 #include "../../sd/Sd2Card_sdio.h"
+#include "../../HAL/STM32F1/sdio.h"
 
+//volatile uint8_t __attribute__ ((aligned (4))) align_buff[512];
 
-volatile uint8_t __attribute__ ((aligned (4))) align_buff[512];
+extern SDIO_CardInfoTypeDef SdCard;
 
 uint8_t sd_init(void){
     
@@ -11,6 +14,10 @@ uint8_t sd_init(void){
     }else{
         return 1;
     }
+}
+
+uint32_t sd_get_rca(void){
+    return SdCard.RelCardAdd;
 }
 
 
@@ -64,3 +71,4 @@ uint8_t sd_write(uint8_t *buf, uint32_t sector,uint32_t count){
     }
     return 0;
 }
+*/

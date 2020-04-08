@@ -29,7 +29,10 @@ void mks_wifi_init(void){
 	WRITE(MKS_WIFI_IO_RST, HIGH);
 	safe_delay(1000);	
 	WRITE(MKS_WIFI_IO4, LOW);
-
+	// mks_wifi_sd_deinit();
+	// safe_delay(100);	
+	// mks_wifi_sd_init();
+	// mks_wifi_sd_deinit();
 }
 
 

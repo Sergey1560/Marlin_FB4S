@@ -42,7 +42,7 @@ DSTATUS disk_initialize (
 	int result;
 		
 	if(pdrv == DEV_SD){
-		result=sd_init();
+		result=SD_Init();
 		if(result != 0) {
 			return STA_NOINIT;
 		};
@@ -67,12 +67,15 @@ DRESULT disk_read (
 uint8_t res=0;
 	
 	if(pdrv == DEV_SD){
-		res=sd_read((uint8_t*)buff,sector,count);
-		if(res){
-			return RES_ERROR;
-		}else{
-			return RES_OK;
-		}
+		//1st read
+		res=SD_transfer((uint8_t *)buff, (uint32_t) sector, count, SD2UM);
+		if(res != 0){
+			res=SD_transfer((uint8_t *)buff, (uint32_t) sector, count, SD2UM);
+			if(res != 0){
+				return RES_ERROR;
+			};
+		};
+		return RES_OK;
 	};
 	return RES_PARERR;	
 }
@@ -93,12 +96,14 @@ DRESULT disk_write (
 uint8_t res;
 
 	if(pdrv == DEV_SD){
-		res=sd_write((uint8_t*)buff,sector,count);
-		if(res){
-			return RES_ERROR;
-		}else{
-			return RES_OK;
-		}
+		res=SD_transfer((uint8_t *)buff, (uint32_t) sector, count, UM2SD);
+		if(res != 0){
+			res=SD_transfer((uint8_t *)buff, (uint32_t) sector, count, UM2SD);
+			if(res != 0){
+				return RES_ERROR;
+			};
+		};
+		return RES_OK;
 	};
 return RES_PARERR;
 }

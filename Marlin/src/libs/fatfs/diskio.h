@@ -11,6 +11,7 @@
 
 #include "integer.h"
 #include "../../module/mks_wifi/mks_wifi_sd_low_lev.h"
+#include "sdio_driver.h"
 #include "../../MarlinCore.h"
 
 /* Status of Disk Functions */
