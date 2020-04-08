@@ -184,3 +184,9 @@ cmake-build-*
 
 #Python
 __pycache__
+
+#Ozone
+ozone.jdebug
+ozone.jdebug.user
+
+*.txt
