@@ -188,3 +188,5 @@ __pycache__
 
 #Ozone
 ozone.jdebug.user
+ozone.jdebug
+*.txt
