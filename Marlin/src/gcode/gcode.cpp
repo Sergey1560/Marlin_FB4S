@@ -401,10 +401,28 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 17: M17(); break;                                      // M17: Enable all stepper motors
 
       #if ENABLED(SDSUPPORT)
-        case 20: M20(); break;                                    // M20: List SD card
+        case 20: 
+          #if ENABLED(MKS_WIFI)
+          if(!IS_SD_PRINTING()){
+           DEBUG("No SD print, proceed cmd");
+           M20();           
+          }else{
+            DEBUG("SD print, skip cmd");
+          }
+          #else
+          M20(); 
+          #endif
+        break;                                    // M20: List SD card
         case 21: M21(); break;                                    // M21: Init SD card
         case 22: M22(); break;                                    // M22: Release SD card
-        case 23: M23(); break;                                    // M23: Select file
+        case 23: 
+          #if ENABLED(MKS_WIFI)
+          mks_m23(parser.string_arg);
+          #else
+          M23(); 
+          #endif
+          
+          break;                                    // M23: Select file
         case 24: M24(); break;                                    // M24: Start SD print
         case 25: M25(); break;                                    // M25: Pause SD print
         case 26: M26(); break;                                    // M26: Set SD index

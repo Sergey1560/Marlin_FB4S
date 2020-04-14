@@ -29,10 +29,7 @@ void mks_wifi_init(void){
 	WRITE(MKS_WIFI_IO_RST, HIGH);
 	safe_delay(1000);	
 	WRITE(MKS_WIFI_IO4, LOW);
-	// mks_wifi_sd_deinit();
-	// safe_delay(100);	
-	// mks_wifi_sd_init();
-	// mks_wifi_sd_deinit();
+
 }
 
 
@@ -102,7 +99,9 @@ void mks_wifi_out_add(uint8_t *data, uint32_t size){
 
 uint8_t mks_wifi_input(uint8_t data){
 	ESP_PROTOC_FRAME esp_frame;
+	#ifdef MKS_WIFI_ENABLED_WIFI_CONFIG 
 	static uint8_t get_packet_from_esp=0;
+	#endif
 	static uint8_t packet_start_flag=0;
 	static uint8_t packet_type=0;
 	static uint16_t packet_index=0;
@@ -135,13 +134,14 @@ uint8_t mks_wifi_input(uint8_t data){
 
 		mks_wifi_parse_packet(&esp_frame);
 
+		#ifdef MKS_WIFI_ENABLED_WIFI_CONFIG 
 		if(!get_packet_from_esp){
 			DEBUG("Fisrt packet from ESP, send config");
 		
 			mks_wifi_set_param();
 			get_packet_from_esp=1;
 		}
-
+		#endif
 		packet_start_flag=0;
 		packet_index=0;
 	}
@@ -164,6 +164,7 @@ uint8_t mks_wifi_input(uint8_t data){
 void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 	static uint8_t show_ip_once=0;
 	char str[100];
+	uint8_t str_len;
 
 	switch(packet->type){
 		case ESP_TYPE_NET:
@@ -175,6 +176,14 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 					ui.set_status((const char *)str+2,true);
 					SERIAL_ECHO_START();
 					SERIAL_ECHOLN((char*)str);	
+
+					//Вывод имени сети
+					str_len = packet->data[8]; //Wifi network name len
+					memcpy(str,&packet->data[9],str_len); 
+					str[str_len]=0;
+					SERIAL_ECHO_START();
+					SERIAL_ECHO("; WIFI: ");
+					SERIAL_ECHOLN((char*)str);
 					
 				}
 				DEBUG("[Net] connected, IP: %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);

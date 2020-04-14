@@ -85,3 +85,42 @@ void mks_m30(char *filename){
   sd_delete_file(filename);
 
 }
+
+void mks_m23(char *filename){
+    char dosfilename[14];
+    uint8_t dot_pos;
+
+    DEBUG("M23: %s",filename);
+
+    // Simplify3D includes the size, so zero out all spaces (#7227)
+    for (char *fn = filename; *fn; ++fn) if (*fn == ' ') *fn = '\0';
+
+    //Имя файла может быть меньше 12 символов, но с расширением .gcode
+    //С конца имени файла шагаем к началу, считаем сколько символов до точки
+    dot_pos=0;
+    for (char *fn = (filename+strlen(filename) - 1); fn > filename; --fn){
+      dot_pos++;  
+      if (*fn == '.') break;
+    }
+
+    DEBUG("DOT pos: %d",dot_pos);
+    
+    CardReader::mount();
+
+    if((strlen(filename) > 12) || (dot_pos > 4)){
+      DEBUG("Long file name");
+      if(CardReader::getDosFilename(filename,dosfilename)){
+        strcpy(CardReader::longFilename,filename); //Для отображения на экране
+        DEBUG("DOS file name: %s",dosfilename);
+        card.openFileRead(dosfilename);
+    }else{
+      DEBUG("Can't find dos file name");
+    }
+
+    }else{
+      DEBUG("DOS file name");
+      card.openFileRead(filename);
+    }
+
+}
+

@@ -1167,4 +1167,181 @@ void CardReader::fileHasFinished() {
 
 #endif // POWER_LOSS_RECOVERY
 
+#if ENABLED(MKS_WIFI)
+uint8_t CardReader::getDosFilename(char *file, char *dosfile){
+    dir_t p;
+    SdFile parent=root;
+    char f_name_buf[100];
+    int i, pathLen;
+    uint8_t retval=0;
+
+    parent.rewind();
+
+    while (parent.readDir(&p, longFilename) > 0) {
+      createFilename(filename, p);
+      pathLen = strlen(filename);
+      for (i = 0; i < pathLen; i++) if (filename[i] == '/') filename[i] = '\0';
+
+      SdFile diveDir = root; // start from the root for segment 1
+
+      for (i = 0; i < pathLen;) {
+
+      if (filename[i] == '\0') i++; // move past a single nul
+      char *segment = &filename[i]; // The segment after most slashes
+      // If a segment is empty (extra-slash) then exit
+      if (!*segment) break;
+      // Go to the next segment
+      while (filename[++i]) { }
+      diveDir.rewind();
+      strcpy(f_name_buf,segment);
+      selectByName(diveDir, f_name_buf);
+      
+      // Проверка длинного имени:
+      //DEBUG("F: %s LF %s ",filename,longFilename);
+      if(!strncmp(longFilename,file,100)){
+        strncpy(dosfile,filename,13);
+        retval=1;
+        break;
+      }
+      // If the filename was printed then that's it
+      if (!flag.filenameIsDir) break;
+      diveDir.close();
+    } // while i<pathLen
+  }
+
+  return retval;
+}
+/*
+
+  void CardReader::printLongPath(char * const path) {
+    #if ENABLED(MKS_WIFI)
+    char f_name_buf[100];
+    #endif
+    int i, pathLen = strlen(path);
+    
+    // SERIAL_ECHOPGM("Full Path: "); SERIAL_ECHOLN(path);
+
+    // Zero out slashes to make segments
+    for (i = 0; i < pathLen; i++) if (path[i] == '/') path[i] = '\0';
+
+    SdFile diveDir = root; // start from the root for segment 1
+    for (i = 0; i < pathLen;) {
+
+      if (path[i] == '\0') i++; // move past a single nul
+
+      char *segment = &path[i]; // The segment after most slashes
+
+      // If a segment is empty (extra-slash) then exit
+      if (!*segment) break;
+
+      // Go to the next segment
+      while (path[++i]) { }
+
+      // SERIAL_ECHOPGM("Looking for segment: "); SERIAL_ECHOLN(segment);
+
+      // Find the item, setting the long filename
+      diveDir.rewind();
+      #if ENABLED(MKS_WIFI)
+      strcpy(f_name_buf,segment);
+      selectByName(diveDir, f_name_buf);
+      #else
+      selectByName(diveDir, segment);
+      #endif
+
+      // Print /LongNamePart to serial output
+      #if ENABLED(MKS_WIFI)
+      if(!serial_port_index){
+      SERIAL_CHAR('/');
+      };
+      #else
+      SERIAL_CHAR('/');
+      #endif
+      SERIAL_ECHO(longFilename[0] ? longFilename : "???");
+
+      // If the filename was printed then that's it
+      if (!flag.filenameIsDir) break;
+
+      // SERIAL_ECHOPGM("Opening dir: "); SERIAL_ECHOLN(segment);
+
+      // Open the sub-item as the new dive parent
+      SdFile dir;
+      if (!dir.open(&diveDir, segment, O_READ)) {
+        SERIAL_EOL();
+        SERIAL_ECHO_START();
+        SERIAL_ECHOPAIR(STR_SD_CANT_OPEN_SUBDIR, segment);
+        break;
+      }
+
+      diveDir.close();
+      diveDir = dir;
+
+    } // while i<pathLen
+    
+    SERIAL_EOL();
+  }
+
+
+
+void CardReader::printListing(SdFile parent, const char * const prepend) {
+  dir_t p;
+  while (parent.readDir(&p, longFilename) > 0) {
+    if (DIR_IS_SUBDIR(&p)) {
+
+      // Get the short name for the item, which we know is a folder
+      char dosFilename[FILENAME_LENGTH];
+      createFilename(dosFilename, p);
+
+      // Allocate enough stack space for the full path to a folder, trailing slash, and nul
+      const bool prepend_is_empty = (!prepend || prepend[0] == '\0');
+      const int len = (prepend_is_empty ? 1 : strlen(prepend)) + strlen(dosFilename) + 1 + 1;
+      char path[len];
+
+      // Append the FOLDERNAME12/ to the passed string.
+      // It contains the full path to the "parent" argument.
+      // We now have the full path to the item in this folder.
+      strcpy(path, prepend_is_empty ? "/" : prepend); // root slash if prepend is empty
+      strcat(path, dosFilename);                      // FILENAME_LENGTH characters maximum
+      strcat(path, "/");                              // 1 character
+
+      // Serial.print(path);
+
+      // Get a new directory object using the full path
+      // and dive recursively into it.
+      SdFile child;
+      if (!child.open(&parent, dosFilename, O_READ)) {
+        SERIAL_ECHO_START();
+        SERIAL_ECHOLNPAIR(STR_SD_CANT_OPEN_SUBDIR, dosFilename);
+      }
+      printListing(child, path);
+      // close() is done automatically by destructor of SdFile
+    }
+    else if (is_dir_or_gcode(p)) {
+      createFilename(filename, p);
+      if (prepend) SERIAL_ECHO(prepend);
+
+      #if ENABLED(MKS_WIFI)
+      if (serial_port_index){
+        printLongPath(filename);
+      }else{
+        SERIAL_ECHO(filename);
+        SERIAL_CHAR(' ');
+        SERIAL_ECHOLN(p.fileSize);
+      }
+      #else
+      SERIAL_ECHO(filename);
+      SERIAL_CHAR(' ');
+      SERIAL_ECHOLN(p.fileSize);
+      #endif
+
+    }
+  }
+}
+
+*/
+
+
+
+#endif
+
+
 #endif // SDSUPPORT
