@@ -40,7 +40,7 @@
 #undef JTAGSWD_DISABLE
 
 //Case LED in instead E1
-#define CASE_LED_INSTEAD_E1
+//#define CASE_LED_INSTEAD_E1
 
 //
 // Limit Switches
