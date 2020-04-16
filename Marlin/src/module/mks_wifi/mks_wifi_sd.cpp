@@ -24,7 +24,7 @@ void mks_wifi_sd_init(void){
    CardReader::release();
 
    result = f_mount((FATFS *)&FATFS_Obj, "0", 1);
-   DEBUG("SD init %d",result);
+   DEBUG("SD init result:%d",result);
 
 }
 
@@ -72,7 +72,12 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    mks_wifi_sd_init();
    
    //открыть файл для записи
-   f_open((FIL *)&upload_file,str,FA_CREATE_ALWAYS | FA_WRITE);
+   res=f_open((FIL *)&upload_file,str,FA_CREATE_ALWAYS | FA_WRITE);
+   if(res){
+      DEBUG("File open error %d",res);
+      mks_wifi_sd_deinit();
+      return;
+   }
 
    ui.set_status((const char *)"Upload file...",true);
    ui.update();
@@ -185,23 +190,26 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
             if(file_data_size != 0){ //В буфере что-то есть
                file_inc_size += file_data_size; 
 
+               DEBUG("Save %d bytes from buffer (%d of %d) ",file_data_size,file_inc_size,file_size);
                res=f_write((FIL *)&upload_file,(uint8_t*)file_buff,file_data_size,&bytes_writen);
                if(res){
                   ERROR("Write err %d",res);
                   break;
                }
                file_size_writen+=bytes_writen;
-               
-               file_inc_size += data_size;
-               res=f_write((FIL *)&upload_file,(uint8_t*)(buff+8),data_size,&bytes_writen);
-               if(res){
-                  ERROR("Write err %d",res);
-                  break;
-               }
-               file_size_writen+=bytes_writen;
-               
-               f_sync((FIL *)&upload_file);
+            }   
+           
+            file_inc_size += data_size;
+            DEBUG("Save %d bytes from dma (%d of %d) ",data_size,file_inc_size,file_size);
+            res=f_write((FIL *)&upload_file,(uint8_t*)(buff+8),data_size,&bytes_writen);
+            if(res){
+               ERROR("Write err %d",res);
+               break;
             }
+            file_size_writen+=bytes_writen;
+            
+            f_sync((FIL *)&upload_file);
+            
             break;
          }
          
@@ -227,6 +235,17 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    }else{
          ui.set_status((const char *)"Upload failed",true);
          DEBUG("Upload failed! File size: %d; Recieve %d; SD write %d",file_size,file_inc_size,file_size_writen);
+         //Установить имя файла.
+         str[0]='0';
+         str[1]=':';
+         str[2]='/';
+
+         memcpy((uint8_t *)str+3,(uint8_t *)&packet->data[5],(packet->dataLen - 5));
+         str[packet->dataLen - 5 + 3] = 0; 
+
+         DEBUG("Rename file %s",str);
+         f_rename(str,"file_failed.gcode");
+
          BUZZ(436,392);
          BUZZ(109,0);
          BUZZ(436,392);
