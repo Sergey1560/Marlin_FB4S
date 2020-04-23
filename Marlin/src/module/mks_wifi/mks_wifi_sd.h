@@ -14,6 +14,7 @@
 #define DATA_SIZE 16*1024
 #define WRITE_COUNT 255
 
+void mks_wifi_sd_ls(void);
 
 void mks_wifi_sd_init(void);
 void mks_wifi_sd_deinit(void);

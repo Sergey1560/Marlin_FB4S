@@ -20,6 +20,24 @@ volatile uint8_t *buff;
 
 uint8_t __attribute__ ((aligned (4))) data[DATA_SIZE]; 
 
+void mks_wifi_sd_ls(void){
+    FRESULT res;
+    DIR dir;
+    static FILINFO fno;
+
+    res = f_opendir(&dir, "0:");                       /* Open the directory */
+    if (res == FR_OK) {
+        for (;;) {
+            res = f_readdir(&dir, &fno);                   /* Read a directory item */
+            if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+                DEBUG("%s\n", fno.fname);
+            }
+       }else{
+          ERROR("Opendir error %d",res);
+      }
+   f_closedir(&dir);
+}
+
 void mks_wifi_sd_init(void){
    CardReader::release();
 
@@ -52,7 +70,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    uint16_t last_sector;
 
    uint32_t usart1_brr;
-   uint32_t dma_timeout;
+   volatile uint32_t dma_timeout;
    uint16_t data_size;
    FRESULT res;
 
