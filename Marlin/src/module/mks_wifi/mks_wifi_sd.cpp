@@ -3,6 +3,7 @@
 #include "../../lcd/ultralcd.h"
 #include "../../libs/fatfs/ff.h"
 #include "../../libs/buzzer.h"  
+#include "../temperature.h"
 
 FRESULT result;
 FATFS FATFS_Obj;
@@ -73,11 +74,16 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    volatile uint32_t dma_timeout;
    uint16_t data_size;
    FRESULT res;
-
-   //Отключить все нагреватели
-   OUT_WRITE(HEATER_0_PIN, LOW);
-   OUT_WRITE(HEATER_1_PIN, LOW);
-   OUT_WRITE(HEATER_BED_PIN, LOW);
+   int16_t save_bed,save_e0;
+   
+   save_bed=thermalManager.degTargetBed();
+   save_e0=thermalManager.degTargetHotend(0);
+   
+   DEBUG("Saved target temp E0 %d Bed %d",save_e0,save_bed);
+   
+   thermalManager.setTargetBed(0);
+   thermalManager.setTargetHotend(0,0);
+   OUT_WRITE(HEATER_1_PIN,HIGH);
 
  	//Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
    str[0]='0';
@@ -200,7 +206,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
             sprintf(str,"Upload %ld%%",file_inc_size*100/file_size);
             ui.set_status((const char *)str,true);
             ui.update();
-         
+
             memset((uint8_t *)file_buff,0,(ESP_FILE_BUFF_COUNT*ESP_PACKET_SIZE));
             file_data_size=0;
             WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
@@ -291,4 +297,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    WRITE(MKS_WIFI_IO4, LOW); //Включить передачу от ESP 
 
    DEBUG("Settings restored");
+   thermalManager.setTargetBed(save_bed);
+   thermalManager.setTargetHotend(save_e0,0);
+
 }

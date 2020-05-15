@@ -155,7 +155,9 @@ typedef struct
 #define DMA2_Channel4_BASE    (AHBPERIPH_BASE + 0x00000444U)
 #define SDIO_BASE             (PERIPH_BASE + 0x00018000U)
 #define I2C1_BASE             (APB1PERIPH_BASE + 0x00005400U)
+#define PORTA_BASE            (APB2PERIPH_BASE + 0x00000800U)
 #define PORTB_BASE            (APB2PERIPH_BASE + 0x00000C00U)
+#define PORTC_BASE            (APB2PERIPH_BASE + 0x00001000U)
 #define AFIOBASE              (APB2PERIPH_BASE + 0x00000000U)
 #define CoreDebug_BASE        (0xE000EDF0UL)  /*!< Core Debug Base Address */
 #define DWT_BASE              (0xE0001000UL)  /*!< DWT Base Address */
@@ -169,7 +171,9 @@ typedef struct
 #define DMA2_Channel4         ((DMA_Channel_TypeDef *)DMA2_Channel4_BASE)
 #define DMA2                  ((DMA_TypeDef *)DMA2_BASE)
 #define I2C1                  ((I2C_TypeDef *)I2C1_BASE)
+#define PORTA                 ((GPIO_TypeDef *)PORTA_BASE)
 #define PORTB                 ((GPIO_TypeDef *)PORTB_BASE)
+#define PORTC                 ((GPIO_TypeDef *)PORTC_BASE)
 #define AFIO                  ((AFIO_TypeDef *)AFIOBASE)
 #define CoreDebug             ((CoreDebug_Type *)CoreDebug_BASE)   /*!< Core Debug configuration struct */
 #define DWT                   ((DWT_Type       *)     DWT_BASE      )   /*!< DWT configuration struct */
