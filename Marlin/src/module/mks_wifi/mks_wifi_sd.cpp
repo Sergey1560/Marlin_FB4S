@@ -74,6 +74,10 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    uint16_t data_size;
    FRESULT res;
 
+   //Отключить все нагреватели
+   OUT_WRITE(HEATER_0_PIN, HEATER_0_INVERTING);
+   OUT_WRITE(HEATER_1_PIN, HEATER_0_INVERTING);
+   OUT_WRITE(HEATER_BED_PIN, HEATER_0_INVERTING);
 
  	//Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
    str[0]='0';
@@ -92,7 +96,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    //открыть файл для записи
    res=f_open((FIL *)&upload_file,str,FA_CREATE_ALWAYS | FA_WRITE);
    if(res){
-      DEBUG("File open error %d",res);
+      ERROR("File open error %d",res);
       mks_wifi_sd_deinit();
       return;
    }

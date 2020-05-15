@@ -114,7 +114,7 @@ void mks_m23(char *filename){
         DEBUG("DOS file name: %s",dosfilename);
         card.openFileRead(dosfilename);
     }else{
-      DEBUG("Can't find dos file name");
+      ERROR("Can't find dos file name");
     }
 
     }else{

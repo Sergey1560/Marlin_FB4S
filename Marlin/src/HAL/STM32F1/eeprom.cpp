@@ -36,6 +36,10 @@ bool PersistentStore::access_start() {
     #endif
     spiInit(0);
   #endif
+  #if ENABLED(I2C_EEPROM_AT24C16)
+    eeprom_hw_init();
+  #endif
+  
   return true;
 }
 bool PersistentStore::access_finish() { return true; }
@@ -44,11 +48,18 @@ bool PersistentStore::write_data(int &pos, const uint8_t *value, size_t size, ui
   while (size--) {
     uint8_t * const p = (uint8_t * const)pos;
     uint8_t v = *value;
-    // EEPROM has only ~100,000 write cycles,
-    // so only write bytes that have changed!
-    if (v != eeprom_read_byte(p)) {
-      eeprom_write_byte(p, v);
-      if (eeprom_read_byte(p) != v) {
+    uint8_t r_val;
+    
+    DEBUG("Write to : %d val: %0X",pos,v);
+    r_val=eeprom_read_byte((uint16_t *)p);
+    
+    if (v != r_val) {
+      DEBUG("Read val: %0X To write val: %0X",r_val,v);
+      eeprom_write_byte((uint16_t *)p, v);
+      r_val=eeprom_read_byte((uint16_t *)p);
+      DEBUG("Read back val: %0X",r_val);
+      if (r_val != v) {
+        ERROR("Write error");
         SERIAL_ECHO_MSG(STR_ERR_EEPROM_WRITE);
         return true;
       }
@@ -62,7 +73,8 @@ bool PersistentStore::write_data(int &pos, const uint8_t *value, size_t size, ui
 
 bool PersistentStore::read_data(int &pos, uint8_t* value, size_t size, uint16_t *crc, const bool writing/*=true*/) {
   do {
-    uint8_t c = eeprom_read_byte((uint8_t*)pos);
+    DEBUG("Read form: %d",pos);
+    uint8_t c = eeprom_read_byte((uint16_t*)pos);
     if (writing && value) *value = c;
     crc16(crc, &c, 1);
     pos++;

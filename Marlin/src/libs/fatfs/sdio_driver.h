@@ -2,7 +2,6 @@
 #define SDIO_DRIVER_H
 
 #include "../../module/mks_wifi/small_cmsis.h"
-#include "../../module/mks_wifi/mks_wifi_sd_low_lev.h"
 
 // SD card description
 typedef struct {
