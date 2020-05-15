@@ -75,9 +75,9 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    FRESULT res;
 
    //Отключить все нагреватели
-   OUT_WRITE(HEATER_0_PIN, HEATER_0_INVERTING);
-   OUT_WRITE(HEATER_1_PIN, HEATER_0_INVERTING);
-   OUT_WRITE(HEATER_BED_PIN, HEATER_0_INVERTING);
+   OUT_WRITE(HEATER_0_PIN, LOW);
+   OUT_WRITE(HEATER_1_PIN, LOW);
+   OUT_WRITE(HEATER_BED_PIN, LOW);
 
  	//Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
    str[0]='0';
