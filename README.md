@@ -199,3 +199,24 @@ typedef struct usart_dev {
 ```
 
 Для успешной работы Octoprint возможно имеет смысл увеличить эти значения. Например до 1024. Это предположение не тестировалось на практике. Возможно, одновременно с увеличением размера буферов в драйвере поможет и увеличение скорости UART до 250000.
+
+Библиотека libmaple находится внутри platformio, и обновляется автоматически. Поэтому, чтобы не изменять стандартные файл библиотеки и не потерять изменения при обновлении бибилиотеки, задать параметры лучше через флаги сборки. В файле [platformio.ini](./platformio.ini), в разделе mks_robin_nano надо добавить в build_flags параметры USART_RX_BUF_SIZE и USART_TX_BUF_SIZE. Пример:
+
+```C
+#
+# MKS Robin Nano (STM32F103VET6)
+#
+[env:mks_robin_nano]
+platform      = ststm32
+board         = genericSTM32F103VE
+platform_packages = tool-stm32duino
+build_flags   = !python Marlin/src/HAL/STM32F1/build_flags.py
+  ${common.build_flags} -std=gnu++14 -DHAVE_SW_SERIAL -DSS_TIMER=4 -DUSART_RX_BUF_SIZE=1024 -DUSART_TX_BUF_SIZE=1024
+
+build_unflags = -std=gnu++11
+extra_scripts = buildroot/share/PlatformIO/scripts/mks_robin_nano.py
+src_filter    = ${common.default_src_filter} +<src/HAL/STM32F1>
+lib_deps      = ${common.lib_deps}
+  SoftwareSerialM=https://github.com/FYSETC/SoftwareSerialM/archive/master.zip
+lib_ignore    = Adafruit NeoPixel, SPI
+```
