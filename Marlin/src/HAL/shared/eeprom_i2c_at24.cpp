@@ -37,6 +37,8 @@ void eeprom_hw_init(void){
 PB6 SCL Alternate function open drain
 PB7 SDA Alternate function open drain
 */
+  dwt_init();
+
   RCC->APB2ENR |= RCC_APB2ENR_IOPBEN|RCC_APB2ENR_AFIOEN;
   PORTB->CRL |= (GPIO_CRL_MODE6|GPIO_CRL_MODE7|GPIO_CRL_CNF6|GPIO_CRL_CNF7);
   
@@ -91,23 +93,26 @@ static uint8_t i2c_write(const uint8_t hw_adr, uint8_t *data, uint32_t len){
     DEBUG("i2c write at %d val %0X",data[0],data[1]);    
     
     dwt_settimeout(I2C_TIMEOUT);
+    DEBUG("Wait busy");
     while(I2C1->SR2 & I2C_SR2_BUSY) {CHECK_TIMEOUT;};
     
 
     I2C1->CR1 = I2C_CR1_PE | I2C_CR1_START;
     dwt_settimeout(I2C_TIMEOUT);
+    DEBUG("Wait SB");
     while(!(I2C1->SR1 & I2C_SR1_SB)) {CHECK_TIMEOUT;};
     I2C1->DR = (hw_adr & 0xFE);
     
     if(!waitSRBitSet(I2C_SR1_ADDR)) return false;
     (void)I2C1->SR2;
-
+    
     while(len--){
       if(!waitSRBitSet(I2C_SR1_TXE)) return false;
       I2C1->DR = *data++;    
     }
     
     dwt_settimeout(I2C_TIMEOUT);
+    DEBUG("Wait BTF");
     while(!((I2C1->SR1 & I2C_SR1_TXE) && (I2C1->SR1 & I2C_SR1_BTF))) {CHECK_TIMEOUT;};   
     I2C1->CR1 = I2C_CR1_PE | I2C_CR1_STOP;
     
@@ -117,12 +122,14 @@ static uint8_t i2c_write(const uint8_t hw_adr, uint8_t *data, uint32_t len){
 static uint8_t i2c_read(const uint8_t hw_adr, uint16_t addr, uint8_t *data, uint32_t len){
 
 		dwt_settimeout(I2C_TIMEOUT);
+    DEBUG("Wait busy");
     while(I2C1->SR2 & I2C_SR2_BUSY) {CHECK_TIMEOUT;}; 
     
     //Запись адреса
     I2C1->CR1 = I2C_CR1_PE | I2C_CR1_START;
     
     dwt_settimeout(I2C_TIMEOUT);
+    DEBUG("Wait SB");
     while(!(I2C1->SR1 & I2C_SR1_SB)) {CHECK_TIMEOUT;};  //Условие старт
 
     
@@ -134,12 +141,14 @@ static uint8_t i2c_read(const uint8_t hw_adr, uint16_t addr, uint8_t *data, uint
     I2C1->DR = addr%256;                         //адрес в памяти отправлен
     
     dwt_settimeout(I2C_TIMEOUT);
+    DEBUG("Wait BTF");
     while(!((I2C1->SR1 & I2C_SR1_TXE) && (I2C1->SR1 & I2C_SR1_BTF))) {CHECK_TIMEOUT;};   
 
     //Чтение
     I2C1->CR1 = I2C_CR1_PE | I2C_CR1_START | I2C_CR1_ACK;
     
     dwt_settimeout(I2C_TIMEOUT);
+    DEBUG("Wait SB");
     while(!(I2C1->SR1 & I2C_SR1_SB)) {CHECK_TIMEOUT;};
     I2C1->DR = hw_adr|1;      
 
@@ -167,7 +176,7 @@ static bool waitSRBitSet(uint32_t Bit){
         return false;
       }  
       if(dwt_get_timeout() == 0){
-        ERROR("Timeout");
+        ERROR("Timeout %0X",Bit);
         return false;
       }
 

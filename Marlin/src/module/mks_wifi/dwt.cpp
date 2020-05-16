@@ -15,19 +15,22 @@ void dwt_settimeout(uint32_t time){
         time = MAX_TIMEOUT;
     }
 
+    //DEBUG("Set timeout %d %d",time, time * (SYS_CLK / 1000));
+
     timeout = time * (SYS_CLK / 1000);
     DWT->CYCCNT = 0;
 }
 
 uint32_t dwt_get_timeout(void){
-    uint32_t current_timer = DWT->CYCCNT;
+    volatile uint32_t current_timer = DWT->CYCCNT;
     
     if(current_timer >= timeout) {
+        DEBUG("TO %d %d",current_timer,timeout);
         timeout = 0;
         return 0;
     }
     
-    return current_timer;
+    return 1;
 }
 
 
