@@ -60,11 +60,24 @@ typedef struct {
 	uint8_t			ake_seq_error;   //Ошибка в последовательности аутентификации.
 } SD_Status_TypeDef;
 
+// Card type
+enum {
+	SDCT_UNKNOWN = 0x00,
+	SDCT_SDSC_V1 = 0x01,  // Standard capacity SD card v1.0
+	SDCT_SDSC_V2 = 0x02,  // Standard capacity SD card v2.0
+	SDCT_MMC     = 0x03,  // MMC
+	SDCT_SDHC    = 0x04   // High capacity SD card (SDHC or SDXC)
+};
+
 
 #define SDIO_4BIT_Mode 1
 //#define SDIO_HIGH_SPEED 1
 
 #define SDIO_DATA_TIMEOUT     ((uint32_t)0x01000000)
+
+// Mask for ACMD41
+#define SD_STD_CAPACITY               ((uint32_t)0x00000000U)
+#define SD_HIGH_CAPACITY              ((uint32_t)0x40000000U)
 
 // SDIO CMD response type
 #define SDIO_RESP_NONE         0x00                // No response

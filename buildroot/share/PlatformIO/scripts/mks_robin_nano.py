@@ -42,3 +42,9 @@ def encrypt(source, target, env):
         destination = target[0].dir.path +'/Robin_nano35.bin'
         shutil.copyfile(source, destination) 
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", encrypt);
+
+
+env.Replace(
+    UPLOADER="curl",
+    UPLOADCMD="$UPLOADER -v -H 'Content-Type:application/octet-stream' http://$UPLOADERFLAGS/upload?X-Filename=Robin_Nano35.bin --data-binary @$BUILD_DIR/Robin_nano35.bin"
+)

@@ -27,6 +27,7 @@
 #include "../shared/eeprom_api.h"
 
 bool PersistentStore::access_start() {
+  DEBUG("EEPROM start");
   #if ENABLED(SPI_EEPROM)
     #if SPI_CHAN_EEPROM1 == 1
       SET_OUTPUT(BOARD_SPI1_SCK_PIN);
@@ -36,13 +37,20 @@ bool PersistentStore::access_start() {
     #endif
     spiInit(0);
   #endif
-  #if ENABLED(I2C_EEPROM_AT24C16)
+  
+  #if ANY(I2C_EEPROM_AT24C16, SPI_EEPROM_W25Q)
     eeprom_hw_init();
   #endif
   
   return true;
 }
-bool PersistentStore::access_finish() { return true; }
+bool PersistentStore::access_finish() { 
+  #if ANY(I2C_EEPROM_AT24C16, SPI_EEPROM_W25Q)
+    eeprom_hw_deinit();
+  #endif
+
+  return true;
+   }
 
 bool PersistentStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
   while (size--) {

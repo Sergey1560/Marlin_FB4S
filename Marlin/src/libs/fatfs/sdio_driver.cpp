@@ -59,13 +59,15 @@ uint8_t SD_Cmd(uint8_t cmd, uint32_t arg, uint16_t response_type, uint32_t *resp
 	return 0;
 }
 
-//#pragma GCC push_options
-//#pragma GCC optimize ("O0")
 uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
     uint32_t trials;
 	uint8_t cmd=0;
 	uint8_t *ptr = buf;
-	    
+
+	if (SDCard.Type != SDCT_SDHC) {
+		blk = blk * 512;
+	}
+
     trials=SDIO_DATA_TIMEOUT;
 	while (transmit && trials--) {};
 	if(!trials) {
@@ -158,7 +160,6 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
     SDIO->ICR=SDIO_ICR_STATIC;
 	return 0;	
 };
-//#pragma GCC pop_options
 
 uint8_t SD_Init(void) {
 	volatile uint32_t trials = 0x0000FFFF;
@@ -198,6 +199,9 @@ uint8_t SD_Init(void) {
 		ERROR("CMD41 check");	
 		return 41; 
 	};
+
+	SDCard.Type = (response[0] & SD_HIGH_CAPACITY) ? SDCT_SDHC : SDCT_SDSC_V2;
+	DEBUG("Card type %d",SDCard.Type);
 
 	result = SD_Cmd(SD_CMD2,0x00,SDIO_RESP_LONG,(uint32_t*)response); //CMD2 CID R2
 	if (result != 0) {
@@ -269,6 +273,14 @@ uint8_t SD_Init(void) {
 		tempreg=SDIO_CLKCR_CLKEN; 
 		SDIO->CLKCR=tempreg;	
 #endif
+
+	if ((SDCard.Type != SDCT_SDHC)) {
+		result = SD_Cmd(SD_CMD_SET_BLOCKLEN, 512 ,SDIO_RESP_SHORT,(uint32_t*)response); //CMD16
+		if (result != 0) {
+			ERROR("Error set block size");
+			return 16;
+		}
+	}
 
 	DEBUG("SDINIT: ok");
 	return 0;

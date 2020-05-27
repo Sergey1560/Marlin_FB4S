@@ -43,18 +43,21 @@
 XPT2046 touch;
 extern int8_t encoderDiff;
 
-void XPT2046::init() {
+
+void XPT2046::begin() {
   SET_INPUT(TOUCH_MISO_PIN);
   SET_OUTPUT(TOUCH_MOSI_PIN);
   SET_OUTPUT(TOUCH_SCK_PIN);
   OUT_WRITE(TOUCH_CS_PIN, HIGH);
+}
 
-  #if PIN_EXISTS(TOUCH_INT)
-    // Optional Pendrive interrupt pin
-    SET_INPUT(TOUCH_INT_PIN);
-  #endif
+void XPT2046::end() {
+  SET_INPUT(TOUCH_MISO_PIN);
+  SET_INPUT(TOUCH_MOSI_PIN);
+  SET_INPUT(TOUCH_SCK_PIN);
+}
 
-  // Read once to enable pendrive status pin
+void XPT2046::init() {
   getInTouch(XPT2046_X);
 }
 
@@ -78,7 +81,8 @@ uint8_t XPT2046::read_buttons() {
                  y = uint16_t(((uint32_t(getInTouch(XPT2046_Y))) * tsoffsets[2]) >> 16) + tsoffsets[3];
   if (!isTouched()) return 0; // Fingers must still be on the TS for a valid read.
 
-  if (y < 175 || y > 234) return 0;
+//@ little more Y
+  if (y < 165 || y > 234) return 0;
 
   return WITHIN(x,  14,  77) ? EN_D
        : WITHIN(x,  90, 153) ? EN_A
@@ -100,6 +104,7 @@ bool XPT2046::isTouched() {
 uint16_t XPT2046::getInTouch(const XPTCoordinate coordinate) {
   uint16_t data[3];
 
+  begin();
   OUT_WRITE(TOUCH_CS_PIN, LOW);
 
   const uint8_t coord = uint8_t(coordinate) | XPT2046_CONTROL | XPT2046_DFR_MODE;
@@ -121,6 +126,7 @@ uint16_t XPT2046::getInTouch(const XPTCoordinate coordinate) {
   }
 
   WRITE(TOUCH_CS_PIN, HIGH);
+  end();
 
   uint16_t delta01 = _MAX(data[0], data[1]) - _MIN(data[0], data[1]),
            delta02 = _MAX(data[0], data[2]) - _MIN(data[0], data[2]),

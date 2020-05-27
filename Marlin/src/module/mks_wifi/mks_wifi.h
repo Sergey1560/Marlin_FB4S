@@ -12,6 +12,8 @@
 #define WIFI_MODE_AP				(uint8_t)1
 
 
+#define LIST_FILES_AT_STARTUP		(uint8_t)1
+
 typedef struct
 {
 	uint8_t type; 

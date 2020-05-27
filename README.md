@@ -2,8 +2,11 @@
 
 ## Версия с тестовой поддержкой WIFI модуля
 
-Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S.
+Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S (плата MKS Robin Nano).
 Эта ветка содержит код для работы с WIFI модулем, установленным в FB4S. Загрузка файлов через стандартный plugin в Cura.
+Код работы с экраном взят из репозитория [inib/Marlin](https://github.com/inib/Marlin)
+
+В ветке [FB4S_Config](https://github.com/Sergey1560/Marlin_FB4S/tree/FB4S_Config) находится вариант с минимальными изменениями в коде Marlin (только работа с экраном и конфигурация)
 
 ## Что работает, что не работает
 
@@ -19,9 +22,8 @@
 ### Не работает (совсем)
 
 * **Имена файлов на русском** Переименуйте файл в Cura
-* Работает только с картами стандарта SDHC и новее. Это все карты от 4Гб и больше.
+* Работает только с картами стандарта SD card v2.0 и новее. Это все карты от 1Гб и больше.
 * Отображение состояния принтера (печатает, не печатает) в Cura
-* Все остальное, что не в указано в "работает"
 
 ## Как работает, как настроить
 
@@ -84,139 +86,65 @@ IP адрес так же будет на экране.
 В качестве места хренения EEPROM в Marlin доступны несколько вариантов:
 
 * SD карта. Этот вариант наиболее предпочтительный, если нет осознанного желания хранить EEPROM где-то еще.
+* I2C EEPROM. Хранение в AT24C16 подключенной по I2C. При первом включении все содержимое AT24C16 будет переписано. Память не быстрая, поэтому процесс занимает до 10 секунд. В дальнейшем в память пишутся только измененные значения, поэтому работает быстрее.
+* SPI_EEPROM. Хранение в W25Q64BV подключенной по SPI.
+* FLASH_EEPROM_EMULATION. Это хранение EEPROM в flash памяти STM32. Этот вариант не работает.
+* SRAM_EEPROM_EMULATION.  Этот вариант не работает.
 
-Для включения в [Configuration.h](./Marlin/Configuration.h) в разделе EEPROM должно быть включено SDCARD_EEPROM_EMULATION и отключены другие опции хранения. Пример:
-
-```C
-#define EEPROM_SETTINGS     // Persistent storage with M500 and M501
-#define EEPROM_CHITCHAT       // Give feedback on EEPROM commands. Disable to save PROGMEM.
-#if ENABLED(EEPROM_SETTINGS)
-#define SDCARD_EEPROM_EMULATION
-#undef USE_REAL_EEPROM
-#undef FLASH_EEPROM_EMULATION
-#undef SRAM_EEPROM_EMULATION
-//#define USE_WIRED_EEPROM    1
-//#define I2C_EEPROM_AT24C16
-//#define E2END (2*1024 - 1)
-#define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
-#endif
-```
-
-* I2C EEPROM. Для включения нужно включить I2C_EEPROM_AT24C16 и установить USE_WIRED_EEPROM в 1 и задать размер EEPROM в E2END, а остальные опции отключить. Пример:
+Для включения в [Configuration.h](./Marlin/Configuration.h) в разделе EEPROM нужно указать нужный define. Возможные варианты указаны в комментарии. Пример:
 
 ```C
-#define EEPROM_SETTINGS     // Persistent storage with M500 and M501
-#define EEPROM_CHITCHAT       // Give feedback on EEPROM commands. Disable to save PROGMEM.
 #if ENABLED(EEPROM_SETTINGS)
+/*
+MKS Robin EEPROM:
+EEPROM_SD
+EEPROM_AT24C16
+EEPROM_W25Q
+*/
+#define EEPROM_SD
+
+#if ENABLED(EEPROM_AT24C16)
 #undef SDCARD_EEPROM_EMULATION
 #undef USE_REAL_EEPROM
 #undef FLASH_EEPROM_EMULATION
 #undef SRAM_EEPROM_EMULATION
-#define USE_WIRED_EEPROM    1
 #define I2C_EEPROM_AT24C16
+#define USE_WIRED_EEPROM    1
 #define E2END (2*1024 - 1)
+#endif
+
+#if ENABLED(EEPROM_W25Q)
+#undef SDCARD_EEPROM_EMULATION
+#undef USE_REAL_EEPROM
+#undef FLASH_EEPROM_EMULATION
+#undef SRAM_EEPROM_EMULATION
+#undef I2C_EEPROM_AT24C16
+#define SPI_EEPROM_W25Q
+#define SPI_EEPROM_OFFSET 0x700000
+#define USE_WIRED_EEPROM    1
+#define E2END (2*1024 - 1)
+#endif
+
+#if ENABLED(EEPROM_SD)
+#define SDCARD_EEPROM_EMULATION
+#undef USE_REAL_EEPROM
+#undef FLASH_EEPROM_EMULATION
+#undef SRAM_EEPROM_EMULATION
+#undef I2C_EEPROM_AT24C16
+#undef SPI_EEPROM_W25Q
+#undef USE_WIRED_EEPROM 
+#endif
+
 #define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
 #endif
 ```
 
-При первом включении все содержимое AT24C16 будет переписано. Память не быстрая, поэтому процесс занимает до 10 секунд. В дальнейшем в память пишутся только измененные значения, поэтому работает быстрее.
+Для изменения места хранения EEPROM например на SPI флеш, надо заменить "#define EEPROM_SD" на "#define EEPROM_W25Q"
 
-* SPI_EEPROM. Хранение в памяти подключенной по SPI. Этот вариант пока не работает.
-* FLASH_EEPROM_EMULATION. Это хранение EEPROM в flash памяти STM32. Этот вариант не работает.
-* SRAM_EEPROM_EMULATION.  Этот вариант не работает.
+### Загрузка прошивки по WIFI
 
-### Работа с Octoprint
+Есть возможность отправлять прошивку на принтер через WIFI. Для этого в файле [platformio.ini](./platformio.ini) в разделе "[env:mks_robin_nano]" нужно указать IP адрес принтера в опции upload_flags (строка 499).
 
-При работе с Octoprint через Uart возможны проблемы при печати. Рекомендуется, увеличить буферы команд в настройках Marlin [Configuration_adv.h](./Marlin/Configuration_adv.h):
+Передача файла происходит при помощи curl, поэтому надо или добавить curl в $PATH, либо указать полный путь в файле [mks_robin_nano.py](./buildroot/share/PlatformIO/scripts/mks_robin_nano.py) в строке 48.
 
-```C
-#define MAX_CMD_SIZE 96 //Максимальный размер команды
-#define BUFSIZE 32 //Количество команд, которые стоят в плане.
-#define TX_BUFFER_SIZE 256 //Размер буфера для отправки
-#define RX_BUFFER_SIZE 2048 //Размер буфера для приема
-```
-
-Процесс получения данных из UART организован следующим образом:
-
-* используется аппаратный UART STM32
-* включено прерывание по приему каждого байта, данные складываются в буфер внутри драйвера
-* Marlin периодически проверяет, есть ли у драйвера в буфере данные, забирает их оттуда и складывает в свой буфер, который задан RX_BUFFER_SIZE.
-
-Есть предположение, что проблемы печати могут быть связаны с тем, что переполняется буфер внутри драйвера. В качестве драйвера использована библиотека libmaple. Обработчик прерывания в файле .platformio/packages/framework-arduinoststm32-maple/STM32F1/system/libmaple/usart_private.h:
-
-```C
-__weak void __irq_usart1(void) {
-    usart_irq(&usart1_rb, &usart1_wb, USART1_BASE);
-}
-```
-
-В обработчике usart_irq (в файле .platformio/packages/framework-arduinoststm32-maple/STM32F1/system/libmaple/usart_private.h) пришедший байт помещается в буфер функцией
-
-```C
-rb_push_insert(rb, (uint8)regs->DR);
-```
-
-rb имеет тип структуры ring_buffer:
-
-```C
-typedef struct ring_buffer {
-    volatile uint8 *buf; /**< Buffer items are stored into */
-    volatile uint16 head;         /**< Index of the next item to remove */
-    volatile uint16 tail;         /**< Index where the next item will get inserted */
-    volatile uint16 size;         /**< Buffer capacity minus one */
-} ring_buffer;
-```
-
-Сам приемный буфер и его размер задается в .platformio/packages/framework-arduinoststm32-maple/STM32F1/system/libmaple/include/libmaple/usart.h:
-
-```C
-typedef struct usart_dev {
-    usart_reg_map *regs;             /**< Register map */
-    ring_buffer *rb;                 /**< RX ring buffer */
-    ring_buffer *wb;                 /**< TX ring buffer */
-    uint32 max_baud;                 /**< @brief Deprecated.
-                                      * Maximum baud rate. */
-    uint8 rx_buf[USART_RX_BUF_SIZE]; /**< @brief Deprecated.
-                                      * Actual RX buffer used by rb.
-                                      * This field will be removed in
-                                      * a future release. */
-    uint8 tx_buf[USART_TX_BUF_SIZE]; /**< Actual TX buffer used by wb */
-    rcc_clk_id clk_id;               /**< RCC clock information */
-    nvic_irq_num irq_num;            /**< USART NVIC interrupt */
-} usart_dev;
-```
-
-Размер массива задан при помощи USART_RX_BUF_SIZE и USART_TX_BUF_SIZE:
-
-```C
-#ifndef USART_RX_BUF_SIZE
-#define USART_RX_BUF_SIZE               64
-#endif
-
-#ifndef USART_TX_BUF_SIZE
-#define USART_TX_BUF_SIZE               64
-#endif
-```
-
-Для успешной работы Octoprint возможно имеет смысл увеличить эти значения. Например до 1024. Это предположение не тестировалось на практике. Возможно, одновременно с увеличением размера буферов в драйвере поможет и увеличение скорости UART до 250000.
-
-Библиотека libmaple находится внутри platformio, и обновляется автоматически. Поэтому, чтобы не изменять стандартные файлы библиотеки и не потерять изменения при обновлении бибилиотеки, задать параметры лучше через флаги сборки. В файле [platformio.ini](./platformio.ini), в разделе mks_robin_nano надо добавить в build_flags параметры USART_RX_BUF_SIZE и USART_TX_BUF_SIZE. Пример:
-
-```C
-#
-# MKS Robin Nano (STM32F103VET6)
-#
-[env:mks_robin_nano]
-platform      = ststm32
-board         = genericSTM32F103VE
-platform_packages = tool-stm32duino
-build_flags   = !python Marlin/src/HAL/STM32F1/build_flags.py
-  ${common.build_flags} -std=gnu++14 -DHAVE_SW_SERIAL -DSS_TIMER=4 -DUSART_RX_BUF_SIZE=1024 -DUSART_TX_BUF_SIZE=1024
-
-build_unflags = -std=gnu++11
-extra_scripts = buildroot/share/PlatformIO/scripts/mks_robin_nano.py
-src_filter    = ${common.default_src_filter} +<src/HAL/STM32F1>
-lib_deps      = ${common.lib_deps}
-  SoftwareSerialM=https://github.com/FYSETC/SoftwareSerialM/archive/master.zip
-lib_ignore    = Adafruit NeoPixel, SPI
-```
+После успешной передачи файла принтер перезагрузится автоматически.

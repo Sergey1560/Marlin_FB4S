@@ -260,6 +260,20 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          ui.set_status((const char *)"Upload done",true);
          DEBUG("Upload ok");
          BUZZ(1000,260);
+
+         str[0]='0';
+         str[1]=':';
+         str[2]='/';
+
+         memcpy((uint8_t *)str+3,(uint8_t *)&packet->data[5],(packet->dataLen - 5));
+         str[packet->dataLen - 5 + 3] = 0; 
+
+         if(!strcmp(str,"0:/Robin_Nano35.bin")){
+            DEBUG("Firmware found, reboot");
+            nvic_sys_reset();
+         }
+
+
    }else{
          ui.set_status((const char *)"Upload failed",true);
          DEBUG("Upload failed! File size: %d; Recieve %d; SD write %d",file_size,file_inc_size,file_size_writen);

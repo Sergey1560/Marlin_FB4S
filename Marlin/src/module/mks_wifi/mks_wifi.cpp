@@ -30,6 +30,13 @@ void mks_wifi_init(void){
 	safe_delay(1000);	
 	WRITE(MKS_WIFI_IO4, LOW);
 
+	#ifdef LIST_FILES_AT_STARTUP
+	mks_wifi_sd_deinit(); 
+	mks_wifi_sd_init();  
+	mks_wifi_sd_ls();
+	mks_wifi_sd_deinit(); 
+	#endif
+
 }
 
 
