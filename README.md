@@ -57,7 +57,7 @@
 
 В файле [mks_wifi_settings.h](./Marlin/src/module/mks_wifi/mks_wifi_settings.h)
 
-Для того, чтобы эти настройки применялись при включении, "MKS_WIFI_ENABLED_WIFI_CONFIG" должен быть раскоментирован. Если закоментировать "#define MKS_WIFI_ENABLED_WIFI_CONFIG", при запуске настройки ESP модулю отправляться не будут
+Для того, чтобы эти настройки применялись при включении, "MKS_WIFI_ENABLED_WIFI_CONFIG" должен быть раскомментирован. Если закомментировать "#define MKS_WIFI_ENABLED_WIFI_CONFIG", при запуске настройки ESP модулю отправляться не будут
 
 ### Диагностика WIFI
 
@@ -143,7 +143,7 @@ EEPROM_W25Q
 
 ### Загрузка прошивки по WIFI
 
-Есть возможность отправлять прошивку на принтер через WIFI. Для этого в файле [platformio.ini](./platformio.ini) в разделе "[env:mks_robin_nano]" нужно указать IP адрес принтера в опции upload_flags (строка 499).
+Есть возможность отправлять прошивку на принтер через WIFI. Для этого в файле [platformio.ini](./platformio.ini) в разделе [env:mks_robin_nano] нужно указать IP адрес принтера в опции upload_flags (строка 499).
 
 Передача файла происходит при помощи curl, поэтому надо или добавить curl в $PATH, либо указать полный путь в файле [mks_robin_nano.py](./buildroot/share/PlatformIO/scripts/mks_robin_nano.py) в строке 48.
 
