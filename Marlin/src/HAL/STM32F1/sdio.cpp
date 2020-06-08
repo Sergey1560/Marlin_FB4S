@@ -121,7 +121,7 @@ bool SDIO_ReadBlock_DMA(uint32_t blockAddress, uint8_t *data) {
 }
 
 bool SDIO_ReadBlock(uint32_t blockAddress, uint8_t *data) {
-  uint32_t retries = 3;
+  uint32_t retries = 10;
   while (retries--) if (SDIO_ReadBlock_DMA(blockAddress, data)) return true;
   return false;
 }

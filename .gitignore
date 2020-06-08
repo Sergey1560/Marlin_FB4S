@@ -190,3 +190,6 @@ ozone.jdebug
 ozone.jdebug.user
 
 *.txt
+
+# Windows users need this to prevent adding build tree to git
+buildroot/*

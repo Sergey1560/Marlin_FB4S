@@ -100,7 +100,9 @@
 #define SDIO_DATA_TIMEOUT                    100U           /* Read data transfer timeout */
 #define SDIO_WRITE_TIMEOUT                   200U           /* Write data transfer timeout */
 
-#define SDIO_CLOCK                           18000000       /* 18 MHz */
+// #define SDIO_CLOCK                           18000000       /* 18 MHz */
+// Setting SDIO_CLOCK to 4.5 MHz fixes random print interruptions with moving to endstops
+#define SDIO_CLOCK                           4500000 /* 4.5 MHz */
 
 // ------------------------
 // Types
