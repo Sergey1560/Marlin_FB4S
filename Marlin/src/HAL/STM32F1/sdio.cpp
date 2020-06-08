@@ -26,6 +26,7 @@
 #include <libmaple/stm32.h>
 
 #include "../../inc/MarlinConfig.h" // Allow pins/pins.h to set density
+#include "../../module/mks_wifi/debug_to_uart.h"
 
 #if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
 
@@ -82,10 +83,12 @@ bool SDIO_Init() {
   return true;
 }
 
-bool SDIO_ReadBlock_DMA(uint32_t blockAddress, uint8_t *data) {
-  if (SDIO_GetCardState() != SDIO_CARD_TRANSFER) return false;
-  if (blockAddress >= SdCard.LogBlockNbr) return false;
-  if ((0x03 & (uint32_t)data)) return false; // misaligned data
+uint32_t SDIO_ReadBlock_DMA(uint32_t blockAddress, uint8_t *data) {
+  uint32_t ret_val;
+
+  if (SDIO_GetCardState() != SDIO_CARD_TRANSFER) return 0xF0000000;
+  if (blockAddress >= SdCard.LogBlockNbr) return 0xF1000000;
+  if ((0x03 & (uint32_t)data)) return 0xF2000000; // misaligned data
 
   if (SdCard.CardType != CARD_SDHC_SDXC) { blockAddress *= 512U; }
 
@@ -99,30 +102,42 @@ bool SDIO_ReadBlock_DMA(uint32_t blockAddress, uint8_t *data) {
   if (!SDIO_CmdReadSingleBlock(blockAddress)) {
     SDIO_CLEAR_FLAG(SDIO_ICR_CMD_FLAGS);
     dma_disable(SDIO_DMA_DEV, SDIO_DMA_CHANNEL);
-    return false;
+    return 0xF3000000;
   }
 
   while (!SDIO_GET_FLAG(SDIO_STA_DATAEND | SDIO_STA_TRX_ERROR_FLAGS)) {}
 
+  ret_val = SDIO->STA;
+
   dma_disable(SDIO_DMA_DEV, SDIO_DMA_CHANNEL);
 
   if (SDIO->STA & SDIO_STA_RXDAVL) {
+    DEBUG("SDIO_STA_RXDAVL");
     while (SDIO->STA & SDIO_STA_RXDAVL) (void)SDIO->FIFO;
     SDIO_CLEAR_FLAG(SDIO_ICR_CMD_FLAGS | SDIO_ICR_DATA_FLAGS);
-    return false;
+    return ret_val;
   }
 
   if (SDIO_GET_FLAG(SDIO_STA_TRX_ERROR_FLAGS)) {
+    DEBUG("SDIO_STA_TRX_ERROR_FLAGS");
     SDIO_CLEAR_FLAG(SDIO_ICR_CMD_FLAGS | SDIO_ICR_DATA_FLAGS);
-    return false;
+    return ret_val;
   }
   SDIO_CLEAR_FLAG(SDIO_ICR_CMD_FLAGS | SDIO_ICR_DATA_FLAGS);
-  return true;
+  return 0;
 }
 
 bool SDIO_ReadBlock(uint32_t blockAddress, uint8_t *data) {
   uint32_t retries = 10;
-  while (retries--) if (SDIO_ReadBlock_DMA(blockAddress, data)) return true;
+  uint32_t status;
+  while (retries--){
+    status = SDIO_ReadBlock_DMA(blockAddress, data);
+    if (status == 0){
+      return true;
+    }else{
+      DEBUG("SD error, R: %d STA=0x%0X",retries,status);
+    }
+  }
   return false;
 }
 
