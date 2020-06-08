@@ -10,8 +10,8 @@
 
 //#define COLOR_LOG_RTT 
 
-//#define DEBUG_TO_UART
-#define DEBUG_TO_SEGGER_RTT
+#define DEBUG_TO_UART
+//#define DEBUG_TO_SEGGER_RTT
 
 #ifdef COLOR_LOG_RTT
 
@@ -39,22 +39,22 @@
     #ifdef DEBUG_TO_UART
 
     #ifdef DEBUG_MSG
-        #define DEBUG(fmt, args...) debug_to_uart("[D] %-20s:%-4d :" fmt "\n", __func__, __LINE__, ## args)
+        #define DEBUG(fmt, args...) debug_to_uart((char*)"[D] %-20s:%-4d :" fmt "\n", __func__, __LINE__, ## args)
     #else
         #define DEBUG(fmt, args...)
     #endif
     #ifdef INFO_MSG
-        #define INFO(fmt, args...)  debug_to_uart("[I] %-20s:%-4d :" fmt "\n", __func__, __LINE__, ## args)
+        #define INFO(fmt, args...)  debug_to_uart((char*)"[I] %-20s:%-4d :" fmt "\n", __func__, __LINE__, ## args)
     #else
         #define INFO(fmt, args...)
     #endif
     #ifdef WARNING_MSG
-        #define WARNING(fmt, args...) debug_to_uart("[W] %-20s:%-4d :" fmt "\n",  __func__, __LINE__, ## args)
+        #define WARNING(fmt, args...) debug_to_uart((char*)"[W] %-20s:%-4d :" fmt "\n",  __func__, __LINE__, ## args)
     #else
         #define WARNING(fmt, args...)
     #endif
     #ifdef ERROR_MSG
-        #define ERROR(fmt, args...) debug_to_uart("[E] %-20s:%-4d :" fmt "\n",  __func__, __LINE__,## args)
+        #define ERROR(fmt, args...) debug_to_uart((char*)"[E] %-20s:%-4d :" fmt "\n",  __func__, __LINE__,## args)
     #else
         #define ERROR(fmt, args...)
     #endif
