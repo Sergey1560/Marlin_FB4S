@@ -10,8 +10,8 @@
 
 //#define COLOR_LOG_RTT 
 
-#define DEBUG_TO_UART
-//#define DEBUG_TO_SEGGER_RTT
+//#define DEBUG_TO_UART
+#define DEBUG_TO_SEGGER_RTT
 
 #ifdef COLOR_LOG_RTT
 
