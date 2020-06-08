@@ -6,6 +6,8 @@
 #include "../../libs/Segger/log.h"
 #include "mks_wifi_settings.h"
 
+//#define SDIO_TEST_AT_STARTUP		
+
 #define MKS_WIFI_SERIAL_NUM        (uint8_t)1
 
 #define WIFI_MODE_STA				(uint8_t)2

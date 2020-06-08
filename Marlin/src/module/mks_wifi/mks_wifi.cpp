@@ -2,6 +2,7 @@
 
 #include "../../lcd/ultralcd.h"
 #include "mks_wifi_sd.h"
+#include "mks_test_sdio.h"
 
 uint8_t mks_in_buffer[ESP_PACKET_DATA_MAX_SIZE];
 uint8_t mks_out_buffer[ESP_PACKET_DATA_MAX_SIZE];
@@ -30,6 +31,10 @@ void mks_wifi_init(void){
 	safe_delay(1000);	
 	WRITE(MKS_WIFI_IO4, LOW);
 
+	#ifdef SDIO_TEST_AT_STARTUP
+	mks_test_sdio();
+	#endif
+	
 	#ifdef LIST_FILES_AT_STARTUP
 	mks_wifi_sd_deinit(); 
 	mks_wifi_sd_init();  
