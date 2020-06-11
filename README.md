@@ -132,7 +132,7 @@ EEPROM_W25Q
 #undef SRAM_EEPROM_EMULATION
 #undef I2C_EEPROM_AT24C16
 #undef SPI_EEPROM_W25Q
-#undef USE_WIRED_EEPROM 
+#undef USE_WIRED_EEPROM
 #endif
 
 #define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
@@ -146,5 +146,7 @@ EEPROM_W25Q
 Есть возможность отправлять прошивку на принтер через WIFI. Для этого в файле [platformio.ini](./platformio.ini) в разделе [env:mks_robin_nano] нужно указать IP адрес принтера в опции upload_flags (строка 499).
 
 Передача файла происходит при помощи curl, поэтому надо или добавить curl в $PATH, либо указать полный путь в файле [mks_robin_nano.py](./buildroot/share/PlatformIO/scripts/mks_robin_nano.py) в строке 48.
+
+После настройки, для отправки прошивки на принтер, в меню platformio нужно выбрать Upload или нажать Ctrl+Alt+U.
 
 После успешной передачи файла принтер перезагрузится автоматически.
