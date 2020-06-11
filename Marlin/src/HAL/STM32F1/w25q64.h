@@ -22,7 +22,7 @@
 #define W25X_ManufactDeviceID	0x90 
 #define W25X_JedecDeviceID		0x9F 
 
-#define SPI_EEPROM_SIZE 1024
+#define SPI_EEPROM_SIZE 2024
 #define SPIFLASH_PAGESIZE 256
 #define SPI_TIMEOUT 2000 //таймаут на ожидание опереций 
 #define CHECK_TIMEOUT do{if(dwt_get_timeout() == 0){ERROR("Timeout");return 0;}}while(0)
