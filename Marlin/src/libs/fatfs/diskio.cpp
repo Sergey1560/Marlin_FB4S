@@ -10,6 +10,7 @@
 
 #include "diskio.h"		/* FatFs lower layer API */
 
+volatile uint8_t __attribute__ ((aligned (4))) buf_copy[512];
 
 /* Definitions of physical drive number for each drive */
 #define DEV_SD		0	/* Example: Map MMC/SD card to physical drive 1 */
@@ -67,6 +68,24 @@ DRESULT disk_read (
 uint8_t res=0;
 	
 	if(pdrv == DEV_SD){
+	
+		if(((uint32_t)buff % 4) != 0){
+			DEBUG("Buffer not aligned");
+			while (count--){
+
+			res=SD_transfer((uint8_t *)buf_copy, (uint32_t) sector, 1, SD2UM);
+			if(res != 0){
+				res=SD_transfer((uint8_t *)buf_copy, (uint32_t) sector, 1, SD2UM);
+				if(res != 0){
+					return RES_ERROR;
+				};
+			};
+			memcpy((uint8_t *)buff,(uint8_t *)buf_copy,512);
+			buff+=512; //uint
+			sector++;
+			}
+
+		}else{
 		//1st read
 		res=SD_transfer((uint8_t *)buff, (uint32_t) sector, count, SD2UM);
 		if(res != 0){
@@ -74,6 +93,7 @@ uint8_t res=0;
 			if(res != 0){
 				return RES_ERROR;
 			};
+		};
 		};
 		return RES_OK;
 	};
@@ -96,15 +116,38 @@ DRESULT disk_write (
 uint8_t res;
 
 	if(pdrv == DEV_SD){
-		res=SD_transfer((uint8_t *)buff, (uint32_t) sector, count, UM2SD);
-		if(res != 0){
+
+		if(((uint32_t)buff % 4) != 0){
+			DEBUG("Buffer not aligned");
+			while (count--){
+				memcpy((uint8_t *)buf_copy,(uint8_t *)buff,512);
+
+				res=SD_transfer((uint8_t *)buf_copy, (uint32_t) sector, 1, UM2SD);
+				if(res != 0){
+					res=SD_transfer((uint8_t *)buf_copy, (uint32_t) sector, 1, UM2SD);
+					if(res != 0){
+						return RES_ERROR;
+					};
+				};
+			
+				buff+=512;
+				sector++;
+			}
+
+		}else{
 			res=SD_transfer((uint8_t *)buff, (uint32_t) sector, count, UM2SD);
 			if(res != 0){
-				return RES_ERROR;
+				res=SD_transfer((uint8_t *)buff, (uint32_t) sector, count, UM2SD);
+				if(res != 0){
+					return RES_ERROR;
+				};
 			};
 		};
+	
 		return RES_OK;
 	};
+
+
 return RES_PARERR;
 }
 

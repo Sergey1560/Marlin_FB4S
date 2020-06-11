@@ -95,7 +95,7 @@ uint32_t SDIO_ReadBlock_DMA(uint32_t blockAddress, uint8_t *data) {
   dma_setup_transfer(SDIO_DMA_DEV, SDIO_DMA_CHANNEL, &SDIO->FIFO, DMA_SIZE_32BITS, data, DMA_SIZE_32BITS, DMA_MINC_MODE);
   dma_set_num_transfers(SDIO_DMA_DEV, SDIO_DMA_CHANNEL, 128);
   dma_clear_isr_bits(SDIO_DMA_DEV, SDIO_DMA_CHANNEL);
-  dma_set_priority(SDIO_DMA_DEV,SDIO_DMA_CHANNEL,DMA_PRIORITY_VERY_HIGH);
+  //dma_set_priority(SDIO_DMA_DEV,SDIO_DMA_CHANNEL,DMA_PRIORITY_VERY_HIGH);
   dma_enable(SDIO_DMA_DEV, SDIO_DMA_CHANNEL);
 
   sdio_setup_transfer(SDIO_DATA_TIMEOUT * (F_CPU / 1000U), 512, SDIO_BLOCKSIZE_512 | SDIO_DCTRL_DMAEN | SDIO_DCTRL_DTEN | SDIO_DIR_RX);
@@ -107,8 +107,15 @@ uint32_t SDIO_ReadBlock_DMA(uint32_t blockAddress, uint8_t *data) {
   }
 
   while (!SDIO_GET_FLAG(SDIO_STA_DATAEND | SDIO_STA_TRX_ERROR_FLAGS)) {}
-  while(SDIO_GET_FLAG(SDIO_STA_RXACT) || SDIO_GET_FLAG(SDIO_STA_RXDAVL)){};
-    
+  
+  if(SDIO->STA & SDIO_STA_TRX_ERROR_FLAGS){
+    ret_val = SDIO->STA;
+    dma_disable(SDIO_DMA_DEV, SDIO_DMA_CHANNEL);
+    return ret_val;
+	}
+
+	while( (DMA2_BASE->ISR & (DMA_ISR_TEIF4|DMA_ISR_TCIF4)) == 0 ){};
+
   ret_val = SDIO->STA;
 
   dma_disable(SDIO_DMA_DEV, SDIO_DMA_CHANNEL);
@@ -116,6 +123,7 @@ uint32_t SDIO_ReadBlock_DMA(uint32_t blockAddress, uint8_t *data) {
   if (SDIO->STA & SDIO_STA_RXDAVL) {
     DEBUG("SDIO_STA_RXDAVL");
     while (SDIO->STA & SDIO_STA_RXDAVL) (void)SDIO->FIFO;
+    ret_val = SDIO->STA;
     SDIO_CLEAR_FLAG(SDIO_ICR_CMD_FLAGS | SDIO_ICR_DATA_FLAGS);
     return ret_val;
   }

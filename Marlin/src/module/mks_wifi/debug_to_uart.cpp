@@ -17,9 +17,9 @@ void debug_to_uart(char *fmt,...){
     //SERIAL_ECHOLN((char *)&buffer);	
 
     while(*ptr){
-		while(MYSERIAL0.availableForWrite()==0){
-			safe_delay(10);				
-		}
+      while(MYSERIAL0.availableForWrite()==0){
+        safe_delay(10);				
+      }
 		MYSERIAL0.write(*ptr++);
     }
    

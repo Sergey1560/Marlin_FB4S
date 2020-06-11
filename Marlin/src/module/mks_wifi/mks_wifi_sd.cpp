@@ -19,7 +19,23 @@ volatile uint8_t *dma_buff[] = {dma_buff1,dma_buff2};
 volatile uint8_t dma_buff_index=0;
 volatile uint8_t *buff;
 
-uint8_t __attribute__ ((aligned (4))) data[DATA_SIZE]; 
+void mks_wifi_sd_ls(void){
+    FRESULT res;
+    DIR dir;
+    static FILINFO fno;
+
+    res = f_opendir(&dir, "0:");                       /* Open the directory */
+    if (res == FR_OK) {
+        for (;;) {
+            res = f_readdir(&dir, &fno);                   /* Read a directory item */
+            if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+                DEBUG("%s\n", fno.fname);
+            }
+       }else{
+          ERROR("Opendir error %d",res);
+      }
+   f_closedir(&dir);
+}
 
 void mks_wifi_sd_ls(void){
     FRESULT res;

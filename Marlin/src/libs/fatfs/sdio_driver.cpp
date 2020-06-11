@@ -8,9 +8,6 @@ volatile uint8_t state=0;        //Для хранения состояния к
 volatile uint8_t multiblock=0;   //Используется в прерывании SDIO, чтоб слать команду STOP
 volatile uint32_t error_flag=0;
 
-volatile uint8_t __attribute__ ((aligned (4))) buf_copy[8*1024];
-
-
 void SD_check_status(SD_Status_TypeDef* SDStatus,uint32_t* reg){
 	SDStatus->ake_seq_error     = (*reg & (1 << 3)) ? 1 : 0;
 	SDStatus->app_cmd           = (*reg & (1 << 5)) ? 1 : 0;
@@ -62,7 +59,6 @@ uint8_t SD_Cmd(uint8_t cmd, uint32_t arg, uint16_t response_type, uint32_t *resp
 uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
     uint32_t trials;
 	uint8_t cmd=0;
-	uint8_t *ptr = buf;
 
 	if (SDCard.Type != SDCT_SDHC) {
 		blk = blk * 512;
@@ -92,22 +88,14 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 
 	multiblock = (cnt == 1) ? 0 : 1;
 	if (dir==UM2SD){ //Запись
-				if(((uint32_t)buf % 4) != 0){
-					DEBUG("Buffer not aligned");
-					memcpy((uint8_t*)buf_copy,buf,cnt*512);
-					ptr=(uint8_t*)buf_copy;    
-				};
 				DMA2_Channel4->CCR|=(0x01 << DMA_CCR_DIR_Pos);
 				cmd=(cnt == 1)? SD_CMD24 : SD_CMD25;
 			} 
 	else if (dir==SD2UM){ //Чтение
 				cmd=(cnt == 1)? SD_CMD17 : SD_CMD18;
-				if(((uint32_t)buf % 4) != 0){
-					ptr=(uint8_t*)buf_copy;
-				};
 			};
    	
-    DMA2_Channel4->CMAR=(uint32_t)ptr;    //Memory address	
+    DMA2_Channel4->CMAR=(uint32_t)buf;    //Memory address	
 	DMA2_Channel4->CPAR=(uint32_t)&(SDIO->FIFO);  //SDIO FIFO Address 
 	DMA2_Channel4->CNDTR=cnt*512/4;  
 	
@@ -138,18 +126,25 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 	}
 	
 	if(dir==SD2UM) { //Read
-		while (DMA2_Channel4->CCR & DMA_CCR_EN) {
-			if(SDIO->STA & SDIO_STA_ERRORS)	{
+		while((DMA2->ISR & (DMA_ISR_TEIF4|DMA_ISR_TCIF4)) == 0 ){
+				if(SDIO->STA & SDIO_STA_ERRORS)	{
+					transmit=0;
+					DMA2_Channel4->CCR = 0;
+					DMA2->IFCR = DMA_S4_CLEAR;
+					return 99;
+				}
+			};
+
+			if(DMA2->ISR & DMA_ISR_TEIF4){
 				transmit=0;
-				return 99;
-			}
 				DMA2_Channel4->CCR = 0;
 				DMA2->IFCR = DMA_S4_CLEAR;
-			};
-	
-		if(((uint32_t)buf % 4) != 0){	
-			memcpy(buf,(uint8_t*)buf_copy,cnt*512);
-		}
+				return 101;
+			}
+				
+			DMA2_Channel4->CCR = 0;
+			DMA2->IFCR = DMA_S4_CLEAR;
+
 	};
 
   
