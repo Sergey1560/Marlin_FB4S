@@ -1,29 +1,26 @@
 #include "mks_wifi_sd.h"
 
+#ifdef MKS_WIFI
+
 #include "../../lcd/ultralcd.h"
 #include "../../libs/fatfs/ff.h"
 #include "../../libs/buzzer.h"  
 #include "../temperature.h"
+#include "../../libs/fatfs/fatfs_shared.h"
 
-FRESULT result;
-FATFS FATFS_Obj;
-FIL upload_file;
-
-volatile uint8_t __attribute__ ((aligned (4))) file_buff[ESP_PACKET_SIZE*ESP_FILE_BUFF_COUNT];
+volatile uint8_t *file_buff=shared_mem;
 volatile uint8_t *file_buff_pos;
 volatile uint16_t file_data_size;
 
-volatile uint8_t __attribute__ ((aligned (4))) dma_buff1[ESP_PACKET_SIZE];
-volatile uint8_t __attribute__ ((aligned (4))) dma_buff2[ESP_PACKET_SIZE];
+volatile uint8_t *dma_buff1=file_buff+FILE_BUFFER_SIZE;
+volatile uint8_t *dma_buff2=dma_buff1+ESP_PACKET_SIZE;
 volatile uint8_t *dma_buff[] = {dma_buff1,dma_buff2};
 volatile uint8_t dma_buff_index=0;
 volatile uint8_t *buff;
 
-void mks_wifi_sd_ls(void){
-    FRESULT res;
-    DIR dir;
-    static FILINFO fno;
+FIL upload_file;
 
+void mks_wifi_sd_ls(void){
     res = f_opendir(&dir, "0:");                       /* Open the directory */
     if (res == FR_OK) {
         for (;;) {
@@ -37,12 +34,11 @@ void mks_wifi_sd_ls(void){
    f_closedir(&dir);
 }
 
-void mks_wifi_sd_init(void){
+uint8_t mks_wifi_sd_init(void){
    CardReader::release();
-
-   result = f_mount((FATFS *)&FATFS_Obj, "0", 1);
-   DEBUG("SD init result:%d",result);
-
+   res = f_mount((FATFS *)&FATFS_Obj, "0", 1);
+   DEBUG("SD init result:%d",res);
+   return (uint8_t)res;
 }
 
 void mks_wifi_sd_deinit(void){
@@ -51,11 +47,9 @@ void mks_wifi_sd_deinit(void){
 };
 
 void sd_delete_file(char *filename){
-
    mks_wifi_sd_init();
    DEBUG("Remove %s",filename);
    f_unlink(filename);
-
    mks_wifi_sd_deinit();
 }
 
@@ -71,7 +65,6 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    uint32_t usart1_brr;
    volatile uint32_t dma_timeout;
    uint16_t data_size;
-   FRESULT res;
    int16_t save_bed,save_e0;
    
    save_bed=thermalManager.degTargetBed();
@@ -82,6 +75,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    thermalManager.setTargetBed(0);
    thermalManager.setTargetHotend(0,0);
    OUT_WRITE(HEATER_1_PIN,HIGH);
+   //safe_delay(10);
 
  	//Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
    str[0]='0';
@@ -95,7 +89,11 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    DEBUG("Start file %s size %d",str,file_size);
    
    //Отмонтировать SD от Marlin, Монтировать FATFs 
-   mks_wifi_sd_init();
+   if(mks_wifi_sd_init()){
+      ERROR("Error SD mount");
+      mks_wifi_sd_deinit();
+      return;
+   }
    
    //открыть файл для записи
    res=f_open((FIL *)&upload_file,str,FA_CREATE_ALWAYS | FA_WRITE);
@@ -147,6 +145,10 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    dma_timeout = DMA_TIMEOUT; //Тайм-аут, на случай если передача зависла.
    last_sector = 0;
 
+   DEBUG("DMA1 buff: %0X", dma_buff[0]);
+   DEBUG("DMA2 buff: %0X", dma_buff[1]);
+   DEBUG("File buff: %0X size %d (%0X)", file_buff, FILE_BUFFER_SIZE, FILE_BUFFER_SIZE);
+
    while(dma_timeout-- > 0){
 
       if(DMA1->ISR & DMA_ISR_TCIF5){
@@ -180,8 +182,10 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          data_size = (*(buff+3) << 8) | *(buff+2);
          data_size -= 4; //4 байта с номером сегмента и флагами
 
+         DEBUG("In sector: %d data_size: %d",in_sector,data_size);
+
          //Если буфер полон и писать некуда, запись в файл
-         if((data_size + file_data_size) > (ESP_FILE_BUFF_COUNT*ESP_PACKET_SIZE)){
+         if((data_size + file_data_size) > FILE_BUFFER_SIZE){
            	
             WRITE(MKS_WIFI_IO4, HIGH); //Остановить передачу от ESP
             
@@ -205,7 +209,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
             ui.set_status((const char *)str,true);
             ui.update();
 
-            memset((uint8_t *)file_buff,0,(ESP_FILE_BUFF_COUNT*ESP_PACKET_SIZE));
+            memset((uint8_t *)file_buff,0,FILE_BUFFER_SIZE);
             file_data_size=0;
             WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
          }
@@ -235,7 +239,6 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
             file_size_writen+=bytes_writen;
             
             f_sync((FIL *)&upload_file);
-            
             break;
          }
          
@@ -268,10 +271,9 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
          if(!strcmp(str,"0:/Robin_Nano35.bin")){
             DEBUG("Firmware found, reboot");
+            safe_delay(1000);
             nvic_sys_reset();
          }
-
-
    }else{
          ui.set_status((const char *)"Upload failed",true);
          DEBUG("Upload failed! File size: %d; Recieve %d; SD write %d",file_size,file_inc_size,file_size_writen);
@@ -308,8 +310,9 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
    WRITE(MKS_WIFI_IO4, LOW); //Включить передачу от ESP 
 
-   DEBUG("Settings restored");
    thermalManager.setTargetBed(save_bed);
    thermalManager.setTargetHotend(save_e0,0);
-
+   DEBUG("Restore thermal settings E0:%d Bed:%d",save_bed,save_e0);
 }
+
+#endif

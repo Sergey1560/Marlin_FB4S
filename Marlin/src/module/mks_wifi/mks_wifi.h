@@ -6,15 +6,15 @@
 #include "../../libs/Segger/log.h"
 #include "mks_wifi_settings.h"
 
+#ifdef MKS_WIFI
+
+#define MKS_OUT_BUFF_SIZE 256
 //#define SDIO_TEST_AT_STARTUP		
+//#define LIST_FILES_AT_STARTUP		(uint8_t)1
 
 #define MKS_WIFI_SERIAL_NUM        (uint8_t)1
-
 #define WIFI_MODE_STA				(uint8_t)2
 #define WIFI_MODE_AP				(uint8_t)1
-
-
-#define LIST_FILES_AT_STARTUP		(uint8_t)1
 
 typedef struct
 {
@@ -62,4 +62,5 @@ void mks_wifi_print(int i);
 void mks_wifi_println(const char *s);
 void mks_wifi_println(float);
 
+#endif
 #endif

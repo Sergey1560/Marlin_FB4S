@@ -3,6 +3,7 @@
 #include "../../inc/MarlinConfig.h"
 #include "small_spi.h"
 #include "../../module/mks_wifi/dwt.h"
+#include "../../module/shared_mem/shared_mem.h"
 
 #define SPI_HI_SPEED 	SPI_FREQ_18Mhz
 #define SPI_LOW_SPEED  	SPI_FREQ_1_125Mhz
@@ -22,12 +23,13 @@
 #define W25X_ManufactDeviceID	0x90 
 #define W25X_JedecDeviceID		0x9F 
 
-#define SPI_EEPROM_SIZE 2024
+#define SPI_EEPROM_SIZE   MARLIN_EEPROM_SIZE
+
 #define SPIFLASH_PAGESIZE 256
 #define SPI_TIMEOUT 2000 //таймаут на ожидание опереций 
 #define CHECK_TIMEOUT do{if(dwt_get_timeout() == 0){ERROR("Timeout");return 0;}}while(0)
 
-extern volatile uint8_t spi_eeprom[SPI_EEPROM_SIZE];
+extern volatile uint8_t *spi_eeprom;
 
 void w25q_init(void);
 void w25q_read(uint32_t addr, uint8_t *buf, uint32_t len);

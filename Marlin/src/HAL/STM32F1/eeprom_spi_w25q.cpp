@@ -10,7 +10,7 @@ U5 W25Q64BV, 16K SERIAL EEPROM:
 
 #include "w25q64.h"
 
-void eeprom_hw_init(void){
+void eeprom_init(void){
     DEBUG("Start EEPROM");
     w25q_init();
     w25q_read(SPI_EEPROM_OFFSET,(uint8_t *)spi_eeprom,SPI_EEPROM_SIZE);

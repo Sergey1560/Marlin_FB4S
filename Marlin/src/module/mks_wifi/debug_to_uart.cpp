@@ -1,5 +1,6 @@
 #include "debug_to_uart.h"
 
+#ifdef DEBUG_TO_UART
 
 void debug_to_uart(char *fmt,...){
 
@@ -26,3 +27,5 @@ void debug_to_uart(char *fmt,...){
 
 
 }
+
+#endif

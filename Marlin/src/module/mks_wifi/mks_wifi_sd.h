@@ -1,25 +1,34 @@
 #ifndef MKS_WIFI_SD_H
 #define MKS_WIFI_SD_H
+#include "mks_wifi.h"
+
+#ifdef MKS_WIFI
 
 #define DMA_TIMEOUT 0xFffffff
 
-#include "mks_wifi.h"
 #include "../../sd/cardreader.h"
 #include "small_cmsis.h"
 
+#include "../shared_mem/shared_mem.h"
 
 #define ESP_PACKET_SIZE     1024
-#define ESP_FILE_BUFF_COUNT 8
 
-#define DATA_SIZE 16*1024
-#define WRITE_COUNT 255
+//Под буфер для DMA два последних КБ из буфера
+#define ESP_FILE_BUFF_COUNT (SHARED_MEM_1KB_COUNT-2)
+//Под буфер для записи в файл все оставшееся с начала
+#define FILE_BUFFER_SIZE  ESP_PACKET_SIZE*ESP_FILE_BUFF_COUNT
+
+extern volatile uint8_t *dma_buff1;
+extern volatile uint8_t *dma_buff2;
 
 void mks_wifi_sd_ls(void);
 
-void mks_wifi_sd_init(void);
+uint8_t mks_wifi_sd_init(void);
 void mks_wifi_sd_deinit(void);
 void sd_delete_file(char *filename);
 
 void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet);
+
+#endif
 
 #endif

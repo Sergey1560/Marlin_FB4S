@@ -1,6 +1,6 @@
 #include "w25q64.h"
 
-volatile uint8_t spi_eeprom[SPI_EEPROM_SIZE];
+volatile uint8_t *spi_eeprom=shared_mem;
 
 volatile uint32_t spi_cr;
 

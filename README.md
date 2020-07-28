@@ -1,9 +1,9 @@
 # Marlin 3D Printer Firmware for Flying Bear 4S
 
-## Версия с тестовой поддержкой WIFI модуля
+## Версия поддержкой WIFI модуля
 
 Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S (плата MKS Robin Nano).
-Эта ветка содержит код для работы с WIFI модулем, установленным в FB4S. Загрузка файлов через стандартный plugin в Cura.
+Эта ветка содержит код для работы с модулем [MKS WIFI](https://github.com/makerbase-mks/MKS-WIFI), установленным в FB4S. Загрузка файлов через стандартный plugin в Cura.
 Код работы с экраном взят из репозитория [inib/Marlin](https://github.com/inib/Marlin)
 
 В ветке [FB4S_Config](https://github.com/Sergey1560/Marlin_FB4S/tree/FB4S_Config) находится вариант с минимальными изменениями в коде Marlin (только работа с экраном и конфигурация)
@@ -37,15 +37,20 @@
 
 ### Что нужно настроить
 
-Нужно настроить направления движения по осям под свои драйвера в файле [Configuration.h](./Marlin/Configuration.h) (параметры INVERT_?_DIR, строка 1071). По умолчанию стоят настройки под драйвера 2208.
+Нужно настроить направления движения по осям под свои драйвера в файле [Configuration.h](./Marlin/Configuration.h) (параметры INVERT_?_DIR, строка 1071). По умолчанию стоят настройки под драйвера 2208. В файле [Configuration.h](./Marlin/Configuration.h) уже есть готовые настройки для стандартных драйверов (A4988) и для драйверов 2208/2209. В строке 1110 достаточно выбрать один из вариантов:
+
+```C
+#define ALL_DRV_2208
+//#define ALL_DRV_A4988
+```
 
 ### Если нет желания самому собирать прошивку
 
 Готовые файлы лежат в папке firmware.
 
-Если вы используете драйвера 2208, или аналогичные, прошивка в папке 2208 [Robin_nano35.bin](./firmware/2208/Robin_nano35.bin)
+Если вы используете драйвера 2208 или 2209, прошивка в папке firmware/2208 [Robin_nano35.bin](./firmware/2208/Robin_nano35.bin)
 
-Если вы используете стандартные драйвера, прошивка в папке std [Robin_nano35.bin](./firmware/std/Robin_nano35.bin)
+Если вы используете стандартные драйвера, прошивка в папке firmware/std [Robin_nano35.bin](./firmware/std/Robin_nano35.bin)
 
 Отличия сборок только в инвертировании осей.
 

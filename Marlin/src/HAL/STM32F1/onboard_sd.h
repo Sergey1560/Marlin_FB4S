@@ -3,7 +3,7 @@
 / * Copyright (c) 2019 BigTreeTech [https://github.com/bigtreetech]
 / * Low level disk interface module include file   (C)ChaN, 2015
 /-----------------------------------------------------------------------*/
-
+#if 0
 #pragma once
 
 #define _DISKIO_WRITE   1   /* 1: Enable disk_write function */
@@ -94,3 +94,4 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count);
 #define CT_SD2      0x04        /* SD ver 2 */
 #define CT_SDC      (CT_SD1|CT_SD2) /* SD */
 #define CT_BLOCK    0x08        /* Block addressing */
+#endif

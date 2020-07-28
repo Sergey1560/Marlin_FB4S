@@ -3,7 +3,7 @@
 #include "../../inc/MarlinConfig.h"
 #include "../../libs/Segger/log.h"
 #include "../../sd/cardreader.h"
-
+#ifdef MKS_WIFI
 
 void mks_test_sdio(void){
     uint8_t data[512];
@@ -21,3 +21,6 @@ void mks_test_sdio(void){
     DEBUG("Finish sdio test");
 
 }
+
+
+#endif

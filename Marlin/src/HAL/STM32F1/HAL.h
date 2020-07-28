@@ -17,7 +17,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 #pragma once
@@ -36,7 +36,6 @@
 #include "fastio.h"
 #include "watchdog.h"
 
-#include "timers.h"
 
 #include <stdint.h>
 #include <util/atomic.h>
@@ -52,7 +51,7 @@
 // ------------------------
 
 #ifndef STM32_FLASH_SIZE
-  #ifdef MCU_STM32F103RE
+  #if defined(MCU_STM32F103RE) || defined(MCU_STM32F103VE)
     #define STM32_FLASH_SIZE 512
   #else
     #define STM32_FLASH_SIZE 256
@@ -258,7 +257,7 @@ static int freeMemory() {
  */
 
 #if ANY(I2C_EEPROM_AT24C16, SPI_EEPROM_W25Q)
-void eeprom_hw_init(void);
+void eeprom_init(void);
 void eeprom_hw_deinit(void);
 #endif
 uint8_t eeprom_read_byte(uint8_t *pos);
@@ -275,8 +274,9 @@ void eeprom_update_block(const void *__src, void *__dst, size_t __n);
 
 void HAL_adc_init();
 
-#define HAL_START_ADC(pin)  HAL_adc_start_conversion(pin)
+#define HAL_ADC_VREF         3.3
 #define HAL_ADC_RESOLUTION  10
+#define HAL_START_ADC(pin)  HAL_adc_start_conversion(pin)
 #define HAL_READ_ADC()      HAL_adc_result
 #define HAL_ADC_READY()     true
 
