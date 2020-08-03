@@ -1079,7 +1079,11 @@ void setup() {
 
   #if HAS_CASE_LIGHT
     #if DISABLED(CASE_LIGHT_USE_NEOPIXEL)
+      #if DISABLED(CASE_LIGHT_NO_BRIGHTNESS)
       if (PWM_PIN(CASE_LIGHT_PIN)) SET_PWM(CASE_LIGHT_PIN); else SET_OUTPUT(CASE_LIGHT_PIN);
+      #else
+      SET_OUTPUT(CASE_LIGHT_PIN);
+      #endif
     #endif
     SETUP_RUN(update_case_light());
   #endif

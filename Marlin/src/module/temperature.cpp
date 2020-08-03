@@ -1670,6 +1670,8 @@ void Temperature::init() {
 
   #if HAS_FAN0
     INIT_FAN_PIN(FAN_PIN);
+    //Disable short FAN start during init
+    pwmWrite(FAN_PIN,0);
   #endif
   #if HAS_FAN1
     INIT_FAN_PIN(FAN1_PIN);

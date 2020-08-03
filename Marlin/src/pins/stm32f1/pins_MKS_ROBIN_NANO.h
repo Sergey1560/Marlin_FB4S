@@ -1,29 +1,4 @@
-/**
- * Marlin 3D Printer Firmware
- * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
- *
- * Based on Sprinter and grbl.
- * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- */
 #pragma once
-
-/**
- * MKS Robin nano (STM32F130VET6) board pin assignments
- */
 
 #ifndef __STM32F1__
   #error "Oops! Select an STM32F1 board in 'Tools > Board.'"
@@ -33,60 +8,39 @@
 
 #define BOARD_INFO_NAME "MKS Robin Nano"
 
-//
-// Release PB4 (Y_ENABLE_PIN) from JTAG NRST role
-//
 #define DISABLE_DEBUG
 #undef JTAGSWD_DISABLE
 
-//Case LED in instead E1
+/*
+Управление подсветкой платой в разъеме второго экструдера
+Управление ногой En
+https://easyeda.com/sst78rust/fb4s-led-control
+*/
 #define CASE_LED_INSTEAD_E1
 
-//
-// EEPROM
-//
-#if EITHER(NO_EEPROM_SELECTED, FLASH_EEPROM_EMULATION)
-  #define FLASH_EEPROM_EMULATION
-  #define EEPROM_PAGE_SIZE     (0x800U) // 2KB
-  #define EEPROM_START_ADDRESS (0x8000000UL + (STM32_FLASH_SIZE) * 1024UL - (EEPROM_PAGE_SIZE) * 2UL)
-  #define MARLIN_EEPROM_SIZE    EEPROM_PAGE_SIZE  // 2KB
-#endif
-
 #define ENABLE_SPI2
 
-//
-// EEPROM
-//
-#if EITHER(NO_EEPROM_SELECTED, FLASH_EEPROM_EMULATION)
-  #define FLASH_EEPROM_EMULATION
-  #define EEPROM_PAGE_SIZE     (0x800U) // 2KB
-  #define EEPROM_START_ADDRESS (0x8000000UL + (STM32_FLASH_SIZE) * 1024UL - (EEPROM_PAGE_SIZE) * 2UL)
-  #define MARLIN_EEPROM_SIZE    EEPROM_PAGE_SIZE  // 2KB
-#endif
-
-//
-// EEPROM
-//
-#if EITHER(NO_EEPROM_SELECTED, FLASH_EEPROM_EMULATION)
-  #define FLASH_EEPROM_EMULATION
-  #define EEPROM_PAGE_SIZE     (0x800U) // 2KB
-  #define EEPROM_START_ADDRESS (0x8000000UL + (STM32_FLASH_SIZE) * 1024UL - (EEPROM_PAGE_SIZE) * 2UL)
-  #define MARLIN_EEPROM_SIZE    EEPROM_PAGE_SIZE  // 2KB
-#endif
-
-#define ENABLE_SPI2
-
-//
-// Limit Switches
-//
+/* 
+Концевики
+*/
 #define X_STOP_PIN                          PA15
 #define Y_STOP_PIN                          PA12
 #define Z_MIN_PIN                           PA11
-#define Z_MAX_PIN                           PC4
 
+/*
+BlTouch
+*/
+//#define Z_MAX_PIN                           PC4
+#define SERVO0_PIN                          PB2   
+#define BL_TOUCH_Z_PIN                      PC4
+
+/*
+Датчик окончания филамента
+*/
 #ifndef FIL_RUNOUT_PIN
   #define FIL_RUNOUT_PIN                    PA4   // MT_DET
 #endif
+
 
 //
 // Steppers
@@ -122,58 +76,33 @@
 #define TEMP_0_PIN                          PC1   // TH1
 #define TEMP_BED_PIN                        PC0   // TB1
 
-//Термистор на корпусе
+//Дополнительный термистор на корпусе
 #if TEMP_SENSOR_CHAMBER > 0
-#define TEMP_CHAMBER_PIN                    PC2
-#else
-#define TEMP_1_PIN                          PC2   // TH2
+  #define TEMP_CHAMBER_PIN                    PC2
 #endif
+
 //
 // Heaters / Fans
 //
-#ifndef HEATER_0_PIN
-  #define HEATER_0_PIN                      PC3
-#endif
-#if HOTENDS == 1
-  #ifndef FAN1_PIN
-    #define FAN1_PIN                        PB0
-  #endif
-#else
-  #ifndef HEATER_1_PIN
-    #define HEATER_1_PIN                    PB0
-  #endif
-#endif
-#ifndef FAN_PIN
-  #define FAN_PIN                           PB1   // FAN
-#endif
-#ifndef HEATER_BED_PIN
-  #define HEATER_BED_PIN                    PA0
-#endif
+#define HEATER_0_PIN                      PC3
+#define HEATER_BED_PIN                    PA0
 
-//
-// Thermocouples
-//
-//#define MAX6675_SS_PIN                    PE5   // TC1 - CS1
-//#define MAX6675_SS_PIN                    PE6   // TC2 - CS2
+#define FAN1_PIN                          PB0
+#define FAN_PIN                           PB1   
 
-//
-// Misc. Functions
-//
-#define POWER_LOSS_PIN                      PA2   // PW_DET
-#ifndef CASE_LED_INSTEAD_E1
-  #define PS_ON_PIN                          PA3   // PW_OFF
-#endif
+/*
+Управление питанием
+*/
+#define SUICIDE_PIN                       PE5   
+#define SUICIDE_PIN_INVERTING false
 
-//#define SUICIDE_PIN                       PB2   // Enable MKSPWC support ROBIN NANO v1.2 ONLY
-//#define SUICIDE_PIN_INVERTING false
-
+/*
+Кнопка экстренной остановки
+*/
 //#define KILL_PIN                          PA2   // Enable MKSPWC support ROBIN NANO v1.2 ONLY
 //#define KILL_PIN_INVERTING true                 // Enable MKSPWC support ROBIN NANO v1.2 ONLY
 
-#define SERVO0_PIN                          PA8   // Enable BLTOUCH support ROBIN NANO v1.2 ONLY
-
-//#define LED_PIN                           PB2
-
+#define PWR_DET_PIN                         PA2
 #define MT_DET_1_PIN                        PA4
 #define MT_DET_2_PIN                        PE6
 #define MT_DET_PIN_INVERTING false
@@ -196,13 +125,6 @@
 // LCD / Controller
 //
 #define BEEPER_PIN                          PC5
-
-/**
- * Note: MKS Robin TFT screens use various TFT controllers.
- * If the screen stays white, disable 'LCD_RESET_PIN'
- * to let the bootloader init the screen.
- */
-
 
 #if ENABLED(FSMC_GRAPHICAL_TFT)
   #define LCD_USE_DMA_FSMC 
@@ -238,20 +160,17 @@
 
 #endif
 
-
+/*
+Модуль MKS WIFI
+*/
 #define MKS_WIFI
+
 #ifdef MKS_WIFI
  #undef PLATFORM_M997_SUPPORT
 
  #define MKS_WIFI_IO0                       PA8
  #define MKS_WIFI_IO4                       PC7
  #define MKS_WIFI_IO_RST                    PA5
- /*
- #define ESP_WIFI_MODULE_GPIO0_PIN          PA8
- #define ESP_WIFI_MODULE_GPIO2              
- #define ESP_WIFI_MODULE_RESET              PA5
- #define ESP_WIFI_MODULE_ENABLE             
-*/
 #endif
 
 #define SPI_FLASH
@@ -261,3 +180,4 @@
   #define W25QXX_MISO_PIN                   PB14
   #define W25QXX_SCK_PIN                    PB13
 #endif
+
