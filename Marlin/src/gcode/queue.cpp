@@ -466,6 +466,7 @@ void GCodeQueue::get_serial_commands() {
      #endif
 
       if (ISEOL(serial_char)) {
+
         // Reset our state, continue if the line was empty
         if (process_line_done(serial_input_state[i], serial_line_buffer[i], serial_count[i]))
           continue;

@@ -444,18 +444,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 24: M24(); break;                                    // M24: Start SD print
         case 25: M25(); break;                                    // M25: Pause SD print
         case 26: M26(); break;                                    // M26: Set SD index
-        case 27: 
-          // #if ENABLED(MKS_WIFI)
-          //   if(!serial_port_index){
-              M27();           
-          //   }else{
-          //     mks_m27();
-          //     return;
-          //   }
-          // #else
-          // M27();           
-          // #endif
-        break;                                    // M27: Get SD status
+        case 27: M27(); break;                                    // M27: Get SD status
         case 28: M28(); break;                                    // M28: Start SD write
         case 29: M29(); break;                                    // M29: Stop SD write
         case 30: 
