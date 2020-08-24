@@ -1097,6 +1097,7 @@
 
 #define ALL_DRV_2208
 //#define ALL_DRV_A4988
+//#define FB_5_STOCK
 
 #ifdef ALL_DRV_2208
 #define USR_E0_DIR true
@@ -1109,6 +1110,20 @@
 #define USR_E0_DIR false
 #define USR_X_DIR true
 #define USR_Y_DIR true
+#define USR_Z_DIR false
+#endif
+
+#ifdef ALL_DRV_A4988
+#define USR_E0_DIR false
+#define USR_X_DIR true
+#define USR_Y_DIR true
+#define USR_Z_DIR false
+#endif
+
+#ifdef FB_5_STOCK
+#define USR_E0_DIR false
+#define USR_X_DIR false
+#define USR_Y_DIR false
 #define USR_Z_DIR false
 #endif
 
@@ -1544,6 +1559,7 @@ EEPROM_W25Q
 #undef I2C_EEPROM_AT24C16
 #undef SPI_EEPROM_W25Q
 #undef USE_WIRED_EEPROM 
+#define MARLIN_EEPROM_SIZE  4096
 #endif
 
 #define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
