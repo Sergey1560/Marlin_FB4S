@@ -1096,7 +1096,7 @@
 // @section machine
 
 #define ALL_DRV_2208
-//#define ALL_DRV_A4988
+//#define FB_4S_STOCK
 //#define FB_5_STOCK
 
 #ifdef ALL_DRV_2208
@@ -1106,14 +1106,7 @@
 #define USR_Z_DIR true
 #endif
 
-#ifdef ALL_DRV_A4988
-#define USR_E0_DIR false
-#define USR_X_DIR true
-#define USR_Y_DIR true
-#define USR_Z_DIR false
-#endif
-
-#ifdef ALL_DRV_A4988
+#ifdef FB_4S_STOCK
 #define USR_E0_DIR false
 #define USR_X_DIR true
 #define USR_Y_DIR true
