@@ -5,10 +5,10 @@
 #include "mks_wifi_sd.h"
 #include "mks_test_sdio.h"
 
-volatile uint8_t *mks_in_buffer=shared_mem;
+volatile uint8_t mks_in_buffer[MKS_IN_BUFF_SIZE];
 uint8_t mks_out_buffer[MKS_OUT_BUFF_SIZE];
 
-volatile uint8_t *esp_packet=shared_mem+ESP_PACKET_DATA_MAX_SIZE;
+volatile uint8_t esp_packet[MKS_TOTAL_PACKET_SIZE];
 
 
 void mks_wifi_init(void){
@@ -56,7 +56,7 @@ void mks_wifi_set_param(void){
 	uint32_t key_len = strlen((const char *)MKS_WIFI_KEY);
 
 
-	memset(mks_out_buffer, 0, sizeof(MKS_OUT_BUFF_SIZE));
+	memset(mks_out_buffer, 0, MKS_OUT_BUFF_SIZE);
 
 	mks_out_buffer[0] = WIFI_MODE_STA;
 
@@ -71,8 +71,10 @@ void mks_wifi_set_param(void){
 	esp_frame.data=mks_out_buffer;
 	packet_size=mks_wifi_build_packet((uint8_t *)esp_packet,&esp_frame);
 
-	//выпихнуть в uart
-	mks_wifi_send((uint8_t *)esp_packet, packet_size);
+	if(packet_size > 8){ //4 байта заголовка + 2 байта длины + хвост + название сети и пароль
+		//выпихнуть в uart
+		mks_wifi_send((uint8_t *)esp_packet, packet_size);
+	};
 }
 
 /*
@@ -93,6 +95,12 @@ void mks_wifi_out_add(uint8_t *data, uint32_t size){
 			esp_frame.data=mks_out_buffer;
 			packet_size=mks_wifi_build_packet((uint8_t *)esp_packet,&esp_frame);
 
+			if(packet_size == 0){
+				ERROR("Build packet failed");
+				line_index=0;
+				memset(mks_out_buffer,0,MKS_OUT_BUFF_SIZE);
+				break;
+			}
 			//выпихнуть в uart
 			mks_wifi_send((uint8_t *)esp_packet, packet_size);
 			//очистить буфер
@@ -108,6 +116,7 @@ void mks_wifi_out_add(uint8_t *data, uint32_t size){
 			ERROR("Max line size");
 			line_index=0;
 			memset(mks_out_buffer,0,MKS_OUT_BUFF_SIZE);
+			break;
 		}
 	}
 }
@@ -127,7 +136,7 @@ uint8_t mks_wifi_input(uint8_t data){
 		payload_size = ESP_PACKET_DATA_MAX_SIZE;
 		packet_start_flag=1;
 		packet_index=0;
-		memset((uint8_t*)mks_in_buffer,0,ESP_PACKET_DATA_MAX_SIZE);
+		memset((uint8_t*)mks_in_buffer,0,MKS_IN_BUFF_SIZE);
 	}
 
 	if(packet_start_flag){
@@ -140,9 +149,26 @@ uint8_t mks_wifi_input(uint8_t data){
 
 	if(packet_index == 3){
 		payload_size = uint16_t(mks_in_buffer[3] << 8) | mks_in_buffer[2];
+
+		if(payload_size > ESP_PACKET_DATA_MAX_SIZE){
+			ERROR("Payload size too big");
+			packet_start_flag=0;
+			packet_index=0;
+			memset((uint8_t*)mks_in_buffer,0,MKS_IN_BUFF_SIZE);
+			return 1;
+		}
+
 	}
 
 	if( (packet_index >= (payload_size+4)) || (packet_index >= ESP_PACKET_DATA_MAX_SIZE) ){
+
+		if(mks_wifi_check_packet((uint8_t *)mks_in_buffer)){
+			ERROR("Packet check failed");
+			packet_start_flag=0;
+			packet_index=0;
+			return 1;
+		}
+
 		esp_frame.type = packet_type;
 		esp_frame.dataLen = payload_size;
 		esp_frame.data = (uint8_t*)&mks_in_buffer[4];
@@ -166,7 +192,16 @@ uint8_t mks_wifi_input(uint8_t data){
 	   (packet_index >= 4) && 
 	   (packet_index < payload_size+5) 
 	  ){
-		ret_val=0;
+
+		if(!check_char_allowed(data)){
+			ret_val=0;
+		}else{
+			ERROR("Char not allowed: %0X %c",data,data);
+			packet_start_flag=0;
+			packet_index=0;
+			return 1;
+		}
+		
 	}
 
 	if(packet_start_flag){
@@ -176,13 +211,64 @@ uint8_t mks_wifi_input(uint8_t data){
 	return ret_val;
 }
 
+/*
+Проверяет, что символы из текстового диапазона
+для G-code команд
+*/
+uint8_t check_char_allowed(char data){
+
+	if( data == 0x0a || data == 0x0d){
+		return 0;
+	}
+
+	if( (data >= 0x20) && (data <= 0x7E) ){
+		return 0;
+	}
+
+	return 1;
+
+}
+
+/*
+Проверяет пакет на корректность:
+наличие заголовка
+наличие "хвоста"
+длина пакета
+*/
+uint8_t mks_wifi_check_packet(uint8_t *in_data){
+	uint16_t payload_size;
+	uint16_t tail_index;
+
+	if(in_data[0] != ESP_PROTOC_HEAD){
+		ERROR("Packet head mismatch");
+		return 1;
+	}
+
+	payload_size = uint16_t(in_data[3] << 8) | in_data[2];
+	
+	if(payload_size > ESP_PACKET_DATA_MAX_SIZE){
+		ERROR("Payload size mismatch");
+		return 1;
+	}
+	
+	tail_index = payload_size + 4;
+
+	if(in_data[tail_index] != ESP_PROTOC_TAIL ){
+		ERROR("Packet tail mismatch");
+		return 1;
+	}
+
+	return 0;
+}
+
+
 void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 	static uint8_t show_ip_once=0;
-	char str[50];
+	char str[100];
 
 	switch(packet->type){
 		case ESP_TYPE_NET:
-			
+			memset(str,0,100);
 			if(packet->data[6] == ESP_NET_WIFI_CONNECTED){
 				if(show_ip_once==0){
 					show_ip_once=1;
@@ -192,12 +278,16 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 					SERIAL_ECHOLN((char*)str);	
 
 					//Вывод имени сети
-					memcpy(str,&packet->data[9],packet->data[8]); 
-					str[packet->data[8]]=0;
-					SERIAL_ECHO_START();
-					SERIAL_ECHO("WIFI: ");
-					SERIAL_ECHOLN((char*)str);
 					
+					if(packet->data[8] < 100){
+						memcpy(str,&packet->data[9],packet->data[8]); 
+						str[packet->data[8]]=0;
+						SERIAL_ECHO_START();
+						SERIAL_ECHO("WIFI: ");
+						SERIAL_ECHOLN((char*)str);
+					}else{
+						DEBUG("Network NAME too long");
+					}
 				}
 				DEBUG("[Net] connected, IP: %d.%d.%d.%d",packet->data[0],packet->data[1],packet->data[2],packet->data[3]);
 			}else if(packet->data[6] == ESP_NET_WIFI_EXCEPTION){
@@ -249,7 +339,7 @@ void mks_wifi_print(const char *s){
 }
 
 void mks_wifi_print(int i){
-	char str[14];
+	char str[100];
 
 	sprintf(str,"%d",i);
 	mks_wifi_out_add((uint8_t *)str, strnlen((char *)str,ESP_PACKET_DATA_MAX_SIZE));
@@ -261,16 +351,16 @@ void mks_wifi_println(const char *s){
 }
 
 void mks_wifi_println(float f){
-	char str[30];
+	char str[100];
 
 	sprintf(str,"%ld\n",(uint32_t)f);
 	mks_wifi_out_add((uint8_t *)str, strnlen((char *)str,ESP_PACKET_DATA_MAX_SIZE));
 }
 
 uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
-	uint16_t packet_size;
+	uint16_t packet_size=0;
 
-	memset(packet,0,ESP_PACKET_DATA_MAX_SIZE);
+	memset(packet,0,MKS_TOTAL_PACKET_SIZE);
 	packet[0] = ESP_PROTOC_HEAD;
 	packet[1] = esp_frame->type;
 
@@ -279,6 +369,11 @@ uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
 	}
 
 	packet_size = esp_frame->dataLen + 4;
+
+	if(packet_size > MKS_TOTAL_PACKET_SIZE){
+		ERROR("ESP packet too big");
+		return 0;
+	}
 
 	if(esp_frame->type != ESP_TYPE_NET){
 		packet[packet_size++] = 0x0d;
@@ -294,7 +389,7 @@ uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
 
 
 void mks_wifi_send(uint8_t *packet, uint16_t size){
-	safe_delay(10);				
+	//safe_delay(10);
 	for( uint32_t i=0; i < (uint32_t)(size+1); i++){
 		while(MYSERIAL1.availableForWrite()==0){
 			safe_delay(10);				

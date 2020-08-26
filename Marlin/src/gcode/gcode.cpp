@@ -245,7 +245,7 @@ void GcodeSuite::dwell(millis_t time) {
 void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
   KEEPALIVE_STATE(IN_HANDLER);
 
-  //DEBUG("Cmd %c %d",parser.command_letter,parser.codenum);
+  DEBUG("Cmd %c %d",parser.command_letter,parser.codenum);
 
   // Handle a known G, M, or T
   switch (parser.command_letter) {
