@@ -11,8 +11,10 @@
  * Redistributions of source code must retain the above copyright notice.
  *
  */
-#if 0
+
 #include "../../inc/MarlinConfig.h"
+
+#ifndef MKS_WIFI
 
 #if SD_CONNECTION_IS(ONBOARD)
 

@@ -36,9 +36,15 @@
 #endif
 size_t PersistentStore::capacity()    { return MARLIN_EEPROM_SIZE; }
 
+bool PersistentStore::access_finish() { 
+  #if ENABLED(EEPROM_W25Q)
+  eeprom_hw_deinit();
+  #endif
+  return true; 
+  }
+
 bool PersistentStore::access_start() {
   eeprom_init();
-  #ifndef SPI_EEPROM_W25Q
   #if ENABLED(SPI_EEPROM)
     #if SPI_CHAN_EEPROM1 == 1
       SET_OUTPUT(BOARD_SPI1_SCK_PIN);
@@ -48,16 +54,8 @@ bool PersistentStore::access_start() {
     #endif
     spiInit(0);
   #endif
-  #endif
   return true;
 }
-bool PersistentStore::access_finish() { 
-  #if ANY(I2C_EEPROM_AT24C16, SPI_EEPROM_W25Q)
-    eeprom_hw_deinit();
-  #endif
-
-  return true;
-   }
 
 bool PersistentStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
   while (size--) {

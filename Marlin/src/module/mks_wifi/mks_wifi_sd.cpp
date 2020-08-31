@@ -53,6 +53,42 @@ void sd_delete_file(char *filename){
    mks_wifi_sd_deinit();
 }
 
+/*
+Ищет файл filename и возвращает 8.3 имя в dosfilename
+
+Возвращаемое значение 1 если нашлось, 0 если нет
+*/
+
+uint8_t get_dos_filename(char *filename, char* dosfilename){
+    uint8_t ret_val=0;
+   
+   mks_wifi_sd_init();
+
+    res = f_opendir(&dir, "0:");                       /* Open the directory */
+    
+    if (res == FR_OK) {
+        for (;;) {
+            res = f_readdir(&dir, &fno);                   /* Read a directory item */
+            if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+            
+            if(!strcmp(fno.fname,filename)){
+               DEBUG("Found %s %s\n", fno.fname, fno.altname);
+               strncpy(dosfilename,fno.altname,13);
+               ret_val = 1;
+            }
+                
+            }
+       }else{
+          ERROR("Opendir error %d",res);
+      }
+   f_closedir(&dir);
+
+   mks_wifi_sd_deinit();
+
+   return ret_val;
+}
+
+
 
 void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 	char str[100];

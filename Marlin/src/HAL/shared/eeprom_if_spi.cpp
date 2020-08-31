@@ -28,7 +28,9 @@
 #include "../../inc/MarlinConfig.h"
 
 #if ENABLED(SPI_EEPROM)
-#ifndef EEPROM_W25Q
+
+#if DISABLED(SPI_EEPROM_W25Q)
+
 #include "eeprom_if.h"
 
 void eeprom_init() {}
@@ -84,5 +86,6 @@ void eeprom_write_byte(uint8_t* pos, uint8_t value) {
 }
 
 #endif // USE_SHARED_EEPROM
-#endif // I2C_EEPROM
+
 #endif
+#endif // I2C_EEPROM

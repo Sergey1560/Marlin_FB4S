@@ -132,6 +132,11 @@ uint8_t mks_wifi_input(uint8_t data){
 	static uint16_t payload_size=ESP_PACKET_DATA_MAX_SIZE;
 	uint8_t ret_val=1;
 
+	//Не отдавать данные в очередь команд, если идет печать
+	if (CardReader::isPrinting()){
+		return 1;
+	}	
+	
 	if(data == ESP_PROTOC_HEAD){
 		payload_size = ESP_PACKET_DATA_MAX_SIZE;
 		packet_start_flag=1;
