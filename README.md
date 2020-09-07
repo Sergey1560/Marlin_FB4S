@@ -51,7 +51,7 @@
 
 Нужная плата, Robin Nano, уже выбрана в качестве платы по-умолчанию. В меню Platformio можно не выбирать плату, а нажать Build на самом верху. Или использовать сочетание клавиш Ctrl+Alt+B.
 
-После компиляции, готовая прошивка лежит в .pio/build/mks_robin_nano/Robin_nano35.bin
+После компиляции, готовая прошивка лежит в .pio/build/mks_robin_nano35/Robin_nano35.bin
 
 На SD карту нужно записывать именно Robin_nano35.bin, а не firmaware.bin
 
