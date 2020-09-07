@@ -9,6 +9,7 @@
 
 
 #include "diskio.h"		/* FatFs lower layer API */
+#ifdef MKS_WIFI
 
 volatile uint8_t __attribute__ ((aligned (4))) buf_copy[512];
 
@@ -220,3 +221,4 @@ DWORD get_fattime (void) {
 };
 
 
+#endif

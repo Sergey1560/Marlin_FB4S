@@ -1,5 +1,8 @@
 #include "dwt.h"
 
+#include "../../MarlinCore.h"
+#include "../../inc/MarlinConfig.h"
+
 volatile uint32_t timeout;
 
 /*

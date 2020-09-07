@@ -1,12 +1,12 @@
 #include "mks_wifi_sd.h"
 
-#ifdef MKS_WIFI
-
 #include "../../lcd/ultralcd.h"
 #include "../../libs/fatfs/ff.h"
 #include "../../libs/buzzer.h"  
 #include "../temperature.h"
 #include "../../libs/fatfs/fatfs_shared.h"
+
+#ifdef MKS_WIFI
 
 volatile uint8_t *file_buff=shared_mem;
 volatile uint8_t *file_buff_pos;

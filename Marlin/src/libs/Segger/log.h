@@ -3,10 +3,10 @@
 #include "SEGGER_RTT.h"
 #include "../../module/mks_wifi/debug_to_uart.h"
 
-#define DEBUG_MSG
-#define INFO_MSG
-#define WARNING_MSG
-#define ERROR_MSG
+//#define DEBUG_MSG
+//#define INFO_MSG
+//#define WARNING_MSG
+//#define ERROR_MSG
 
 //#define COLOR_LOG_RTT 
 
