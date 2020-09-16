@@ -149,6 +149,7 @@ void TFT_FSMC::Init() {
     default: return;
   }
 
+  rcc_clk_enable(RCC_DMA2);
   rcc_clk_enable(RCC_FSMC);
 
   gpio_set_mode(GPIOD, 14, GPIO_AF_OUTPUT_PP);  // FSMC_D00

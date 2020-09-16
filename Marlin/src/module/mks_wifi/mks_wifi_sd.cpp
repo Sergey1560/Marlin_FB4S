@@ -1,5 +1,8 @@
 #include "mks_wifi_sd.h"
 
+
+
+#include "../../MarlinCore.h"
 #include "../../lcd/ultralcd.h"
 #include "../../libs/fatfs/ff.h"
 #include "../../libs/buzzer.h"  
@@ -7,6 +10,10 @@
 #include "../../libs/fatfs/fatfs_shared.h"
 
 #ifdef MKS_WIFI
+
+#if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
+#include "mks_wifi_ui.h"
+#endif
 
 volatile uint8_t *file_buff=shared_mem;
 volatile uint8_t *file_buff_pos;
@@ -55,7 +62,6 @@ void sd_delete_file(char *filename){
 
 /*
 Ищет файл filename и возвращает 8.3 имя в dosfilename
-
 Возвращаемое значение 1 если нашлось, 0 если нет
 */
 
@@ -102,7 +108,9 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    volatile uint32_t dma_timeout;
    uint16_t data_size;
    int16_t save_bed,save_e0;
-   
+
+   char file_name[100];
+
    save_bed=thermalManager.degTargetBed();
    save_e0=thermalManager.degTargetHotend(0);
    
@@ -114,33 +122,38 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    //safe_delay(10);
 
  	//Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
-   str[0]='0';
-   str[1]=':';
-   str[2]='/';
+   file_name[0]='0';
+   file_name[1]=':';
+   file_name[2]='/';
 
-   memcpy((uint8_t *)str+3,(uint8_t *)&packet->data[5],(packet->dataLen - 5));
-   str[packet->dataLen - 5 + 3] = 0; 
- 
+   memcpy((uint8_t *)file_name+3,(uint8_t *)&packet->data[5],(packet->dataLen - 5));
+   file_name[packet->dataLen - 5 + 3] = 0; 
+
    file_size=(packet->data[4] << 24) | (packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1];
    DEBUG("Start file %s size %d",str,file_size);
    
    //Отмонтировать SD от Marlin, Монтировать FATFs 
    if(mks_wifi_sd_init()){
       ERROR("Error SD mount");
+      ui.set_status((const char *)"Error SD mount",true);
+      ui.update();
       mks_wifi_sd_deinit();
       return;
    }
    
    //открыть файл для записи
-   res=f_open((FIL *)&upload_file,str,FA_CREATE_ALWAYS | FA_WRITE);
+   res=f_open((FIL *)&upload_file,file_name,FA_CREATE_ALWAYS | FA_WRITE);
    if(res){
       ERROR("File open error %d",res);
+      ui.set_status((const char *)"File open error",true);
+      ui.update();
       mks_wifi_sd_deinit();
       return;
    }
 
-   ui.set_status((const char *)"Upload file...",true);
-   ui.update();
+   #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
+   mks_update_status(file_name+3,0,file_size);
+   #endif   
 
    //Выключить прием по UART RX, включить через DMA, изменить скорость, Выставить флаг приема по DMA
    USART1->CR1 = 0;
@@ -218,7 +231,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          data_size = (*(buff+3) << 8) | *(buff+2);
          data_size -= 4; //4 байта с номером сегмента и флагами
 
-         DEBUG("In sector: %d data_size: %d",in_sector,data_size);
+         //DEBUG("In sector: %d data_size: %d",in_sector,data_size);
 
          //Если буфер полон и писать некуда, запись в файл
          if((data_size + file_data_size) > FILE_BUFFER_SIZE){
@@ -239,12 +252,14 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
                ERROR("Fsync err %d",res);
                break;
             }
-
-
+            
+            #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
+            mks_update_status(file_name+3,file_inc_size,file_size);
+            #else
             sprintf(str,"Upload %ld%%",file_inc_size*100/file_size);
             ui.set_status((const char *)str,true);
             ui.update();
-
+            #endif
             memset((uint8_t *)file_buff,0,FILE_BUFFER_SIZE);
             file_data_size=0;
             WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
@@ -294,23 +309,22 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    f_close((FIL *)&upload_file);
 
    if( (file_size == file_inc_size) && (file_size == file_size_writen) ){
+         #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
+         mks_end_transmit();
+         #endif
          ui.set_status((const char *)"Upload done",true);
          DEBUG("Upload ok");
          BUZZ(1000,260);
 
-         str[0]='0';
-         str[1]=':';
-         str[2]='/';
-
-         memcpy((uint8_t *)str+3,(uint8_t *)&packet->data[5],(packet->dataLen - 5));
-         str[packet->dataLen - 5 + 3] = 0; 
-
-         if(!strcmp(str,"0:/Robin_Nano35.bin")){
+         if(!strcmp(file_name,"0:/Robin_Nano35.bin")){
             DEBUG("Firmware found, reboot");
             safe_delay(1000);
             nvic_sys_reset();
          }
    }else{
+         #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
+         mks_end_transmit();
+         #endif
          ui.set_status((const char *)"Upload failed",true);
          DEBUG("Upload failed! File size: %d; Recieve %d; SD write %d",file_size,file_inc_size,file_size_writen);
          //Установить имя файла.
@@ -321,8 +335,8 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          memcpy((uint8_t *)str+3,(uint8_t *)&packet->data[5],(packet->dataLen - 5));
          str[packet->dataLen - 5 + 3] = 0; 
 
-         DEBUG("Rename file %s",str);
-         f_rename(str,"file_failed.gcode");
+         DEBUG("Rename file %s",file_name);
+         f_rename(file_name,"file_failed.gcode");
 
          BUZZ(436,392);
          BUZZ(109,0);
