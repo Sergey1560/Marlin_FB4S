@@ -1,7 +1,5 @@
 #include "mks_wifi_sd.h"
 
-
-
 #include "../../MarlinCore.h"
 #include "../../lcd/ultralcd.h"
 #include "../../libs/fatfs/ff.h"
@@ -108,6 +106,8 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    volatile uint32_t dma_timeout;
    uint16_t data_size;
    int16_t save_bed,save_e0;
+
+   uint32_t data_to_write=0;
 
    char file_name[100];
 
@@ -231,17 +231,19 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          data_size = (*(buff+3) << 8) | *(buff+2);
          data_size -= 4; //4 байта с номером сегмента и флагами
 
-         //DEBUG("In sector: %d data_size: %d",in_sector,data_size);
+         data_to_write = file_data_size / 512;
+         data_to_write = data_to_write * 512;
+
+         //DEBUG("In[%d] d_size: %d f_size: %d to_w: %d",in_sector,data_size,file_data_size,data_to_write);
 
          //Если буфер полон и писать некуда, запись в файл
          if((data_size + file_data_size) > FILE_BUFFER_SIZE){
-           	
             WRITE(MKS_WIFI_IO4, HIGH); //Остановить передачу от ESP
+
+            file_inc_size += data_to_write; 
+            DEBUG("[%d]Save %d bytes (%d of %d) ",in_sector,data_to_write,file_inc_size,file_size);
             
-            file_inc_size += file_data_size; 
-            DEBUG("[%d]Save %d bytes (%d of %d) ",in_sector,file_data_size,file_inc_size,file_size);
-            
-            res=f_write((FIL *)&upload_file,(uint8_t*)file_buff,file_data_size,&bytes_writen);
+            res=f_write((FIL *)&upload_file,(uint8_t*)file_buff,data_to_write,&bytes_writen);
             if(res){
                ERROR("Write err %d",res);
                break;
@@ -260,18 +262,20 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
             ui.set_status((const char *)str,true);
             ui.update();
             #endif
-            memset((uint8_t *)file_buff,0,FILE_BUFFER_SIZE);
-            file_data_size=0;
+            file_data_size = file_data_size - data_to_write;
+            
+            memcpy((uint8_t *)file_buff,(uint8_t *)(file_buff+data_to_write),file_data_size);
+            memset((uint8_t *)(file_buff+file_data_size),0,(FILE_BUFFER_SIZE-file_data_size));
+            
             WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
          }
         
-
          if(*(buff+7) == 0x80){ //Последний пакет с данными
             DEBUG("Last packet");
             if(file_data_size != 0){ //В буфере что-то есть
                file_inc_size += file_data_size; 
 
-               DEBUG("Save %d bytes from buffer (%d of %d) ",file_data_size,file_inc_size,file_size);
+               DEBUG("Save last %d bytes from buffer (%d of %d) ",file_data_size,file_inc_size,file_size);
                res=f_write((FIL *)&upload_file,(uint8_t*)file_buff,file_data_size,&bytes_writen);
                if(res){
                   ERROR("Write err %d",res);
