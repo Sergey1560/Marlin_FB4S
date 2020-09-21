@@ -4,16 +4,27 @@
 
 #include "../../lcd/tft/tft.h"
 #include "../../lcd/tft/tft_color.h"
+#include "../../lcd/ultralcd.h"
 
 extern TFT tft;
+char str[100];
 
-void mks_update_status(char *filename,int current_filesize, int file_size){
-    char str[100];
+void mks_update_status(char *filename,uint32_t current_filesize, uint32_t file_size){
+    static uint32_t call_count = 0;
     static uint32_t last_value = 200;
-    uint8_t percent_done;
+    uint32_t percent_done;
+    uint16_t width;
 
-    percent_done = current_filesize*100/file_size;
-    if((percent_done != last_value)){
+    //При расчете процентов размер файла превышает максимум для uint32_t
+    if(current_filesize >= (UINT32_MAX/100) ){
+      current_filesize = current_filesize/100;
+      file_size = file_size/100;
+    }
+
+    percent_done = (current_filesize*100)/file_size;
+    if(((uint8_t)percent_done != last_value)){
+      call_count++;
+      DEBUG("LCD call %ld CF: %ld  FS: %ld",call_count,current_filesize,file_size);
       tft.queue.reset();
       tft.canvas(0, 0, TFT_WIDTH, TFT_HEIGHT);
       tft.set_background(COLOR_BACKGROUND);
@@ -21,13 +32,14 @@ void mks_update_status(char *filename,int current_filesize, int file_size){
       sprintf(str,"%s",filename);
       tft.add_text(8, 100, COLOR_WHITE, str);
       
-      tft.add_bar(8,150, ((TFT_WIDTH-10)*percent_done)/100, 30, COLOR_GREEN);
+      width = ((TFT_WIDTH-10)*(uint8_t)percent_done)/100;
+      tft.add_bar(8,150, width, 30, COLOR_GREEN);
 
-      sprintf(str,"%d of %d (%d%%)",current_filesize,file_size,percent_done);
+      sprintf(str,"%ld of %ld (%d%%)",current_filesize,file_size,(uint8_t)percent_done);
       tft.add_text(100, 150, COLOR_WHITE, str);
       
       tft.queue.sync();
-        last_value = percent_done;
+      last_value = percent_done;
     };
 
 }
