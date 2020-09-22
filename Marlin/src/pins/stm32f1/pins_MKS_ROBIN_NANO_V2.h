@@ -41,6 +41,13 @@
 
 #define DISABLE_DEBUG
 
+/*
+Управление подсветкой платой в разъеме второго экструдера
+Управление ногой En
+https://easyeda.com/sst78rust/fb4s-led-control
+*/
+#define CASE_LED_INSTEAD_E1
+
 //
 // EEPROM
 //
@@ -103,9 +110,14 @@
   #define E0_CS_PIN                         PD9
 #endif
 
+#ifdef CASE_LED_INSTEAD_E1
+  #define LED_CASE_PIN                      PA3
+#else
 #define E1_ENABLE_PIN                       PA3
 #define E1_STEP_PIN                         PD15
 #define E1_DIR_PIN                          PA1
+#endif
+
 #ifndef E1_CS_PIN
   #define E1_CS_PIN                         PD8
 #endif
@@ -215,8 +227,6 @@
 #ifndef FIL_RUNOUT2_PIN
   #define FIL_RUNOUT2_PIN           MT_DET_2_PIN
 #endif
-
-#define WIFI_IO0_PIN                        PC13
 
 //
 // SD Card
@@ -331,7 +341,7 @@
     #define XPT2046_Y_OFFSET                 -24
 
     #define TFT_DRIVER                    ST7796
-    #define TFT_BUFFER_SIZE                14400
+    #define TFT_BUFFER_SIZE               512*15
 
 #endif
 
@@ -389,4 +399,16 @@
 
 #if ENABLED(SPEAKER) && BEEPER_PIN == PC5
   #error "MKS Robin nano default BEEPER_PIN is not a SPEAKER."
+#endif
+
+/*
+Модуль MKS WIFI
+*/
+#define MKS_WIFI
+#ifdef MKS_WIFI
+ #undef PLATFORM_M997_SUPPORT
+
+ #define MKS_WIFI_IO0                       PC13
+ #define MKS_WIFI_IO4                       PC7
+ #define MKS_WIFI_IO_RST                    PE9
 #endif
