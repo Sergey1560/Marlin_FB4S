@@ -909,7 +909,7 @@ void setup() {
   #endif
 
   #if NUM_SERIAL > 0
-    MYSERIAL0.begin(BAUDRATE);
+    MYSERIAL0.begin(USB_BAUDRATE);
     uint32_t serial_connect_timeout = millis() + 1000UL;
     while (!MYSERIAL0 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
     #if HAS_MULTI_SERIAL
