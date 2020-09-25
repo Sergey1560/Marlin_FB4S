@@ -42,8 +42,8 @@
 #define DISABLE_DEBUG
 
 /*
-Управление подсветкой платой в разъеме второго экструдера
-Управление ногой En
+РЈРїСЂР°РІР»РµРЅРёРµ РїРѕРґСЃРІРµС‚РєРѕР№ РїР»Р°С‚РѕР№ РІ СЂР°Р·СЉРµРјРµ РІС‚РѕСЂРѕРіРѕ СЌРєСЃС‚СЂСѓРґРµСЂР°
+РЈРїСЂР°РІР»РµРЅРёРµ РЅРѕРіРѕР№ En
 https://easyeda.com/sst78rust/fb4s-led-control
 */
 #define CASE_LED_INSTEAD_E1
@@ -185,13 +185,26 @@ https://easyeda.com/sst78rust/fb4s-led-control
 #define TEMP_0_PIN                          PC1   // TH1
 #define TEMP_1_PIN                          PC2   // TH2
 #define TEMP_BED_PIN                        PC0   // TB1
+//Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Р№ С‚РµСЂРјРёСЃС‚РѕСЂ РЅР° РєРѕСЂРїСѓСЃРµ
+#if TEMP_SENSOR_CHAMBER > 0
+  #define TEMP_CHAMBER_PIN                  PC2
+#endif
 
 //
 // Heaters / Fans
 //
 #define HEATER_0_PIN                        PC3   // HEATER1
-#define HEATER_1_PIN                        PB0   // HEATER2
 #define HEATER_BED_PIN                      PA0   // HOT BED
+
+#if HOTENDS == 1
+  #ifndef FAN1_PIN
+    #define FAN1_PIN                        PB0
+  #endif
+#else
+  #ifndef HEATER_1_PIN
+    #define HEATER_1_PIN                    PB0
+  #endif
+#endif
 
 #define FAN_PIN                             PB1   // FAN
 
@@ -402,7 +415,7 @@ https://easyeda.com/sst78rust/fb4s-led-control
 #endif
 
 /*
-Модуль MKS WIFI
+РњРѕРґСѓР»СЊ MKS WIFI
 */
 #define MKS_WIFI
 #ifdef MKS_WIFI
