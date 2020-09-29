@@ -1,11 +1,9 @@
 #include "mks_test_sdio.h"
-
 #include "../../MarlinCore.h"
 #include "../../inc/MarlinConfig.h"
 #include "../../libs/Segger/log.h"
 #include "../../sd/cardreader.h"
 #ifdef MKS_WIFI
-
 
 void mks_test_sdio(void){
     uint8_t data[512];

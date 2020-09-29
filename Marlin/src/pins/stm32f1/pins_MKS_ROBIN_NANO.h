@@ -1,6 +1,10 @@
 #pragma once
 
-#ifndef __STM32F1__
+/**
+ * MKS Robin nano (STM32F130VET6) board pin assignments
+ */
+
+#if NOT_TARGET(STM32F1, STM32F1xx)
   #error "Oops! Select an STM32F1 board in 'Tools > Board.'"
 #elif HOTENDS > 2 || E_STEPPERS > 2
   #error "MKS Robin nano supports up to 2 hotends / E-steppers. Comment out this line to continue."
@@ -8,8 +12,10 @@
 
 #define BOARD_INFO_NAME "MKS Robin Nano"
 
-#define DISABLE_DEBUG
-#undef JTAGSWD_DISABLE
+//
+// Release PB4 (Y_ENABLE_PIN) from JTAG NRST role
+//
+#define DISABLE_JTAG
 
 /*
 Управление подсветкой платой в разъеме второго экструдера
@@ -87,7 +93,6 @@ BlTouch
 #ifndef HEATER_0_PIN
   #define HEATER_0_PIN                      PC3
 #endif
-
 #if HOTENDS == 1
   #ifndef FAN1_PIN
     #define FAN1_PIN                        PB0
@@ -97,11 +102,9 @@ BlTouch
     #define HEATER_1_PIN                    PB0
   #endif
 #endif
-
 #ifndef FAN_PIN
   #define FAN_PIN                           PB1   // FAN
 #endif
-
 #ifndef HEATER_BED_PIN
   #define HEATER_BED_PIN                    PA0
 #endif
@@ -130,6 +133,8 @@ BlTouch
 #define MT_DET_PIN_INVERTING               false
 
 #define WIFI_IO0_PIN                        PC13
+
+//#define LED_PIN                           PB2
 
 //
 // SD Card
@@ -183,10 +188,18 @@ BlTouch
 // LVGL Configs
 #if ENABLED(TFT_LVGL_UI_FSMC)
 
-  #define XPT2046_X_CALIBRATION            17880
-  #define XPT2046_Y_CALIBRATION           -12234
-  #define XPT2046_X_OFFSET                   -45
-  #define XPT2046_Y_OFFSET                   349
+  #ifndef XPT2046_X_CALIBRATION
+    #define XPT2046_X_CALIBRATION          17880
+  #endif
+  #ifndef XPT2046_Y_CALIBRATION
+    #define XPT2046_Y_CALIBRATION         -12234
+  #endif
+  #ifndef XPT2046_X_OFFSET
+    #define XPT2046_X_OFFSET                 -45
+  #endif
+  #ifndef XPT2046_Y_OFFSET
+   #define XPT2046_Y_OFFSET                  349
+  #endif
 
 // Emulated DOGM Configs
 #elif ENABLED(FSMC_GRAPHICAL_TFT)
@@ -233,10 +246,18 @@ BlTouch
   #define FSMC_DMA_DEV                      DMA2
   #define FSMC_DMA_CHANNEL               DMA_CH5
 
-  #define XPT2046_X_CALIBRATION           -12246
-  #define XPT2046_Y_CALIBRATION             9453
-  #define XPT2046_X_OFFSET                   360
-  #define XPT2046_Y_OFFSET                   -22
+  #ifndef XPT2046_X_CALIBRATION
+    #define XPT2046_X_CALIBRATION         -12246
+  #endif
+  #ifndef XPT2046_Y_CALIBRATION
+    #define XPT2046_Y_CALIBRATION           9453
+  #endif
+  #ifndef XPT2046_X_OFFSET
+    #define XPT2046_X_OFFSET                 360
+  #endif
+  #ifndef XPT2046_Y_OFFSET
+    #define XPT2046_Y_OFFSET                 -22
+  #endif
 
   #define TOUCH_CS_PIN                      PA7   // SPI2_NSS
   #define TOUCH_SCK_PIN                     PB13  // SPI2_SCK
@@ -251,11 +272,21 @@ BlTouch
   // XV for 180° rotated screen mounting
   #define ILI9341_ORIENTATION  ILI9341_MADCTL_MX | ILI9341_MADCTL_MV
 
+  #define ILI9341_COLOR_RGB
+
 #elif ENABLED(TFT_480x320)
-  #define XPT2046_X_CALIBRATION            17880
-  #define XPT2046_Y_CALIBRATION           -12234
-  #define XPT2046_X_OFFSET                   -45
-  #define XPT2046_Y_OFFSET                   349
+  #ifndef XPT2046_X_CALIBRATION
+    #define XPT2046_X_CALIBRATION          17880
+  #endif
+  #ifndef XPT2046_Y_CALIBRATION
+    #define XPT2046_Y_CALIBRATION         -12234
+  #endif
+  #ifndef XPT2046_X_OFFSET
+    #define XPT2046_X_OFFSET                 -45
+  #endif
+  #ifndef XPT2046_Y_OFFSET
+    #define XPT2046_Y_OFFSET                 349
+  #endif
 
   #define TFT_DRIVER                     ILI9488
   #define TFT_BUFFER_SIZE                  320*15
