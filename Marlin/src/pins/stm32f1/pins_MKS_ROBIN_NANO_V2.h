@@ -188,7 +188,6 @@ https://easyeda.com/sst78rust/fb4s-led-control
 // Heaters / Fans
 //
 #define HEATER_0_PIN                        PC3   // HEATER1
-#define HEATER_1_PIN                        PB0   // HEATER2
 #define HEATER_BED_PIN                      PA0   // HOT BED
 
 #if HOTENDS == 1
