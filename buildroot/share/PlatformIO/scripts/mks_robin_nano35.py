@@ -38,8 +38,3 @@ def encrypt(source, target, env):
         firmware.close()
         robin.close()
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", encrypt);
-
-env.Replace(
-    UPLOADER="curl",
-    UPLOADCMD="$UPLOADER -v -H 'Content-Type:application/octet-stream' http://$UPLOADERFLAGS/upload?X-Filename=Robin_Nano35.bin --data-binary @$BUILD_DIR/Robin_nano35.bin"
-)

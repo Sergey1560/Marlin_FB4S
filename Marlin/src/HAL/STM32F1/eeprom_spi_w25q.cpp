@@ -9,7 +9,7 @@ U5 W25Q64BV, 16K SERIAL EEPROM:
 #if ENABLED(SPI_EEPROM_W25Q)
 #include "../../libs/W25Qxx.h"
 
-W25QXXFlash W25QXX;
+//W25QXXFlash W25QXX;
 uint8_t spi_eeprom[MARLIN_EEPROM_SIZE];
 
 

@@ -71,6 +71,4 @@ public:
   static void SPI_FLASH_BufferRead(uint8_t* pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead);
 };
 
-//#ifdef __cplusplus
-//} /* C-declarations for C++ */
-//#endif
+extern W25QXXFlash W25QXX;

@@ -19,8 +19,8 @@ void mks_update_status(char *filename,uint32_t current_filesize, uint32_t file_s
     
     thermalManager.setTargetBed(0);
     thermalManager.setTargetHotend(0,0);
-    OUT_WRITE(HEATER_1_PIN,HIGH);
     thermalManager.manage_heater();
+    OUT_WRITE(HEATER_1_PIN,HIGH);
 
     //При расчете процентов размер файла превышает максимум для uint32_t
     if(current_filesize >= (UINT32_MAX/100) ){
@@ -47,7 +47,7 @@ void mks_update_status(char *filename,uint32_t current_filesize, uint32_t file_s
       
       tft.queue.sync();
       last_value = percent_done;
-      ui.update();
+      //ui.update();
     };
 
 }
