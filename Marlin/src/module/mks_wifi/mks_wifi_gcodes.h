@@ -1,4 +1,3 @@
-
 #ifndef MKS_WIFI_GCODES_H
 #define MKS_WIFI_GCODES_H
 
@@ -9,7 +8,6 @@
 #include "mks_wifi_sd.h"
 
 #ifdef MKS_WIFI
-
 
 void mks_m991(void);
 void mks_m997(void);

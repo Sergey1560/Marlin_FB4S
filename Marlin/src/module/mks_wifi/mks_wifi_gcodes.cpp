@@ -1,7 +1,5 @@
-
 #include "mks_wifi_gcodes.h"
 #ifdef MKS_WIFI
-
 
 const uint8_t pak[5]={0xA5,0x07,0x00,0x00,0xFC};
 
