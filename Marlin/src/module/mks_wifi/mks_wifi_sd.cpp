@@ -129,7 +129,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    file_name[packet->dataLen - 5 + 3] = 0; 
 
    file_size=(packet->data[4] << 24) | (packet->data[3] << 16) | (packet->data[2] << 8) | packet->data[1];
-   DEBUG("Start file %s size %d",str,file_size);
+   DEBUG("Start file %s size %d",file_name,file_size);
    
    //Отмонтировать SD от Marlin, Монтировать FATFs 
    if(mks_wifi_sd_init()){
@@ -270,6 +270,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          }
         
          if(*(buff+7) == 0x80){ //Последний пакет с данными
+            WRITE(MKS_WIFI_IO4, HIGH); //Остановить передачу от ESP
             DEBUG("Last packet");
             if(file_data_size != 0){ //В буфере что-то есть
                file_inc_size += file_data_size; 
@@ -309,6 +310,19 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
    }
    
+
+   //Выключить DMA
+   DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+   DMA1_Channel5->CCR = 0;
+
+   //Восстановить USART1
+   USART1->CR1 = 0;
+   USART1->CR1 = (USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE);
+   USART1->CR3 = 0;
+   USART1->BRR = usart1_brr;
+   USART1->CR1 |= USART_CR1_UE;
+
+
    f_close((FIL *)&upload_file);
 
    if( (file_size == file_inc_size) && (file_size == file_size_writen) ){
@@ -348,24 +362,12 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          BUZZ(436,392);
    }
 
-   //Восстановить USART1
-   USART1->CR1 = 0;
-   USART1->CR1 = (USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE);
-   USART1->CR3 = 0;
-   USART1->BRR = usart1_brr;
-   USART1->CR1 |= USART_CR1_UE;
-
-   //Выключить DMA
-   DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
-   DMA1_Channel5->CCR = 0;
-
    mks_wifi_sd_deinit();
-
-   WRITE(MKS_WIFI_IO4, LOW); //Включить передачу от ESP 
 
    thermalManager.setTargetBed(save_bed);
    thermalManager.setTargetHotend(save_e0,0);
    DEBUG("Restore thermal settings E0:%d Bed:%d",save_bed,save_e0);
+   WRITE(MKS_WIFI_IO4, LOW); //Включить передачу от ESP 
 }
 
 #endif
