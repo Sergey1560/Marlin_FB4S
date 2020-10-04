@@ -25,7 +25,5 @@ void debug_to_uart(char *fmt,...){
     }
    
 
-
 }
-
 #endif
