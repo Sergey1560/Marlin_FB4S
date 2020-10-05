@@ -59,11 +59,7 @@ void eeprom_update_block(const void *__src, void *__dst, size_t __n){
 };
 
 void eeprom_test(void){
-    uint16_t chip_id=0;
-    
-    chip_id=W25QXX.W25QXX_ReadID();
-    DEBUG("SPI Flash ID %0X",chip_id);
-
+    DEBUG("SPI Flash ID %0X",W25QXX.W25QXX_ReadID());
     DEBUG("Read FLASH:");
     for(uint32_t i=0; i < 50 ; ){
         memset(spi_eeprom,0,10);
