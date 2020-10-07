@@ -28,6 +28,7 @@
 
 #include "ffconf.h"		/* FatFs configuration options */
 
+
 #if FF_DEFINED != FFCONF_DEF
 #error Wrong configuration file (ffconf.h).
 #endif

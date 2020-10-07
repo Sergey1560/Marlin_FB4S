@@ -28,7 +28,7 @@
 #include "../../inc/MarlinConfig.h"
 
 #if ENABLED(I2C_EEPROM)
-#ifndef EEPROM_AT24C16
+
 #include "eeprom_if.h"
 #include <Wire.h>
 
@@ -76,4 +76,3 @@ uint8_t eeprom_read_byte(uint8_t *pos) {
 
 #endif // USE_SHARED_EEPROM
 #endif // I2C_EEPROM
-#endif

@@ -99,6 +99,7 @@ public:
   static void openFileRead(char * const path, const uint8_t subcall=0);
   static void openFileWrite(char * const path);
   static void closefile(const bool store_location=false);
+  static bool fileExists(const char * const name);
   static void removeFile(const char * const name);
 
   static inline char* longest_filename() { return longFilename[0] ? longFilename : filename; }
@@ -165,10 +166,6 @@ public:
   static inline int16_t write(void* buf, uint16_t nbyte) { return file.isOpen() ? file.write(buf, nbyte) : -1; }
 
   static Sd2Card& getSd2Card() { return sd2card; }
-
-  #if ENABLED(MKS_WIFI)
-  static uint8_t getDosFilename(char *file, char *dosfile);
-    #endif
 
   #if ENABLED(AUTO_REPORT_SD_STATUS)
     static void auto_report_sd_status();

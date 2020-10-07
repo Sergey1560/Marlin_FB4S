@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define SHARED_MEM_1KB_COUNT    10
+#define SHARED_MEM_1KB_COUNT    8
 #define SHARED_MEM_SIZE         SHARED_MEM_1KB_COUNT*1024
 
 extern volatile uint8_t shared_mem[SHARED_MEM_SIZE];
