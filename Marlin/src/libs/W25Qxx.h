@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Marlin 3D Printer Firmware
  * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -20,10 +20,6 @@
  *
  */
 #pragma once
-
-//#ifdef __cplusplus
-//extern "C" { /* C-declarations for C++ */
-//#endif
 
 #include <stdint.h>
 
