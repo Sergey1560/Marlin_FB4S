@@ -27,15 +27,7 @@
 
 ### Варианты прошивки
 
-Если вас устраивает типовой вариант конфигурации, можно взять готовые файлы прошивки:
-
-* Для FB4S с стандартными драйверами [Robin_nano35.bin](./firmware/fb_4s/Robin_nano35.bin)
-* Для FB5 с стандартными драйверами [Robin_nano35.bin](./firmware/fb_5/Robin_nano35.bin)
-* Если установлены все 4 драйвера 2208 или 2209 [Robin_nano35.bin](./firmware/all_drv_2208)
-
-Разница в прошивках, только в направлении движения осей.
-
-Для установки прошивки файл Robin_nano35.bin нужно записать в корень SD карты и включить принтер.
+Если вас устраивает типовой вариант конфигурации, можно взять готовые файлы прошивки можно в разделе [Releases](https://github.com/Sergey1560/Marlin_FB4S/releases)
 
 Вернуть стандартную прошивку можно в любой момент. Просто запишите ее на SD и включите принтер.
 
@@ -181,32 +173,45 @@ EEPROM_W25Q
 
 ## Выбор графического интерфейса
 
-В коде Marlin есть 3 варианта графического интерфейса, которые работают на FB4S и FB5. Для выбора интерфейса нужно выбрать соответствующий параметр, а остальные выключить.
+В коде Marlin есть 3 варианта графического интерфейса, которые работают на FB4S и FB5. Для выбора интерфейса нужно выбрать тип экрана и тип интерфейса в [Configuration.h](./Marlin/Configuration.h), в разделе Graphical TFTs (около 2270 строки).
+
+Для экрана на FB4S и FB5 тип экрана - MKS_ROBIN_TFT35:
+
+```
+/**
+ * TFT Type - Select your Display type
+ *
+ * Available options are:
+ *   MKS_TS35_V2_0,
+ *   MKS_ROBIN_TFT24, MKS_ROBIN_TFT28, MKS_ROBIN_TFT32, MKS_ROBIN_TFT35,
+ *   MKS_ROBIN_TFT43, MKS_ROBIN_TFT_V1_1R
+ *   TFT_TRONXY_X5SA, ANYCUBIC_TFT35, LONGER_LK_TFT28
+ *   TFT_GENERIC
+ *
+ * For TFT_GENERIC, you need to configure these 3 options:
+ *   Driver:     TFT_DRIVER
+ *               Current Drivers are: AUTO, ST7735, ST7789, ST7796, R61505, ILI9328, ILI9341, ILI9488
+ *   Resolution: TFT_WIDTH and TFT_HEIGHT
+ *   Interface:  TFT_INTERFACE_FSMC or TFT_INTERFACE_SPI
+ */
+#define MKS_ROBIN_TFT35
+```
+
+Есть 3 варианта интерфейса, которые можно выбрать:
 
 * Классический Marlin, "текстовый" интерфейс. Включение:
 
 ```
-#define FSMC_GRAPHICAL_TFT
+#define TFT_CLASSIC_UI
 ```
 
-* Классический Marlin, "графический" интерфейс. Этот вариант используется по-умолчанию.
+* Новый, графический интерфейс, расчитанные под тач-экраны:
 
 ```
-#define TFT_480x320
+#define TFT_COLOR_UI
 ```
 
-* Графический интерфейс от MKS. Этот вариант использует библиотеку LVGL и видео буфер большого размера. В МК практически не остается свободной памяти. Конфигурация размера видео буфера сделана внутри библиотеки, которую автоматически скачивает platformio и не предполагает настройки. Оставшейся памяти не достаточно для работы с WIFI модулем, поэтому этот вариант не работает c WIFI. Для его сборки необходимо выключить WIFI.
-
-Для работы интерфейса нужны изображения и шрифты. После сборки прошивки они находятся в .pio/build/mks_robin_nano35/assets
-Для загрузки изображений, папку assets нужно положить в корень карты памяти.
-
-Для сборки прошивки с графическим интерфейсом от MKS нужно сделать следующие настройки:
-
-* В файле Marlin/Configuration.h, выключить #define FSMC_GRAPHICAL_TFT и #define TFT_480x320
-* В файле Marlin/Configuration.h, включить #define TFT_LVGL_UI_FSMC
-* В файле Marlin/Configuration.h, выключить #define TOUCH_BUTTONS
-* В файле Marlin/Configuration.h, выключить #define LCD_BED_LEVELING
-* В файле Marlin/Configuration_adv.h, выключить #define ADVANCED_PAUSE_FEATURE
+* Графический интерфейс от MKS. [Подробнее](https://sergey1560.github.io/fb4s_howto/mks_ui/) про сборку этого варианта.
 
 ## WIFI модуль, отправка команд и файлов
 
