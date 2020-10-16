@@ -246,7 +246,7 @@ curl -v -H "Content-Type:application/octet-stream" http://192.168.0.105/upload?X
 M502 ;Сброс настроек
 M500 ;Сохранить настройки (аналог Initialize eeprom)
 
-M92 X80 Y80 Z400 E252 ;Установка шагов Step/mm по осям
+M92 X80 Y80 Z400 E421 ;Установка шагов Step/mm по осям
 
 M301 P19 I1 D64  ;PID сопла
 M304 P26 I4 D102 ;PID стола
