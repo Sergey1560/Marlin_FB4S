@@ -211,7 +211,7 @@ EEPROM_W25Q
 #define TFT_COLOR_UI
 ```
 
-* Графический интерфейс от MKS. [Подробнее](https://sergey1560.github.io/fb4s_howto/mks_ui/) про сборку этого варианта.
+* Графический интерфейс от MKS. [Подробнее](https://sergey1560.github.io/fb4s_howto/mks_ui/) про сборку этого варианта. У компании Makerbase также есть своя [прошивка](https://github.com/makerbase-mks/Mks-Robin-Nano-Marlin2.0-Firmware) на Marlin 2.0
 
 ## WIFI модуль, отправка команд и файлов
 
