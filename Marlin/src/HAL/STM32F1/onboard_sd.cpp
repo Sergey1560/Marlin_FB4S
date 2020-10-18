@@ -11,6 +11,8 @@
  * Redistributions of source code must retain the above copyright notice.
  */
 
+#ifdef __STM32F1__
+
 #include "../../inc/MarlinConfig.h"
 
 #ifndef MKS_WIFI
@@ -555,4 +557,6 @@ DRESULT disk_read (
 #endif // _DISKIO_IOCTL
 
 #endif // SD_CONNECTION_IS(ONBOARD)
+#endif
+
 #endif

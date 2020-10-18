@@ -119,7 +119,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    thermalManager.setTargetBed(0);
    thermalManager.setTargetHotend(0,0);
    thermalManager.manage_heater();
-   OUT_WRITE(HEATER_1_PIN,HIGH);
+   OUT_WRITE(FAN1_PIN,HIGH);
  	//Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
    file_name[0]='0';
    file_name[1]=':';
