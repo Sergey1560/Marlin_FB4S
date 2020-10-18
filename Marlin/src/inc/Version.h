@@ -25,7 +25,7 @@
  * Release version. Leave the Marlin version or apply a custom scheme.
  */
 #ifndef SHORT_BUILD_VERSION
-  #define SHORT_BUILD_VERSION "2.0.7"
+  #define SHORT_BUILD_VERSION "2.0.7.2"
 #endif
 
 /**
@@ -42,7 +42,7 @@
  * version was tagged.
  */
 #ifndef STRING_DISTRIBUTION_DATE
-  #define STRING_DISTRIBUTION_DATE "2020-09-29"
+  #define STRING_DISTRIBUTION_DATE "2020-10-13"
 #endif
 
 /**
@@ -82,7 +82,7 @@
  * providing the source code to your customers.)
  */
 #ifndef SOURCE_CODE_URL
-  #define SOURCE_CODE_URL "https://github.com/MarlinFirmware/Marlin"
+  #define SOURCE_CODE_URL "https://github.com/Sergey1560/Marlin_FB4S"
 #endif
 
 /**
@@ -97,7 +97,8 @@
    * documentation about a specific Marlin release. Displayed in the Info Menu.
    */
 #ifndef WEBSITE_URL
-  #define WEBSITE_URL "https://marlinfw.org"
+  //#define WEBSITE_URL "https://marlinfw.org"
+  #define WEBSITE_URL "https://github.com/Sergey1560/Marlin_FB4S"
 #endif
 
 /**
