@@ -22,7 +22,7 @@
 #pragma once
 
 #include "../inc/MarlinConfig.h"
-#include "../module/mks_wifi/mks_wifi.h"
+#include "../module/mks_wifi/mks_wifi_serial_out.h"
 #include <stdio.h>
 /**
  * Define debug bit-masks
