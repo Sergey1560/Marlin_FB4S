@@ -5,6 +5,7 @@
 #include "../../inc/MarlinConfig.h"
 #include "../../libs/Segger/log.h"
 #include "mks_wifi_settings.h"
+#include "mks_wifi_serial_out.h"
 
 #ifdef MKS_WIFI
 
@@ -59,14 +60,6 @@ uint8_t mks_wifi_check_packet(uint8_t *in_data);
 uint8_t check_char_allowed(char data);
 
 void mks_wifi_send(uint8_t *packet, uint16_t size);
-
-void mks_wifi_print_var(uint8_t count, ...);
-
-void mks_wifi_print(const char *s);
-void mks_wifi_print(int i);
-
-void mks_wifi_println(const char *s);
-void mks_wifi_println(float);
 
 #endif
 #endif
