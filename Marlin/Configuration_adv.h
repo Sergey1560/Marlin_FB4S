@@ -503,7 +503,7 @@
 /**
  * M355 Case Light on-off / brightness
  */
-#define CASE_LIGHT_ENABLE
+//#define CASE_LIGHT_ENABLE
 #if ENABLED(CASE_LIGHT_ENABLE)
   #define CASE_LIGHT_PIN LED_CASE_PIN         // Override the default pin if needed
   #define INVERT_CASE_LIGHT false             // Set true if Case Light is ON when pin is LOW
@@ -511,7 +511,7 @@
   #define CASE_LIGHT_DEFAULT_BRIGHTNESS 255   // Set default power-up brightness (0-255, requires PWM pin)
   #define CASE_LIGHT_MAX_PWM 255              // Limit pwm
   #define CASE_LIGHT_MENU                   // Add Case Light options to the LCD menu
-  #define CASE_LIGHT_NO_BRIGHTNESS          // Disable brightness control. Enable for non-PWM lighting.
+  //#define CASE_LIGHT_NO_BRIGHTNESS          // Disable brightness control. Enable for non-PWM lighting.
   //#define CASE_LIGHT_USE_NEOPIXEL           // Use NeoPixel LED as case light, requires NEOPIXEL_LED.
   #if ENABLED(CASE_LIGHT_USE_NEOPIXEL)
     #define CASE_LIGHT_NEOPIXEL_COLOR { 255, 255, 255, 255 } // { Red, Green, Blue, White }
@@ -2268,7 +2268,7 @@
   #if AXIS_IS_TMC(X)
     #define X_CURRENT       800        // (mA) RMS current. Multiply by 1.414 for peak current.
     #define X_CURRENT_HOME  X_CURRENT  // (mA) RMS current for sensorless homing
-    #define X_MICROSTEPS     32    // 0..256
+    #define X_MICROSTEPS     16    // 0..256
     #define X_RSENSE          0.11
     #define X_CHAIN_POS      -1    // <=0 : Not chained. 1 : MCU MOSI connected. 2 : Next in chain, ...
   #endif
@@ -2284,7 +2284,7 @@
   #if AXIS_IS_TMC(Y)
     #define Y_CURRENT       800
     #define Y_CURRENT_HOME  Y_CURRENT
-    #define Y_MICROSTEPS     32
+    #define Y_MICROSTEPS     16
     #define Y_RSENSE          0.11
     #define Y_CHAIN_POS      -1
   #endif
@@ -2300,7 +2300,7 @@
   #if AXIS_IS_TMC(Z)
     #define Z_CURRENT       800
     #define Z_CURRENT_HOME  Z_CURRENT
-    #define Z_MICROSTEPS     32
+    #define Z_MICROSTEPS     16
     #define Z_RSENSE          0.11
     #define Z_CHAIN_POS      -1
   #endif
@@ -2331,7 +2331,7 @@
 
   #if AXIS_IS_TMC(E0)
     #define E0_CURRENT      800
-    #define E0_MICROSTEPS    32
+    #define E0_MICROSTEPS    16
     #define E0_RSENSE         0.11
     #define E0_CHAIN_POS     -1
   #endif
