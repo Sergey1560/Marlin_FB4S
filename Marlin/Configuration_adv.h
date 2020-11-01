@@ -507,11 +507,11 @@
 #if ENABLED(CASE_LIGHT_ENABLE)
   #define CASE_LIGHT_PIN LED_CASE_PIN         // Override the default pin if needed
   #define INVERT_CASE_LIGHT false             // Set true if Case Light is ON when pin is LOW
-  #define CASE_LIGHT_DEFAULT_ON true          // Set default power-up state on
+  #define CASE_LIGHT_DEFAULT_ON false         // Set default power-up state on
   #define CASE_LIGHT_DEFAULT_BRIGHTNESS 255   // Set default power-up brightness (0-255, requires PWM pin)
   #define CASE_LIGHT_MAX_PWM 255              // Limit pwm
   #define CASE_LIGHT_MENU                   // Add Case Light options to the LCD menu
-  #define CASE_LIGHT_NO_BRIGHTNESS          // Disable brightness control. Enable for non-PWM lighting.
+  //#define CASE_LIGHT_NO_BRIGHTNESS          // Disable brightness control. Enable for non-PWM lighting.
   //#define CASE_LIGHT_USE_NEOPIXEL           // Use NeoPixel LED as case light, requires NEOPIXEL_LED.
   #if ENABLED(CASE_LIGHT_USE_NEOPIXEL)
     #define CASE_LIGHT_NEOPIXEL_COLOR { 255, 255, 255, 255 } // { Red, Green, Blue, White }
@@ -3158,7 +3158,7 @@
  *  - M206 and M428 are disabled.
  *  - G92 will revert to its behavior from Marlin 1.0.
  */
-//#define NO_WORKSPACE_OFFSETS
+#define NO_WORKSPACE_OFFSETS
 
 // Extra options for the M114 "Current Position" report
 //#define M114_DETAIL         // Use 'M114` for details to check planner calculations
@@ -3236,17 +3236,23 @@
   #define USER_DESC_1 "Home & UBL Info"
   #define USER_GCODE_1 "G28\nG29 W"
 
-  #define USER_DESC_2 "Preheat for " PREHEAT_1_LABEL
-  #define USER_GCODE_2 "M140 S" STRINGIFY(PREHEAT_1_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_1_TEMP_HOTEND)
+  #define USER_DESC_2 "Light ON"
+  #define USER_GCODE_2 "M355 S1"
 
-  #define USER_DESC_3 "Preheat for " PREHEAT_2_LABEL
-  #define USER_GCODE_3 "M140 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_2_TEMP_HOTEND)
+  #define USER_DESC_3 "Light OFF"
+  #define USER_GCODE_3 "M355 S0"
 
-  #define USER_DESC_4 "Heat Bed/Home/Level"
-  #define USER_GCODE_4 "M140 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\nG28\nG29"
+//  #define USER_DESC_2 "Preheat for " PREHEAT_1_LABEL
+//  #define USER_GCODE_2 "M140 S" STRINGIFY(PREHEAT_1_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_1_TEMP_HOTEND)
 
-  #define USER_DESC_5 "Power off"
-  #define USER_GCODE_5 "M81"
+//  #define USER_DESC_3 "Preheat for " PREHEAT_2_LABEL
+//  #define USER_GCODE_3 "M140 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_2_TEMP_HOTEND)
+
+//  #define USER_DESC_4 "Heat Bed/Home/Level"
+//  #define USER_GCODE_4 "M140 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\nG28\nG29"
+
+  #define USER_DESC_4 "Power off"
+  #define USER_GCODE_4 "M81"
 
 #endif
 

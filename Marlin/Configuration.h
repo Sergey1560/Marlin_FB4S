@@ -416,7 +416,7 @@
  *   998 : Dummy Table that ALWAYS reads 25°C or the temperature defined below.
  *   999 : Dummy Table that ALWAYS reads 100°C or the temperature defined below.
  */
-#define TEMP_SENSOR_0 1
+#define TEMP_SENSOR_0 13
 #define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_3 0
@@ -559,7 +559,7 @@
   //#define PID_DEBUG             // Sends debug data to the serial port. Use 'M303 D' to toggle activation.
   //#define PID_OPENLOOP          // Puts PID in open loop. M104/M140 sets the output power from 0 to PID_MAX
   //#define SLOW_PWM_HEATERS      // PWM with very low frequency (roughly 0.125Hz=8s) and minimum state time of approximately 1s useful for heaters driven by a relay
-  #define PID_FUNCTIONAL_RANGE 10 // If the temperature difference between the target temperature and the actual temperature
+  #define PID_FUNCTIONAL_RANGE 20 // If the temperature difference between the target temperature and the actual temperature
                                   // is more than PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
 #endif
 
@@ -749,7 +749,7 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2...]]
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {  161.0, 161.0, 800, 830 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {  161.0, 161.0, 800, 820 }
 
 /**
  * Default Max Feed Rate (mm/s)
@@ -1166,7 +1166,7 @@
 #define Z_MIN_POS 0
 #define X_MAX_POS X_BED_SIZE + X_MIN_POS
 #define Y_MAX_POS Y_BED_SIZE + Y_MIN_POS
-#define Z_MAX_POS 210
+#define Z_MAX_POS 200
 
 /**
  * Software Endstops
