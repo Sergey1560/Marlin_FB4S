@@ -284,8 +284,6 @@ BlTouch
 #define MKS_WIFI
 
 #ifdef MKS_WIFI
-
- #define MKS_WIFI_BAUDRATE                  115200
  #undef PLATFORM_M997_SUPPORT
 
  #define MKS_WIFI_IO0                       PA8

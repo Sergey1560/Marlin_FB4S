@@ -16,15 +16,6 @@ void mks_wifi_print_var(uint8_t count, ...){
     va_end(args);
 }
 
-void mks_wifi_print_f(float f,uint8_t size){
-	char str[20];
-	char format[10];
-	
-	sprintf(format,"%%0.%df",size);
-	sprintf(str,format,f);
-	mks_wifi_out_add((uint8_t *)str, strnlen((char *)str,ESP_PACKET_DATA_MAX_SIZE));
-}
-
 
 // PRINT functions
 
@@ -97,6 +88,11 @@ void mks_wifi_println(double f){
 	sprintf(str,"%.2f\n",f);
 	mks_wifi_out_add((uint8_t *)str, strnlen((char *)str,ESP_PACKET_DATA_MAX_SIZE));
 }
+/*
+void mks_wifi_println(int i){
+    mks_wifi_println((int32)i);
+}
+*/
 void mks_wifi_println(long int i){
     mks_wifi_println((int32)i);
 }

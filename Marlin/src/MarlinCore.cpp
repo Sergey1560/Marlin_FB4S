@@ -984,15 +984,11 @@ void setup() {
     #endif
   #endif
 
-  MYSERIAL0.begin(BAUDRATE);
+    MYSERIAL0.begin(USB_BAUDRATE);
     uint32_t serial_connect_timeout = millis() + 1000UL;
     while (!MYSERIAL0 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
     #if HAS_MULTI_SERIAL
-		#if ENABLED(MKS_WIFI)
-			MYSERIAL1.begin(MKS_WIFI_BAUDRATE);
-  		#else
-      		MYSERIAL1.begin(BAUDRATE);
-  	  #endif
+      MYSERIAL1.begin(BAUDRATE);
       serial_connect_timeout = millis() + 1000UL;
       while (!MYSERIAL1 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
     #endif
