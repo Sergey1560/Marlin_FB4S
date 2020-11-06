@@ -199,6 +199,8 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
    while(dma_timeout-- > 0){
 
+      iwdg_feed();
+
       if(DMA1->ISR & DMA_ISR_TCIF5){
          DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    
