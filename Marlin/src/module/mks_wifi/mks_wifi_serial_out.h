@@ -11,6 +11,8 @@
 
 void mks_wifi_print_var(uint8_t count, ...);
 
+void mks_wifi_print_f(float f,uint8_t size);
+
 void mks_wifi_print(const char *s);
 void mks_wifi_print(int32 i);
 void mks_wifi_print(uint32 i);
