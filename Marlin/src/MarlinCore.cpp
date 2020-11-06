@@ -268,6 +268,11 @@ bool wait_for_heatup = true;
  * ******************************** FUNCTIONS ********************************
  * ***************************************************************************
  */
+#ifdef LED_SW_PIN
+  void setup_LED_SW_pin() {
+    SET_INPUT_PULLDOWN(LED_SW_PIN);
+  }
+#endif
 
 void setup_killpin() {
   #if HAS_KILL
@@ -556,6 +561,20 @@ inline void manage_inactivity(const bool ignore_stepper_queue=false) {
     if (killCount >= KILL_DELAY) {
       SERIAL_ERROR_MSG(STR_KILL_BUTTON);
       kill();
+    }
+  #endif
+
+  #ifdef LED_SW_PIN
+    static int LedSw_Count = 0;   // make the inactivity button a bit less responsive
+    const int LED_SW_DELAY = 100;
+    bool led_pin_status = !READ(LED_SW_PIN);
+    if (led_pin_status && LedSw_Count <= LED_SW_DELAY)
+      LedSw_Count++;
+    else if (!led_pin_status)
+      LedSw_Count = 0;
+    if (LedSw_Count == LED_SW_DELAY){
+      caselight.on = !caselight.on;
+      caselight.update(true);
     }
   #endif
 
@@ -1001,6 +1020,10 @@ void setup() {
   #endif
 
   SETUP_RUN(setup_killpin());
+  
+  #ifdef LED_SW_PIN
+    SETUP_RUN(setup_LED_SW_pin());
+  #endif
 
   #if HAS_TMC220x
     SETUP_RUN(tmc_serial_begin());
