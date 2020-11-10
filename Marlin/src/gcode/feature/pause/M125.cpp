@@ -75,7 +75,8 @@ void GcodeSuite::M125() {
 
   TERN_(HAS_LCD_MENU, lcd_pause_show_message(PAUSE_MESSAGE_PARKING, PAUSE_MODE_PAUSE_PRINT));
 
-  const bool show_lcd = TERN0(HAS_LCD_MENU, parser.seenval('P'));
+  //Temporary fix, until merge bugfix branch
+  const bool show_lcd = 1; //TERN0(HAS_LCD_MENU, parser.seenval('P'));
 
   if (pause_print(retract, park_point, 0, show_lcd)) {
     TERN_(POWER_LOSS_RECOVERY, if (recovery.enabled) recovery.save(true));
