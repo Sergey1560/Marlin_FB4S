@@ -102,6 +102,14 @@ void mks_m23(char *filename){
 
     DEBUG("M23: %s",filename);
 
+    if(filename[0] == '/'){
+      DEBUG("Strip slash");
+      for(uint32_t i = 0; i < strlen(filename) ; i++){
+        filename[i] = filename[i+1];
+      }
+      DEBUG("Fixed name: %s",filename);
+    }
+
     //Имя файла может быть меньше 12 символов, но с расширением .gcode
     //С конца имени файла шагаем к началу, считаем сколько символов до точки
     dot_pos=0;

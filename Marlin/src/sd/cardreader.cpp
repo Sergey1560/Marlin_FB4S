@@ -659,11 +659,11 @@ bool CardReader::fileExists(const char * const path) {
   if (!isMounted()) return false;
   SdFile *diveDir = nullptr;
   const char * const fname = diveToFile(false, diveDir, path);
-  if (fname) {
-    diveDir->rewind();
-    selectByName(*diveDir, fname);
-    //diveDir->close();
-  }
+  // if (fname) {
+  //   diveDir->rewind();
+  //   selectByName(*diveDir, fname);
+  //   //diveDir->close();
+  // }
   return fname != nullptr;
 }
 
