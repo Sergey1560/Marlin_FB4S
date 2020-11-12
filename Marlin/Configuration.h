@@ -1095,7 +1095,8 @@
 
 //#define ALL_DRV_2208
 //#define FB_4S_STOCK
-#define FB_5_STOCK
+//#define FB_5_STOCK
+#define FB_5_CUST_HEAD
 
 #ifdef ALL_DRV_2208
 #define USR_E0_DIR true
@@ -1113,11 +1114,17 @@
 
 #ifdef FB_5_STOCK
 #define USR_E0_DIR false
-#define USR_X_DIR false
+#define USR_X_DIR false 
 #define USR_Y_DIR false
 #define USR_Z_DIR false
 #endif
 
+#ifdef FB_5_CUST_HEAD
+#define USR_E0_DIR false
+#define USR_X_DIR true  //смена крепления ремня
+#define USR_Y_DIR false
+#define USR_Z_DIR false
+#endif
 
 // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
 #define INVERT_X_DIR USR_X_DIR
