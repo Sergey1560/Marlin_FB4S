@@ -58,7 +58,6 @@ extern uint8_t marlin_debug_flags;
   #else
     #define SERIAL_OUT(WHAT, V...) do{ \
       if (!serial_port_index || serial_port_index == SERIAL_BOTH) (void)MYSERIAL0.WHAT(V); \
-      if ( serial_port_index) (void)MYSERIAL1.WHAT(V); \
     }while(0)
   #endif
 
@@ -82,8 +81,14 @@ extern uint8_t marlin_debug_flags;
 #define SERIAL_ECHO(x)          SERIAL_OUT(print, x)
 #endif
 
+#if ENABLED(MKS_WIFI)
+#define SERIAL_ECHO_F(V...) do{ \
+    if (!serial_port_index || serial_port_index == SERIAL_BOTH ) SERIAL_OUT(print, V); \
+    if ( serial_port_index) mks_wifi_print_f(V); \
+}while(0)
+#else
 #define SERIAL_ECHO_F(V...)     SERIAL_OUT(print, V)
-
+#endif
 #if ENABLED(MKS_WIFI)
 #define SERIAL_ECHOLN(x) do{ \
     if (!serial_port_index || serial_port_index == SERIAL_BOTH )  SERIAL_OUT(println, x); \
