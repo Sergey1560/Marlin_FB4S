@@ -549,7 +549,7 @@ inline void manage_inactivity(const bool ignore_stepper_queue=false) {
     // key kill key press
     // -------------------------------------------------------------------------------
     static int killCount = 0;   // make the inactivity button a bit less responsive
-    const int KILL_DELAY = 750;
+    const int KILL_DELAY = 100000;
     if (kill_state())
       killCount++;
     else if (killCount > 0)
@@ -566,16 +566,16 @@ inline void manage_inactivity(const bool ignore_stepper_queue=false) {
 
   #ifdef LED_SW_PIN
     static int LedSw_Count = 0;   // make the inactivity button a bit less responsive
-    const int LED_SW_DELAY = 100;
-    bool led_pin_status = !READ(LED_SW_PIN);
-    if (led_pin_status && LedSw_Count <= LED_SW_DELAY)
-      LedSw_Count++;
-    else if (!led_pin_status)
-      LedSw_Count = 0;
-    if (LedSw_Count == LED_SW_DELAY){
+    const int LED_SW_DELAY = 1000;
+    bool led_pin_status = READ(LED_SW_PIN);
+    if (LedSw_Count == LED_SW_DELAY && !led_pin_status){
       caselight.on = !caselight.on;
       caselight.update(true);
     }
+    if (led_pin_status && LedSw_Count < LED_SW_DELAY)
+      LedSw_Count++;
+    else if (!led_pin_status)
+      LedSw_Count = 0;
   #endif
 
   #if HAS_HOME
