@@ -202,6 +202,14 @@ https://easyeda.com/sst78rust/fb4s-led-control
 
 #define FAN_PIN                             PB1   // FAN
 
+/*
+Управление питанием
+*/
+#define SUICIDE_PIN                       PB2   
+#define SUICIDE_PIN_INVERTING             false
+#define KILL_PIN                          PA2   // Enable MKSPWC DET PIN
+#define KILL_PIN_STATE                    true  // Enable MKSPWC PIN STATE
+
 //
 // Thermocouples
 //
@@ -236,7 +244,12 @@ https://easyeda.com/sst78rust/fb4s-led-control
   //#define POWER_LOSS_PIN                  PA2   // PW_DET
   //#define PS_ON_PIN                       PB2   // PW_OFF
   #define FIL_RUNOUT_PIN                    PA4
-  #define FIL_RUNOUT2_PIN                   PE6
+  #ifdef CASE_LED_INSTEAD_E1
+    #define LED_SW_PIN                      PA2//PE6
+  #endif
+  #ifndef LED_SW_PIN
+    #define FIL_RUNOUT2_PIN                 PE6
+  #endif
 #endif
 
 #define SERVO0_PIN                          PA8   // Enable BLTOUCH
