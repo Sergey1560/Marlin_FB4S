@@ -270,7 +270,16 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
             
             WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
          }
-        
+
+         //DEBUG("Check in_sector %d data %d filesize %d",in_sector,data_size,file_size);
+
+         if(in_sector == 0){
+            if(data_size == file_size){
+               DEBUG("1-packet file");
+               *(buff+7) = 0x80;
+            }
+         }
+
          if(*(buff+7) == 0x80){ //Последний пакет с данными
             WRITE(MKS_WIFI_IO4, HIGH); //Остановить передачу от ESP
             DEBUG("Last packet");
