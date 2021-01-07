@@ -1994,7 +1994,7 @@
   //#define FWRETRACT_AUTORETRACT           // Override slicer retractions
   #if ENABLED(FWRETRACT_AUTORETRACT)
     #define MIN_AUTORETRACT 0.1           // (mm) Don't convert E moves under this length
-    #define MAX_AUTORETRACT 10.0          // (mm) Don't convert E moves over this length
+    #define MAX_AUTORETRACT 2.0          // (mm) Don't convert E moves over this length
   #endif
   #define RETRACT_LENGTH 0.8                // (mm) Default retract length (positive value)
   #define RETRACT_LENGTH_SWAP 16          // (mm) Default swap retract length (positive value)
