@@ -54,9 +54,9 @@
 
 
 // next 5 lines select variants in this file only
-#define DISPLAYTEST
+//#define DISPLAYTEST
 //#define WEST
-//#define CYRIL
+#define CYRIL
 //#define KANA
 
 
@@ -116,9 +116,9 @@
 namespace Language_test {
   using namespace Language_en; // Inherit undefined strings from English
 
-  constexpr uint8_t    CHARSIZE                              = 1;
-
-  #if ENABLED(DISPLAYTEST)
+  #ifdef DISPLAYTEST
+    constexpr uint8_t    CHARSIZE                            = 1;
+    
     PROGMEM Language_Str WELCOME_MSG                         = _UxGT("Language TEST");
 
     PROGMEM Language_Str MSG_INFO_SCREEN                     = _UxGT("Display test");
@@ -126,7 +126,9 @@ namespace Language_test {
     PROGMEM Language_Str MSG_CONTROL                         = STRG_OKTAL_c;
   #endif
 
-  #if ENABLED(WEST)
+  #ifdef WEST
+    constexpr uint8_t    CHARSIZE                            = 1;
+  
     PROGMEM Language_Str WELCOME_MSG                         = _UxGT("Language TEST");
 
     PROGMEM Language_Str MSG_INFO_SCREEN                     = _UxGT("\001\002\003\004\005\006\007\010\011");
@@ -163,43 +165,30 @@ namespace Language_test {
 
   #endif
 
-  #if ENABLED(CYRIL)
-    PROGMEM Language_Str WELCOME_MSG                         = _UxGT("Language TEST");
+  #ifdef CYRIL
+    constexpr uint8_t    CHARSIZE                            = 2;
+  
+    PROGMEM Language_Str WELCOME_MSG                         = _UxGT("Cyrillic TEST");
 
-    PROGMEM Language_Str MSG_INFO_SCREEN                     = _UxGT("\001\002\003\004\005\006\007\010\011");
-    PROGMEM Language_Str MSG_PREPARE                         = _UxGT("UTF8");
-    PROGMEM Language_Str MSG_CONTROL                         = _UxGT("ASCII");
+    PROGMEM Language_Str MSG_INFO_SCREEN                     = _UxGT("..");
+    PROGMEM Language_Str MSG_MOTION                          = STRG_C2_a;
+    PROGMEM Language_Str MSG_TEMPERATURE                     = STRG_C3_8;
+    PROGMEM Language_Str MSG_FILAMENTCHANGE                  = STRG_C3_9;
+    PROGMEM Language_Str MSG_INFO_MENU                       = STRG_C3_a;
 
     PROGMEM Language_Str MSG_MAIN                            = _UxGT("..");
-    PROGMEM Language_Str MSG_DISABLE_STEPPERS                = STRG_D0_8;
-    PROGMEM Language_Str MSG_AUTO_HOME                       = STRG_D0_9;
-    PROGMEM Language_Str MSG_SET_HOME_OFFSETS                = STRG_D0_a;
-    PROGMEM Language_Str MSG_PREHEAT_1                       = STRG_D0_b;
-    PROGMEM Language_Str MSG_PREHEAT_2                       = STRG_D1_8;
-    PROGMEM Language_Str MSG_COOLDOWN                        = STRG_D1_9;
-    PROGMEM Language_Str MSG_SWITCH_PS_OFF                   = STRG_D1_a;
-    PROGMEM Language_Str MSG_MOVE_AXIS                       = STRG_D1_b;
-
-    PROGMEM Language_Str MSG_MAIN                            = STRG_OKTAL_2;
-    PROGMEM Language_Str MSG_TEMPERATURE                     = STRG_OKTAL_3;
-    PROGMEM Language_Str MSG_MOTION                          = STRG_OKTAL_4;
-    PROGMEM Language_Str MSG_FILAMENT                        = STRG_OKTAL_5;
-    PROGMEM Language_Str MSG_CONTRAST                        = STRG_OKTAL_6;
-    PROGMEM Language_Str MSG_RESTORE_DEFAULTS                = STRG_OKTAL_7;
-
-    PROGMEM Language_Str MSG_NOZZLE                          = STRG_OKTAL_8;
-    PROGMEM Language_Str MSG_NOZZLE_N                        = STRG_OKTAL_8 " ~";
-    PROGMEM Language_Str MSG_FAN_SPEED_N                     = STRG_OKTAL_9;
-    PROGMEM Language_Str MSG_AUTOTEMP                        = STRG_OKTAL_a;
-    PROGMEM Language_Str MSG_MIN                             = STRG_OKTAL_b;
-    PROGMEM Language_Str MSG_MAX                             = STRG_OKTAL_c;
-    PROGMEM Language_Str MSG_FACTOR                          = STRG_OKTAL_d;
-    PROGMEM Language_Str MSG_PID_P                           = STRG_OKTAL_e;
-    PROGMEM Language_Str MSG_PID_I                           = STRG_OKTAL_f;
+    PROGMEM Language_Str MSG_ADVANCED_SETTINGS               = STRG_ASCII_2;
+    PROGMEM Language_Str MSG_RETRACT                         = STRG_ASCII_3;
+    PROGMEM Language_Str MSG_RUNOUT_SENSOR                   = STRG_ASCII_4;
+    PROGMEM Language_Str MSG_OUTAGE_RECOVERY                 = STRG_ASCII_5;
+    PROGMEM Language_Str MSG_PREHEAT_1                       = STRG_ASCII_6;
+    PROGMEM Language_Str MSG_PREHEAT_2                       = STRG_ASCII_7;
 
   #endif
 
-  #if ENABLED(KANA)
+  #ifdef KANA
+    constexpr uint8_t    CHARSIZE                            = 3;
+
     PROGMEM Language_Str WELCOME_MSG                         = _UxGT("Language TEST");
 
     PROGMEM Language_Str MSG_INFO_SCREEN                     = _UxGT("\001\002\003\004\005\006\007\010\011");
