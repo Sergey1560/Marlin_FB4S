@@ -170,13 +170,13 @@ namespace Language_test {
   
     PROGMEM Language_Str WELCOME_MSG                         = _UxGT("Cyrillic TEST");
 
-    PROGMEM Language_Str MSG_INFO_SCREEN                     = _UxGT("..");
+    PROGMEM Language_Str MSG_INFO_SCREEN                     = _UxGT("Ёё");
     PROGMEM Language_Str MSG_MOTION                          = STRG_C2_a;
     PROGMEM Language_Str MSG_TEMPERATURE                     = STRG_C3_8;
     PROGMEM Language_Str MSG_FILAMENTCHANGE                  = STRG_C3_9;
     PROGMEM Language_Str MSG_INFO_MENU                       = STRG_C3_a;
 
-    PROGMEM Language_Str MSG_MAIN                            = _UxGT("..");
+    PROGMEM Language_Str MSG_MAIN                            = _UxGT("Ёё");
     PROGMEM Language_Str MSG_ADVANCED_SETTINGS               = STRG_ASCII_2;
     PROGMEM Language_Str MSG_RETRACT                         = STRG_ASCII_3;
     PROGMEM Language_Str MSG_RUNOUT_SENSOR                   = STRG_ASCII_4;
