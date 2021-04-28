@@ -233,7 +233,7 @@ EEPROM_W25Q
 #define TFT_COLOR_UI
 ```
 
-* Графический интерфейс от MKS. [Подробнее](https://sergey1560.github.io/fb4s_howto/mks_ui/) про сборку этого варианта. У компании Makerbase также есть своя [прошивка](https://github.com/makerbase-mks/Mks-Robin-Nano-Marlin2.0-Firmware) на Marlin 2.0
+* Графический интерфейс от MKS. Этот интерфейс требует изменений в конфигурации. Кроме того, поддержка WIFI на данный момент есть только в ветке "для разработчиков". В связи с этим, вариант прошивки с этим интерфейсом [сделан отдельно](https://github.com/FBGhost-community/Marlin)
 
 ## WIFI модуль, отправка команд и файлов
 
