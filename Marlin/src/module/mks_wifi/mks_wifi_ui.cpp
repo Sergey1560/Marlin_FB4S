@@ -4,7 +4,7 @@
 
 #include "../../lcd/tft/tft.h"
 #include "../../lcd/tft/tft_color.h"
-#include "../../lcd/ultralcd.h"
+#include "../../lcd/marlinui.h"
 #include "../temperature.h"
 
 

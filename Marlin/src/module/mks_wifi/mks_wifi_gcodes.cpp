@@ -49,7 +49,6 @@ void mks_m105(void){
 
 
 void mks_m997(void){
-
   if(CardReader::isPrinting()){
     mks_wifi_out_add((uint8_t *)m997_printing,strlen(m997_printing));
   }else if(CardReader::isPaused()){
@@ -57,18 +56,11 @@ void mks_m997(void){
   }else{
     mks_wifi_out_add((uint8_t *)m997_idle,strlen(m997_idle));
   }
-
-  SERIAL_ECHOPGM(STR_OK);
-  SERIAL_EOL();
-
 }
 
 
 void mks_m115(void){
   mks_wifi_out_add((uint8_t *)m115_firmware,strlen(m115_firmware));
-
-  SERIAL_ECHOPGM(STR_OK);
-  SERIAL_EOL();
 }
 
 void mks_m27(void){

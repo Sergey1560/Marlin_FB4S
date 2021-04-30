@@ -161,9 +161,9 @@ typedef struct
 #define APB2PERIPH_BASE       (PERIPH_BASE + 0x00010000U)
 #define AHBPERIPH_BASE        (PERIPH_BASE + 0x00020000U)
 //#define USART1_BASE           (APB2PERIPH_BASE + 0x00003800U)
-#define DMA1_BASE             (AHBPERIPH_BASE + 0x00000000U)
+#define DMA1_N_BASE             (AHBPERIPH_BASE + 0x00000000U)
 #define DMA1_Channel5_BASE    (AHBPERIPH_BASE + 0x00000058U)
-#define DMA2_BASE             (AHBPERIPH_BASE + 0x00000400U)
+#define DMA2_N_BASE             (AHBPERIPH_BASE + 0x00000400U)
 #define DMA2_Channel4_BASE    (AHBPERIPH_BASE + 0x00000444U)
 #define SDIO_BASE             (PERIPH_BASE + 0x00018000U)
 #define I2C1_BASE             (APB1PERIPH_BASE + 0x00005400U)
@@ -173,15 +173,15 @@ typedef struct
 #define AFIOBASE              (APB2PERIPH_BASE + 0x00000000U)
 #define CoreDebug_BASE        (0xE000EDF0UL)  /*!< Core Debug Base Address */
 #define DWT_BASE              (0xE0001000UL)  /*!< DWT Base Address */
-#define SPI2_BASE             (APB1PERIPH_BASE + 0x00003800U)
+#define SPI_2_BASE             (APB1PERIPH_BASE + 0x00003800U)
 
 #define RCC                   ((RCC_TypeDef *)RCC_BASE)
 #define SDIO                  ((SDIO_TypeDef *)SDIO_BASE)
 #define USART1                ((USART_TypeDef *)USART1_BASE)
-#define DMA1                  ((DMA_TypeDef *)DMA1_BASE)
+#define DMA1_N                  ((DMA_TypeDef *)DMA1_N_BASE)
 #define DMA1_Channel5         ((DMA_Channel_TypeDef *)DMA1_Channel5_BASE)
 #define DMA2_Channel4         ((DMA_Channel_TypeDef *)DMA2_Channel4_BASE)
-#define DMA2                  ((DMA_TypeDef *)DMA2_BASE)
+#define DMA2_N                  ((DMA_TypeDef *)DMA2_N_BASE)
 #define I2C1                  ((I2C_TypeDef *)I2C1_BASE)
 #define PORTA                 ((GPIO_TypeDef *)PORTA_BASE)
 #define PORTB                 ((GPIO_TypeDef *)PORTB_BASE)
@@ -189,7 +189,7 @@ typedef struct
 #define AFIO                  ((AFIO_TypeDef *)AFIOBASE)
 #define CoreDebug             ((CoreDebug_Type *)CoreDebug_BASE)   /*!< Core Debug configuration struct */
 #define DWT                   ((DWT_Type       *)     DWT_BASE      )   /*!< DWT configuration struct */
-#define SPI2                  ((SPI_TypeDef *)SPI2_BASE)
+#define SPI_2                  ((SPI_TypeDef *)SPI_2_BASE)
 
 /******************************************************************************/
 /*                                                                            */
@@ -198,221 +198,225 @@ typedef struct
 /******************************************************************************/
 
 /*******************  Bit definition for DMA_ISR register  ********************/
+
 #define DMA_ISR_GIF1_Pos                    (0U)                               
 #define DMA_ISR_GIF1_Msk                    (0x1U << DMA_ISR_GIF1_Pos)         /*!< 0x00000001 */
-#define DMA_ISR_GIF1                        DMA_ISR_GIF1_Msk                   /*!< Channel 1 Global interrupt flag */
+//#define DMA_ISR_GIF1                        DMA_ISR_GIF1_Msk                   /*!< Channel 1 Global interrupt flag */
 #define DMA_ISR_TCIF1_Pos                   (1U)                               
 #define DMA_ISR_TCIF1_Msk                   (0x1U << DMA_ISR_TCIF1_Pos)        /*!< 0x00000002 */
-#define DMA_ISR_TCIF1                       DMA_ISR_TCIF1_Msk                  /*!< Channel 1 Transfer Complete flag */
+//#define DMA_ISR_TCIF1                       DMA_ISR_TCIF1_Msk                  /*!< Channel 1 Transfer Complete flag */
 #define DMA_ISR_HTIF1_Pos                   (2U)                               
 #define DMA_ISR_HTIF1_Msk                   (0x1U << DMA_ISR_HTIF1_Pos)        /*!< 0x00000004 */
-#define DMA_ISR_HTIF1                       DMA_ISR_HTIF1_Msk                  /*!< Channel 1 Half Transfer flag */
+//#define DMA_ISR_HTIF1                       DMA_ISR_HTIF1_Msk                  /*!< Channel 1 Half Transfer flag */
 #define DMA_ISR_TEIF1_Pos                   (3U)                               
 #define DMA_ISR_TEIF1_Msk                   (0x1U << DMA_ISR_TEIF1_Pos)        /*!< 0x00000008 */
-#define DMA_ISR_TEIF1                       DMA_ISR_TEIF1_Msk                  /*!< Channel 1 Transfer Error flag */
+//#define DMA_ISR_TEIF1                       DMA_ISR_TEIF1_Msk                  /*!< Channel 1 Transfer Error flag */
 #define DMA_ISR_GIF2_Pos                    (4U)                               
 #define DMA_ISR_GIF2_Msk                    (0x1U << DMA_ISR_GIF2_Pos)         /*!< 0x00000010 */
-#define DMA_ISR_GIF2                        DMA_ISR_GIF2_Msk                   /*!< Channel 2 Global interrupt flag */
+//#define DMA_ISR_GIF2                        DMA_ISR_GIF2_Msk                   /*!< Channel 2 Global interrupt flag */
 #define DMA_ISR_TCIF2_Pos                   (5U)                               
 #define DMA_ISR_TCIF2_Msk                   (0x1U << DMA_ISR_TCIF2_Pos)        /*!< 0x00000020 */
-#define DMA_ISR_TCIF2                       DMA_ISR_TCIF2_Msk                  /*!< Channel 2 Transfer Complete flag */
+//#define DMA_ISR_TCIF2                       DMA_ISR_TCIF2_Msk                  /*!< Channel 2 Transfer Complete flag */
 #define DMA_ISR_HTIF2_Pos                   (6U)                               
 #define DMA_ISR_HTIF2_Msk                   (0x1U << DMA_ISR_HTIF2_Pos)        /*!< 0x00000040 */
-#define DMA_ISR_HTIF2                       DMA_ISR_HTIF2_Msk                  /*!< Channel 2 Half Transfer flag */
+//#define DMA_ISR_HTIF2                       DMA_ISR_HTIF2_Msk                  /*!< Channel 2 Half Transfer flag */
 #define DMA_ISR_TEIF2_Pos                   (7U)                               
 #define DMA_ISR_TEIF2_Msk                   (0x1U << DMA_ISR_TEIF2_Pos)        /*!< 0x00000080 */
-#define DMA_ISR_TEIF2                       DMA_ISR_TEIF2_Msk                  /*!< Channel 2 Transfer Error flag */
+//#define DMA_ISR_TEIF2                       DMA_ISR_TEIF2_Msk                  /*!< Channel 2 Transfer Error flag */
 #define DMA_ISR_GIF3_Pos                    (8U)                               
 #define DMA_ISR_GIF3_Msk                    (0x1U << DMA_ISR_GIF3_Pos)         /*!< 0x00000100 */
-#define DMA_ISR_GIF3                        DMA_ISR_GIF3_Msk                   /*!< Channel 3 Global interrupt flag */
+//#define DMA_ISR_GIF3                        DMA_ISR_GIF3_Msk                   /*!< Channel 3 Global interrupt flag */
 #define DMA_ISR_TCIF3_Pos                   (9U)                               
 #define DMA_ISR_TCIF3_Msk                   (0x1U << DMA_ISR_TCIF3_Pos)        /*!< 0x00000200 */
-#define DMA_ISR_TCIF3                       DMA_ISR_TCIF3_Msk                  /*!< Channel 3 Transfer Complete flag */
+//#define DMA_ISR_TCIF3                       DMA_ISR_TCIF3_Msk                  /*!< Channel 3 Transfer Complete flag */
 #define DMA_ISR_HTIF3_Pos                   (10U)                              
 #define DMA_ISR_HTIF3_Msk                   (0x1U << DMA_ISR_HTIF3_Pos)        /*!< 0x00000400 */
-#define DMA_ISR_HTIF3                       DMA_ISR_HTIF3_Msk                  /*!< Channel 3 Half Transfer flag */
+//#define DMA_ISR_HTIF3                       DMA_ISR_HTIF3_Msk                  /*!< Channel 3 Half Transfer flag */
 #define DMA_ISR_TEIF3_Pos                   (11U)                              
 #define DMA_ISR_TEIF3_Msk                   (0x1U << DMA_ISR_TEIF3_Pos)        /*!< 0x00000800 */
-#define DMA_ISR_TEIF3                       DMA_ISR_TEIF3_Msk                  /*!< Channel 3 Transfer Error flag */
+//#define DMA_ISR_TEIF3                       DMA_ISR_TEIF3_Msk                  /*!< Channel 3 Transfer Error flag */
 #define DMA_ISR_GIF4_Pos                    (12U)                              
 #define DMA_ISR_GIF4_Msk                    (0x1U << DMA_ISR_GIF4_Pos)         /*!< 0x00001000 */
-#define DMA_ISR_GIF4                        DMA_ISR_GIF4_Msk                   /*!< Channel 4 Global interrupt flag */
+//#define DMA_ISR_GIF4                        DMA_ISR_GIF4_Msk                   /*!< Channel 4 Global interrupt flag */
 #define DMA_ISR_TCIF4_Pos                   (13U)                              
 #define DMA_ISR_TCIF4_Msk                   (0x1U << DMA_ISR_TCIF4_Pos)        /*!< 0x00002000 */
-#define DMA_ISR_TCIF4                       DMA_ISR_TCIF4_Msk                  /*!< Channel 4 Transfer Complete flag */
+#define DMA_N_ISR_TCIF4                       DMA_ISR_TCIF4_Msk                  /*!< Channel 4 Transfer Complete flag */
 #define DMA_ISR_HTIF4_Pos                   (14U)                              
 #define DMA_ISR_HTIF4_Msk                   (0x1U << DMA_ISR_HTIF4_Pos)        /*!< 0x00004000 */
-#define DMA_ISR_HTIF4                       DMA_ISR_HTIF4_Msk                  /*!< Channel 4 Half Transfer flag */
+//#define DMA_ISR_HTIF4                       DMA_ISR_HTIF4_Msk                  /*!< Channel 4 Half Transfer flag */
 #define DMA_ISR_TEIF4_Pos                   (15U)                              
 #define DMA_ISR_TEIF4_Msk                   (0x1U << DMA_ISR_TEIF4_Pos)        /*!< 0x00008000 */
-#define DMA_ISR_TEIF4                       DMA_ISR_TEIF4_Msk                  /*!< Channel 4 Transfer Error flag */
+#define DMA_N_ISR_TEIF4                       DMA_ISR_TEIF4_Msk                  /*!< Channel 4 Transfer Error flag */
 #define DMA_ISR_GIF5_Pos                    (16U)                              
 #define DMA_ISR_GIF5_Msk                    (0x1U << DMA_ISR_GIF5_Pos)         /*!< 0x00010000 */
-#define DMA_ISR_GIF5                        DMA_ISR_GIF5_Msk                   /*!< Channel 5 Global interrupt flag */
+//#define DMA_ISR_GIF5                        DMA_ISR_GIF5_Msk                   /*!< Channel 5 Global interrupt flag */
 #define DMA_ISR_TCIF5_Pos                   (17U)                              
 #define DMA_ISR_TCIF5_Msk                   (0x1U << DMA_ISR_TCIF5_Pos)        /*!< 0x00020000 */
-#define DMA_ISR_TCIF5                       DMA_ISR_TCIF5_Msk                  /*!< Channel 5 Transfer Complete flag */
+//#define DMA_ISR_TCIF5                       DMA_ISR_TCIF5_Msk                  /*!< Channel 5 Transfer Complete flag */
 #define DMA_ISR_HTIF5_Pos                   (18U)                              
 #define DMA_ISR_HTIF5_Msk                   (0x1U << DMA_ISR_HTIF5_Pos)        /*!< 0x00040000 */
-#define DMA_ISR_HTIF5                       DMA_ISR_HTIF5_Msk                  /*!< Channel 5 Half Transfer flag */
+//#define DMA_ISR_HTIF5                       DMA_ISR_HTIF5_Msk                  /*!< Channel 5 Half Transfer flag */
 #define DMA_ISR_TEIF5_Pos                   (19U)                              
 #define DMA_ISR_TEIF5_Msk                   (0x1U << DMA_ISR_TEIF5_Pos)        /*!< 0x00080000 */
-#define DMA_ISR_TEIF5                       DMA_ISR_TEIF5_Msk                  /*!< Channel 5 Transfer Error flag */
+//#define DMA_ISR_TEIF5                       DMA_ISR_TEIF5_Msk                  /*!< Channel 5 Transfer Error flag */
 #define DMA_ISR_GIF6_Pos                    (20U)                              
 #define DMA_ISR_GIF6_Msk                    (0x1U << DMA_ISR_GIF6_Pos)         /*!< 0x00100000 */
-#define DMA_ISR_GIF6                        DMA_ISR_GIF6_Msk                   /*!< Channel 6 Global interrupt flag */
+//#define DMA_ISR_GIF6                        DMA_ISR_GIF6_Msk                   /*!< Channel 6 Global interrupt flag */
 #define DMA_ISR_TCIF6_Pos                   (21U)                              
 #define DMA_ISR_TCIF6_Msk                   (0x1U << DMA_ISR_TCIF6_Pos)        /*!< 0x00200000 */
-#define DMA_ISR_TCIF6                       DMA_ISR_TCIF6_Msk                  /*!< Channel 6 Transfer Complete flag */
+//#define DMA_ISR_TCIF6                       DMA_ISR_TCIF6_Msk                  /*!< Channel 6 Transfer Complete flag */
 #define DMA_ISR_HTIF6_Pos                   (22U)                              
 #define DMA_ISR_HTIF6_Msk                   (0x1U << DMA_ISR_HTIF6_Pos)        /*!< 0x00400000 */
-#define DMA_ISR_HTIF6                       DMA_ISR_HTIF6_Msk                  /*!< Channel 6 Half Transfer flag */
+//#define DMA_ISR_HTIF6                       DMA_ISR_HTIF6_Msk                  /*!< Channel 6 Half Transfer flag */
 #define DMA_ISR_TEIF6_Pos                   (23U)                              
 #define DMA_ISR_TEIF6_Msk                   (0x1U << DMA_ISR_TEIF6_Pos)        /*!< 0x00800000 */
-#define DMA_ISR_TEIF6                       DMA_ISR_TEIF6_Msk                  /*!< Channel 6 Transfer Error flag */
+//#define DMA_ISR_TEIF6                       DMA_ISR_TEIF6_Msk                  /*!< Channel 6 Transfer Error flag */
 #define DMA_ISR_GIF7_Pos                    (24U)                              
 #define DMA_ISR_GIF7_Msk                    (0x1U << DMA_ISR_GIF7_Pos)         /*!< 0x01000000 */
-#define DMA_ISR_GIF7                        DMA_ISR_GIF7_Msk                   /*!< Channel 7 Global interrupt flag */
+//#define DMA_ISR_GIF7                        DMA_ISR_GIF7_Msk                   /*!< Channel 7 Global interrupt flag */
 #define DMA_ISR_TCIF7_Pos                   (25U)                              
 #define DMA_ISR_TCIF7_Msk                   (0x1U << DMA_ISR_TCIF7_Pos)        /*!< 0x02000000 */
-#define DMA_ISR_TCIF7                       DMA_ISR_TCIF7_Msk                  /*!< Channel 7 Transfer Complete flag */
+//#define DMA_ISR_TCIF7                       DMA_ISR_TCIF7_Msk                  /*!< Channel 7 Transfer Complete flag */
 #define DMA_ISR_HTIF7_Pos                   (26U)                              
 #define DMA_ISR_HTIF7_Msk                   (0x1U << DMA_ISR_HTIF7_Pos)        /*!< 0x04000000 */
-#define DMA_ISR_HTIF7                       DMA_ISR_HTIF7_Msk                  /*!< Channel 7 Half Transfer flag */
+//#define DMA_ISR_HTIF7                       DMA_ISR_HTIF7_Msk                  /*!< Channel 7 Half Transfer flag */
 #define DMA_ISR_TEIF7_Pos                   (27U)                              
 #define DMA_ISR_TEIF7_Msk                   (0x1U << DMA_ISR_TEIF7_Pos)        /*!< 0x08000000 */
-#define DMA_ISR_TEIF7                       DMA_ISR_TEIF7_Msk                  /*!< Channel 7 Transfer Error flag */
+//#define DMA_ISR_TEIF7                       DMA_ISR_TEIF7_Msk                  /*!< Channel 7 Transfer Error flag */
+
 
 /*******************  Bit definition for DMA_IFCR register  *******************/
 #define DMA_IFCR_CGIF1_Pos                  (0U)                               
 #define DMA_IFCR_CGIF1_Msk                  (0x1U << DMA_IFCR_CGIF1_Pos)       /*!< 0x00000001 */
-#define DMA_IFCR_CGIF1                      DMA_IFCR_CGIF1_Msk                 /*!< Channel 1 Global interrupt clear */
+//#define DMA_IFCR_CGIF1                      DMA_IFCR_CGIF1_Msk                 /*!< Channel 1 Global interrupt clear */
 #define DMA_IFCR_CTCIF1_Pos                 (1U)                               
 #define DMA_IFCR_CTCIF1_Msk                 (0x1U << DMA_IFCR_CTCIF1_Pos)      /*!< 0x00000002 */
-#define DMA_IFCR_CTCIF1                     DMA_IFCR_CTCIF1_Msk                /*!< Channel 1 Transfer Complete clear */
+//#define DMA_IFCR_CTCIF1                     DMA_IFCR_CTCIF1_Msk                /*!< Channel 1 Transfer Complete clear */
 #define DMA_IFCR_CHTIF1_Pos                 (2U)                               
 #define DMA_IFCR_CHTIF1_Msk                 (0x1U << DMA_IFCR_CHTIF1_Pos)      /*!< 0x00000004 */
-#define DMA_IFCR_CHTIF1                     DMA_IFCR_CHTIF1_Msk                /*!< Channel 1 Half Transfer clear */
+//#define DMA_IFCR_CHTIF1                     DMA_IFCR_CHTIF1_Msk                /*!< Channel 1 Half Transfer clear */
 #define DMA_IFCR_CTEIF1_Pos                 (3U)                               
 #define DMA_IFCR_CTEIF1_Msk                 (0x1U << DMA_IFCR_CTEIF1_Pos)      /*!< 0x00000008 */
-#define DMA_IFCR_CTEIF1                     DMA_IFCR_CTEIF1_Msk                /*!< Channel 1 Transfer Error clear */
+//#define DMA_IFCR_CTEIF1                     DMA_IFCR_CTEIF1_Msk                /*!< Channel 1 Transfer Error clear */
 #define DMA_IFCR_CGIF2_Pos                  (4U)                               
 #define DMA_IFCR_CGIF2_Msk                  (0x1U << DMA_IFCR_CGIF2_Pos)       /*!< 0x00000010 */
-#define DMA_IFCR_CGIF2                      DMA_IFCR_CGIF2_Msk                 /*!< Channel 2 Global interrupt clear */
+//#define DMA_IFCR_CGIF2                      DMA_IFCR_CGIF2_Msk                 /*!< Channel 2 Global interrupt clear */
 #define DMA_IFCR_CTCIF2_Pos                 (5U)                               
 #define DMA_IFCR_CTCIF2_Msk                 (0x1U << DMA_IFCR_CTCIF2_Pos)      /*!< 0x00000020 */
-#define DMA_IFCR_CTCIF2                     DMA_IFCR_CTCIF2_Msk                /*!< Channel 2 Transfer Complete clear */
+//#define DMA_IFCR_CTCIF2                     DMA_IFCR_CTCIF2_Msk                /*!< Channel 2 Transfer Complete clear */
 #define DMA_IFCR_CHTIF2_Pos                 (6U)                               
 #define DMA_IFCR_CHTIF2_Msk                 (0x1U << DMA_IFCR_CHTIF2_Pos)      /*!< 0x00000040 */
-#define DMA_IFCR_CHTIF2                     DMA_IFCR_CHTIF2_Msk                /*!< Channel 2 Half Transfer clear */
+//#define DMA_IFCR_CHTIF2                     DMA_IFCR_CHTIF2_Msk                /*!< Channel 2 Half Transfer clear */
 #define DMA_IFCR_CTEIF2_Pos                 (7U)                               
 #define DMA_IFCR_CTEIF2_Msk                 (0x1U << DMA_IFCR_CTEIF2_Pos)      /*!< 0x00000080 */
-#define DMA_IFCR_CTEIF2                     DMA_IFCR_CTEIF2_Msk                /*!< Channel 2 Transfer Error clear */
+//#define DMA_IFCR_CTEIF2                     DMA_IFCR_CTEIF2_Msk                /*!< Channel 2 Transfer Error clear */
 #define DMA_IFCR_CGIF3_Pos                  (8U)                               
 #define DMA_IFCR_CGIF3_Msk                  (0x1U << DMA_IFCR_CGIF3_Pos)       /*!< 0x00000100 */
-#define DMA_IFCR_CGIF3                      DMA_IFCR_CGIF3_Msk                 /*!< Channel 3 Global interrupt clear */
+//#define DMA_IFCR_CGIF3                      DMA_IFCR_CGIF3_Msk                 /*!< Channel 3 Global interrupt clear */
 #define DMA_IFCR_CTCIF3_Pos                 (9U)                               
 #define DMA_IFCR_CTCIF3_Msk                 (0x1U << DMA_IFCR_CTCIF3_Pos)      /*!< 0x00000200 */
-#define DMA_IFCR_CTCIF3                     DMA_IFCR_CTCIF3_Msk                /*!< Channel 3 Transfer Complete clear */
+//#define DMA_IFCR_CTCIF3                     DMA_IFCR_CTCIF3_Msk                /*!< Channel 3 Transfer Complete clear */
 #define DMA_IFCR_CHTIF3_Pos                 (10U)                              
 #define DMA_IFCR_CHTIF3_Msk                 (0x1U << DMA_IFCR_CHTIF3_Pos)      /*!< 0x00000400 */
-#define DMA_IFCR_CHTIF3                     DMA_IFCR_CHTIF3_Msk                /*!< Channel 3 Half Transfer clear */
+//#define DMA_IFCR_CHTIF3                     DMA_IFCR_CHTIF3_Msk                /*!< Channel 3 Half Transfer clear */
 #define DMA_IFCR_CTEIF3_Pos                 (11U)                              
 #define DMA_IFCR_CTEIF3_Msk                 (0x1U << DMA_IFCR_CTEIF3_Pos)      /*!< 0x00000800 */
-#define DMA_IFCR_CTEIF3                     DMA_IFCR_CTEIF3_Msk                /*!< Channel 3 Transfer Error clear */
+//#define DMA_IFCR_CTEIF3                     DMA_IFCR_CTEIF3_Msk                /*!< Channel 3 Transfer Error clear */
 #define DMA_IFCR_CGIF4_Pos                  (12U)                              
 #define DMA_IFCR_CGIF4_Msk                  (0x1U << DMA_IFCR_CGIF4_Pos)       /*!< 0x00001000 */
-#define DMA_IFCR_CGIF4                      DMA_IFCR_CGIF4_Msk                 /*!< Channel 4 Global interrupt clear */
+#define DMA_N_IFCR_CGIF4                      DMA_IFCR_CGIF4_Msk                 /*!< Channel 4 Global interrupt clear */
 #define DMA_IFCR_CTCIF4_Pos                 (13U)                              
 #define DMA_IFCR_CTCIF4_Msk                 (0x1U << DMA_IFCR_CTCIF4_Pos)      /*!< 0x00002000 */
-#define DMA_IFCR_CTCIF4                     DMA_IFCR_CTCIF4_Msk                /*!< Channel 4 Transfer Complete clear */
+#define DMA_N_IFCR_CTCIF4                     DMA_IFCR_CTCIF4_Msk                /*!< Channel 4 Transfer Complete clear */
 #define DMA_IFCR_CHTIF4_Pos                 (14U)                              
 #define DMA_IFCR_CHTIF4_Msk                 (0x1U << DMA_IFCR_CHTIF4_Pos)      /*!< 0x00004000 */
-#define DMA_IFCR_CHTIF4                     DMA_IFCR_CHTIF4_Msk                /*!< Channel 4 Half Transfer clear */
+#define DMA_N_IFCR_CHTIF4                     DMA_IFCR_CHTIF4_Msk                /*!< Channel 4 Half Transfer clear */
 #define DMA_IFCR_CTEIF4_Pos                 (15U)                              
 #define DMA_IFCR_CTEIF4_Msk                 (0x1U << DMA_IFCR_CTEIF4_Pos)      /*!< 0x00008000 */
-#define DMA_IFCR_CTEIF4                     DMA_IFCR_CTEIF4_Msk                /*!< Channel 4 Transfer Error clear */
+#define DMA_N_IFCR_CTEIF4                     DMA_IFCR_CTEIF4_Msk                /*!< Channel 4 Transfer Error clear */
 #define DMA_IFCR_CGIF5_Pos                  (16U)                              
 #define DMA_IFCR_CGIF5_Msk                  (0x1U << DMA_IFCR_CGIF5_Pos)       /*!< 0x00010000 */
-#define DMA_IFCR_CGIF5                      DMA_IFCR_CGIF5_Msk                 /*!< Channel 5 Global interrupt clear */
+//#define DMA_IFCR_CGIF5                      DMA_IFCR_CGIF5_Msk                 /*!< Channel 5 Global interrupt clear */
 #define DMA_IFCR_CTCIF5_Pos                 (17U)                              
 #define DMA_IFCR_CTCIF5_Msk                 (0x1U << DMA_IFCR_CTCIF5_Pos)      /*!< 0x00020000 */
-#define DMA_IFCR_CTCIF5                     DMA_IFCR_CTCIF5_Msk                /*!< Channel 5 Transfer Complete clear */
+//#define DMA_IFCR_CTCIF5                     DMA_IFCR_CTCIF5_Msk                /*!< Channel 5 Transfer Complete clear */
 #define DMA_IFCR_CHTIF5_Pos                 (18U)                              
 #define DMA_IFCR_CHTIF5_Msk                 (0x1U << DMA_IFCR_CHTIF5_Pos)      /*!< 0x00040000 */
-#define DMA_IFCR_CHTIF5                     DMA_IFCR_CHTIF5_Msk                /*!< Channel 5 Half Transfer clear */
+//#define DMA_IFCR_CHTIF5                     DMA_IFCR_CHTIF5_Msk                /*!< Channel 5 Half Transfer clear */
 #define DMA_IFCR_CTEIF5_Pos                 (19U)                              
 #define DMA_IFCR_CTEIF5_Msk                 (0x1U << DMA_IFCR_CTEIF5_Pos)      /*!< 0x00080000 */
-#define DMA_IFCR_CTEIF5                     DMA_IFCR_CTEIF5_Msk                /*!< Channel 5 Transfer Error clear */
+//#define DMA_IFCR_CTEIF5                     DMA_IFCR_CTEIF5_Msk                /*!< Channel 5 Transfer Error clear */
 #define DMA_IFCR_CGIF6_Pos                  (20U)                              
 #define DMA_IFCR_CGIF6_Msk                  (0x1U << DMA_IFCR_CGIF6_Pos)       /*!< 0x00100000 */
-#define DMA_IFCR_CGIF6                      DMA_IFCR_CGIF6_Msk                 /*!< Channel 6 Global interrupt clear */
+//#define DMA_IFCR_CGIF6                      DMA_IFCR_CGIF6_Msk                 /*!< Channel 6 Global interrupt clear */
 #define DMA_IFCR_CTCIF6_Pos                 (21U)                              
 #define DMA_IFCR_CTCIF6_Msk                 (0x1U << DMA_IFCR_CTCIF6_Pos)      /*!< 0x00200000 */
-#define DMA_IFCR_CTCIF6                     DMA_IFCR_CTCIF6_Msk                /*!< Channel 6 Transfer Complete clear */
+//#define DMA_IFCR_CTCIF6                     DMA_IFCR_CTCIF6_Msk                /*!< Channel 6 Transfer Complete clear */
 #define DMA_IFCR_CHTIF6_Pos                 (22U)                              
 #define DMA_IFCR_CHTIF6_Msk                 (0x1U << DMA_IFCR_CHTIF6_Pos)      /*!< 0x00400000 */
-#define DMA_IFCR_CHTIF6                     DMA_IFCR_CHTIF6_Msk                /*!< Channel 6 Half Transfer clear */
+//#define DMA_IFCR_CHTIF6                     DMA_IFCR_CHTIF6_Msk                /*!< Channel 6 Half Transfer clear */
 #define DMA_IFCR_CTEIF6_Pos                 (23U)                              
 #define DMA_IFCR_CTEIF6_Msk                 (0x1U << DMA_IFCR_CTEIF6_Pos)      /*!< 0x00800000 */
-#define DMA_IFCR_CTEIF6                     DMA_IFCR_CTEIF6_Msk                /*!< Channel 6 Transfer Error clear */
+//#define DMA_IFCR_CTEIF6                     DMA_IFCR_CTEIF6_Msk                /*!< Channel 6 Transfer Error clear */
 #define DMA_IFCR_CGIF7_Pos                  (24U)                              
 #define DMA_IFCR_CGIF7_Msk                  (0x1U << DMA_IFCR_CGIF7_Pos)       /*!< 0x01000000 */
-#define DMA_IFCR_CGIF7                      DMA_IFCR_CGIF7_Msk                 /*!< Channel 7 Global interrupt clear */
+//#define DMA_IFCR_CGIF7                      DMA_IFCR_CGIF7_Msk                 /*!< Channel 7 Global interrupt clear */
 #define DMA_IFCR_CTCIF7_Pos                 (25U)                              
 #define DMA_IFCR_CTCIF7_Msk                 (0x1U << DMA_IFCR_CTCIF7_Pos)      /*!< 0x02000000 */
-#define DMA_IFCR_CTCIF7                     DMA_IFCR_CTCIF7_Msk                /*!< Channel 7 Transfer Complete clear */
+//#define DMA_IFCR_CTCIF7                     DMA_IFCR_CTCIF7_Msk                /*!< Channel 7 Transfer Complete clear */
 #define DMA_IFCR_CHTIF7_Pos                 (26U)                              
 #define DMA_IFCR_CHTIF7_Msk                 (0x1U << DMA_IFCR_CHTIF7_Pos)      /*!< 0x04000000 */
-#define DMA_IFCR_CHTIF7                     DMA_IFCR_CHTIF7_Msk                /*!< Channel 7 Half Transfer clear */
+//#define DMA_IFCR_CHTIF7                     DMA_IFCR_CHTIF7_Msk                /*!< Channel 7 Half Transfer clear */
 #define DMA_IFCR_CTEIF7_Pos                 (27U)                              
 #define DMA_IFCR_CTEIF7_Msk                 (0x1U << DMA_IFCR_CTEIF7_Pos)      /*!< 0x08000000 */
-#define DMA_IFCR_CTEIF7                     DMA_IFCR_CTEIF7_Msk                /*!< Channel 7 Transfer Error clear */
+//#define DMA_IFCR_CTEIF7                     DMA_IFCR_CTEIF7_Msk                /*!< Channel 7 Transfer Error clear */
+
 
 /*******************  Bit definition for DMA_CCR register   *******************/
 #define DMA_CCR_EN_Pos                      (0U)                               
 #define DMA_CCR_EN_Msk                      (0x1U << DMA_CCR_EN_Pos)           /*!< 0x00000001 */
-#define DMA_CCR_EN                          DMA_CCR_EN_Msk                     /*!< Channel enable */
+//#define DMA_CCR_EN                          DMA_CCR_EN_Msk                     /*!< Channel enable */
 #define DMA_CCR_TCIE_Pos                    (1U)                               
 #define DMA_CCR_TCIE_Msk                    (0x1U << DMA_CCR_TCIE_Pos)         /*!< 0x00000002 */
-#define DMA_CCR_TCIE                        DMA_CCR_TCIE_Msk                   /*!< Transfer complete interrupt enable */
+//#define DMA_CCR_TCIE                        DMA_CCR_TCIE_Msk                   /*!< Transfer complete interrupt enable */
 #define DMA_CCR_HTIE_Pos                    (2U)                               
 #define DMA_CCR_HTIE_Msk                    (0x1U << DMA_CCR_HTIE_Pos)         /*!< 0x00000004 */
-#define DMA_CCR_HTIE                        DMA_CCR_HTIE_Msk                   /*!< Half Transfer interrupt enable */
+//#define DMA_CCR_HTIE                        DMA_CCR_HTIE_Msk                   /*!< Half Transfer interrupt enable */
 #define DMA_CCR_TEIE_Pos                    (3U)                               
 #define DMA_CCR_TEIE_Msk                    (0x1U << DMA_CCR_TEIE_Pos)         /*!< 0x00000008 */
-#define DMA_CCR_TEIE                        DMA_CCR_TEIE_Msk                   /*!< Transfer error interrupt enable */
+//#define DMA_CCR_TEIE                        DMA_CCR_TEIE_Msk                   /*!< Transfer error interrupt enable */
 #define DMA_CCR_DIR_Pos                     (4U)                               
 #define DMA_CCR_DIR_Msk                     (0x1U << DMA_CCR_DIR_Pos)          /*!< 0x00000010 */
-#define DMA_CCR_DIR                         DMA_CCR_DIR_Msk                    /*!< Data transfer direction */
+//#define DMA_CCR_DIR                         DMA_CCR_DIR_Msk                    /*!< Data transfer direction */
 #define DMA_CCR_CIRC_Pos                    (5U)                               
 #define DMA_CCR_CIRC_Msk                    (0x1U << DMA_CCR_CIRC_Pos)         /*!< 0x00000020 */
-#define DMA_CCR_CIRC                        DMA_CCR_CIRC_Msk                   /*!< Circular mode */
+//#define DMA_CCR_CIRC                        DMA_CCR_CIRC_Msk                   /*!< Circular mode */
 #define DMA_CCR_PINC_Pos                    (6U)                               
 #define DMA_CCR_PINC_Msk                    (0x1U << DMA_CCR_PINC_Pos)         /*!< 0x00000040 */
-#define DMA_CCR_PINC                        DMA_CCR_PINC_Msk                   /*!< Peripheral increment mode */
+//#define DMA_CCR_PINC                        DMA_CCR_PINC_Msk                   /*!< Peripheral increment mode */
 #define DMA_CCR_MINC_Pos                    (7U)                               
 #define DMA_CCR_MINC_Msk                    (0x1U << DMA_CCR_MINC_Pos)         /*!< 0x00000080 */
-#define DMA_CCR_MINC                        DMA_CCR_MINC_Msk                   /*!< Memory increment mode */
+//#define DMA_CCR_MINC                        DMA_CCR_MINC_Msk                   /*!< Memory increment mode */
 
 #define DMA_CCR_PSIZE_Pos                   (8U)                               
 #define DMA_CCR_PSIZE_Msk                   (0x3U << DMA_CCR_PSIZE_Pos)        /*!< 0x00000300 */
-#define DMA_CCR_PSIZE                       DMA_CCR_PSIZE_Msk                  /*!< PSIZE[1:0] bits (Peripheral size) */
+//#define DMA_CCR_PSIZE                       DMA_CCR_PSIZE_Msk                  /*!< PSIZE[1:0] bits (Peripheral size) */
 #define DMA_CCR_PSIZE_0                     (0x1U << DMA_CCR_PSIZE_Pos)        /*!< 0x00000100 */
 #define DMA_CCR_PSIZE_1                     (0x2U << DMA_CCR_PSIZE_Pos)        /*!< 0x00000200 */
 
 #define DMA_CCR_MSIZE_Pos                   (10U)                              
 #define DMA_CCR_MSIZE_Msk                   (0x3U << DMA_CCR_MSIZE_Pos)        /*!< 0x00000C00 */
-#define DMA_CCR_MSIZE                       DMA_CCR_MSIZE_Msk                  /*!< MSIZE[1:0] bits (Memory size) */
+//#define DMA_CCR_MSIZE                       DMA_CCR_MSIZE_Msk                  /*!< MSIZE[1:0] bits (Memory size) */
 #define DMA_CCR_MSIZE_0                     (0x1U << DMA_CCR_MSIZE_Pos)        /*!< 0x00000400 */
 #define DMA_CCR_MSIZE_1                     (0x2U << DMA_CCR_MSIZE_Pos)        /*!< 0x00000800 */
 
 #define DMA_CCR_PL_Pos                      (12U)                              
 #define DMA_CCR_PL_Msk                      (0x3U << DMA_CCR_PL_Pos)           /*!< 0x00003000 */
-#define DMA_CCR_PL                          DMA_CCR_PL_Msk                     /*!< PL[1:0] bits(Channel Priority level) */
+//#define DMA_CCR_PL                          DMA_CCR_PL_Msk                     /*!< PL[1:0] bits(Channel Priority level) */
 #define DMA_CCR_PL_0                        (0x1U << DMA_CCR_PL_Pos)           /*!< 0x00001000 */
 #define DMA_CCR_PL_1                        (0x2U << DMA_CCR_PL_Pos)           /*!< 0x00002000 */
 
+#if 0
 #define DMA_CCR_MEM2MEM_Pos                 (14U)                              
 #define DMA_CCR_MEM2MEM_Msk                 (0x1U << DMA_CCR_MEM2MEM_Pos)      /*!< 0x00004000 */
 #define DMA_CCR_MEM2MEM                     DMA_CCR_MEM2MEM_Msk                /*!< Memory to memory mode */
@@ -431,7 +435,7 @@ typedef struct
 #define DMA_CMAR_MA_Pos                     (0U)                               
 #define DMA_CMAR_MA_Msk                     (0xFFFFFFFFU << DMA_CMAR_MA_Pos)   /*!< 0xFFFFFFFF */
 #define DMA_CMAR_MA                         DMA_CMAR_MA_Msk                    /*!< Memory Address */
-
+#endif
 
 /******************************************************************************/
 /*                                                                            */
@@ -1553,97 +1557,97 @@ typedef struct
 /*******************  Bit definition for SPI_CR1 register  ********************/
 #define SPI_CR1_CPHA_Pos                    (0U)                               
 #define SPI_CR1_CPHA_Msk                    (0x1U << SPI_CR1_CPHA_Pos)         /*!< 0x00000001 */
-#define SPI_CR1_CPHA                        SPI_CR1_CPHA_Msk                   /*!< Clock Phase */
+#define SPI_N_CR1_CPHA                        SPI_CR1_CPHA_Msk                   /*!< Clock Phase */
 #define SPI_CR1_CPOL_Pos                    (1U)                               
 #define SPI_CR1_CPOL_Msk                    (0x1U << SPI_CR1_CPOL_Pos)         /*!< 0x00000002 */
-#define SPI_CR1_CPOL                        SPI_CR1_CPOL_Msk                   /*!< Clock Polarity */
+#define SPI_N_CR1_CPOL                        SPI_CR1_CPOL_Msk                   /*!< Clock Polarity */
 #define SPI_CR1_MSTR_Pos                    (2U)                               
 #define SPI_CR1_MSTR_Msk                    (0x1U << SPI_CR1_MSTR_Pos)         /*!< 0x00000004 */
-#define SPI_CR1_MSTR                        SPI_CR1_MSTR_Msk                   /*!< Master Selection */
+#define SPI_N_CR1_MSTR                        SPI_CR1_MSTR_Msk                   /*!< Master Selection */
 
 #define SPI_CR1_BR_Pos                      (3U)                               
 #define SPI_CR1_BR_Msk                      (0x7U << SPI_CR1_BR_Pos)           /*!< 0x00000038 */
-#define SPI_CR1_BR                          SPI_CR1_BR_Msk                     /*!< BR[2:0] bits (Baud Rate Control) */
-#define SPI_CR1_BR_0                        (0x1U << SPI_CR1_BR_Pos)           /*!< 0x00000008 */
-#define SPI_CR1_BR_1                        (0x2U << SPI_CR1_BR_Pos)           /*!< 0x00000010 */
-#define SPI_CR1_BR_2                        (0x4U << SPI_CR1_BR_Pos)           /*!< 0x00000020 */
+#define SPI_N_CR1_BR                          SPI_CR1_BR_Msk                     /*!< BR[2:0] bits (Baud Rate Control) */
+#define SPI_N_CR1_BR_0                        (0x1U << SPI_CR1_BR_Pos)           /*!< 0x00000008 */
+#define SPI_N_CR1_BR_1                        (0x2U << SPI_CR1_BR_Pos)           /*!< 0x00000010 */
+#define SPI_N_CR1_BR_2                        (0x4U << SPI_CR1_BR_Pos)           /*!< 0x00000020 */
 
 #define SPI_CR1_SPE_Pos                     (6U)                               
 #define SPI_CR1_SPE_Msk                     (0x1U << SPI_CR1_SPE_Pos)          /*!< 0x00000040 */
-#define SPI_CR1_SPE                         SPI_CR1_SPE_Msk                    /*!< SPI Enable */
+#define SPI_N_CR1_SPE                         SPI_CR1_SPE_Msk                    /*!< SPI Enable */
 #define SPI_CR1_LSBFIRST_Pos                (7U)                               
 #define SPI_CR1_LSBFIRST_Msk                (0x1U << SPI_CR1_LSBFIRST_Pos)     /*!< 0x00000080 */
-#define SPI_CR1_LSBFIRST                    SPI_CR1_LSBFIRST_Msk               /*!< Frame Format */
+//#define SPI_CR1_LSBFIRST                    SPI_CR1_LSBFIRST_Msk               /*!< Frame Format */
 #define SPI_CR1_SSI_Pos                     (8U)                               
 #define SPI_CR1_SSI_Msk                     (0x1U << SPI_CR1_SSI_Pos)          /*!< 0x00000100 */
-#define SPI_CR1_SSI                         SPI_CR1_SSI_Msk                    /*!< Internal slave select */
+#define SPI_N_CR1_SSI                         SPI_CR1_SSI_Msk                    /*!< Internal slave select */
 #define SPI_CR1_SSM_Pos                     (9U)                               
 #define SPI_CR1_SSM_Msk                     (0x1U << SPI_CR1_SSM_Pos)          /*!< 0x00000200 */
-#define SPI_CR1_SSM                         SPI_CR1_SSM_Msk                    /*!< Software slave management */
+#define SPI_N_CR1_SSM                         SPI_CR1_SSM_Msk                    /*!< Software slave management */
 #define SPI_CR1_RXONLY_Pos                  (10U)                              
 #define SPI_CR1_RXONLY_Msk                  (0x1U << SPI_CR1_RXONLY_Pos)       /*!< 0x00000400 */
-#define SPI_CR1_RXONLY                      SPI_CR1_RXONLY_Msk                 /*!< Receive only */
+//#define SPI_CR1_RXONLY                      SPI_CR1_RXONLY_Msk                 /*!< Receive only */
 #define SPI_CR1_DFF_Pos                     (11U)                              
 #define SPI_CR1_DFF_Msk                     (0x1U << SPI_CR1_DFF_Pos)          /*!< 0x00000800 */
-#define SPI_CR1_DFF                         SPI_CR1_DFF_Msk                    /*!< Data Frame Format */
+//#define SPI_CR1_DFF                         SPI_CR1_DFF_Msk                    /*!< Data Frame Format */
 #define SPI_CR1_CRCNEXT_Pos                 (12U)                              
 #define SPI_CR1_CRCNEXT_Msk                 (0x1U << SPI_CR1_CRCNEXT_Pos)      /*!< 0x00001000 */
-#define SPI_CR1_CRCNEXT                     SPI_CR1_CRCNEXT_Msk                /*!< Transmit CRC next */
+//#define SPI_CR1_CRCNEXT                     SPI_CR1_CRCNEXT_Msk                /*!< Transmit CRC next */
 #define SPI_CR1_CRCEN_Pos                   (13U)                              
 #define SPI_CR1_CRCEN_Msk                   (0x1U << SPI_CR1_CRCEN_Pos)        /*!< 0x00002000 */
-#define SPI_CR1_CRCEN                       SPI_CR1_CRCEN_Msk                  /*!< Hardware CRC calculation enable */
+//#define SPI_CR1_CRCEN                       SPI_CR1_CRCEN_Msk                  /*!< Hardware CRC calculation enable */
 #define SPI_CR1_BIDIOE_Pos                  (14U)                              
 #define SPI_CR1_BIDIOE_Msk                  (0x1U << SPI_CR1_BIDIOE_Pos)       /*!< 0x00004000 */
-#define SPI_CR1_BIDIOE                      SPI_CR1_BIDIOE_Msk                 /*!< Output enable in bidirectional mode */
+//#define SPI_CR1_BIDIOE                      SPI_CR1_BIDIOE_Msk                 /*!< Output enable in bidirectional mode */
 #define SPI_CR1_BIDIMODE_Pos                (15U)                              
 #define SPI_CR1_BIDIMODE_Msk                (0x1U << SPI_CR1_BIDIMODE_Pos)     /*!< 0x00008000 */
-#define SPI_CR1_BIDIMODE                    SPI_CR1_BIDIMODE_Msk               /*!< Bidirectional data mode enable */
+//#define SPI_CR1_BIDIMODE                    SPI_CR1_BIDIMODE_Msk               /*!< Bidirectional data mode enable */
 
 /*******************  Bit definition for SPI_CR2 register  ********************/
 #define SPI_CR2_RXDMAEN_Pos                 (0U)                               
 #define SPI_CR2_RXDMAEN_Msk                 (0x1U << SPI_CR2_RXDMAEN_Pos)      /*!< 0x00000001 */
-#define SPI_CR2_RXDMAEN                     SPI_CR2_RXDMAEN_Msk                /*!< Rx Buffer DMA Enable */
+//#define SPI_CR2_RXDMAEN                     SPI_CR2_RXDMAEN_Msk                /*!< Rx Buffer DMA Enable */
 #define SPI_CR2_TXDMAEN_Pos                 (1U)                               
 #define SPI_CR2_TXDMAEN_Msk                 (0x1U << SPI_CR2_TXDMAEN_Pos)      /*!< 0x00000002 */
-#define SPI_CR2_TXDMAEN                     SPI_CR2_TXDMAEN_Msk                /*!< Tx Buffer DMA Enable */
+//#define SPI_CR2_TXDMAEN                     SPI_CR2_TXDMAEN_Msk                /*!< Tx Buffer DMA Enable */
 #define SPI_CR2_SSOE_Pos                    (2U)                               
 #define SPI_CR2_SSOE_Msk                    (0x1U << SPI_CR2_SSOE_Pos)         /*!< 0x00000004 */
-#define SPI_CR2_SSOE                        SPI_CR2_SSOE_Msk                   /*!< SS Output Enable */
+//#define SPI_CR2_SSOE                        SPI_CR2_SSOE_Msk                   /*!< SS Output Enable */
 #define SPI_CR2_ERRIE_Pos                   (5U)                               
 #define SPI_CR2_ERRIE_Msk                   (0x1U << SPI_CR2_ERRIE_Pos)        /*!< 0x00000020 */
-#define SPI_CR2_ERRIE                       SPI_CR2_ERRIE_Msk                  /*!< Error Interrupt Enable */
+//#define SPI_CR2_ERRIE                       SPI_CR2_ERRIE_Msk                  /*!< Error Interrupt Enable */
 #define SPI_CR2_RXNEIE_Pos                  (6U)                               
 #define SPI_CR2_RXNEIE_Msk                  (0x1U << SPI_CR2_RXNEIE_Pos)       /*!< 0x00000040 */
-#define SPI_CR2_RXNEIE                      SPI_CR2_RXNEIE_Msk                 /*!< RX buffer Not Empty Interrupt Enable */
+//#define SPI_CR2_RXNEIE                      SPI_CR2_RXNEIE_Msk                 /*!< RX buffer Not Empty Interrupt Enable */
 #define SPI_CR2_TXEIE_Pos                   (7U)                               
 #define SPI_CR2_TXEIE_Msk                   (0x1U << SPI_CR2_TXEIE_Pos)        /*!< 0x00000080 */
-#define SPI_CR2_TXEIE                       SPI_CR2_TXEIE_Msk                  /*!< Tx buffer Empty Interrupt Enable */
+//#define SPI_CR2_TXEIE                       SPI_CR2_TXEIE_Msk                  /*!< Tx buffer Empty Interrupt Enable */
 
 /********************  Bit definition for SPI_SR register  ********************/
 #define SPI_SR_RXNE_Pos                     (0U)                               
 #define SPI_SR_RXNE_Msk                     (0x1U << SPI_SR_RXNE_Pos)          /*!< 0x00000001 */
-#define SPI_SR_RXNE                         SPI_SR_RXNE_Msk                    /*!< Receive buffer Not Empty */
+#define SPI_N_SR_RXNE                         SPI_SR_RXNE_Msk                    /*!< Receive buffer Not Empty */
 #define SPI_SR_TXE_Pos                      (1U)                               
 #define SPI_SR_TXE_Msk                      (0x1U << SPI_SR_TXE_Pos)           /*!< 0x00000002 */
-#define SPI_SR_TXE                          SPI_SR_TXE_Msk                     /*!< Transmit buffer Empty */
+#define SPI_N_SR_TXE                          SPI_SR_TXE_Msk                     /*!< Transmit buffer Empty */
 #define SPI_SR_CHSIDE_Pos                   (2U)                               
 #define SPI_SR_CHSIDE_Msk                   (0x1U << SPI_SR_CHSIDE_Pos)        /*!< 0x00000004 */
-#define SPI_SR_CHSIDE                       SPI_SR_CHSIDE_Msk                  /*!< Channel side */
+//#define SPI_SR_CHSIDE                       SPI_SR_CHSIDE_Msk                  /*!< Channel side */
 #define SPI_SR_UDR_Pos                      (3U)                               
 #define SPI_SR_UDR_Msk                      (0x1U << SPI_SR_UDR_Pos)           /*!< 0x00000008 */
-#define SPI_SR_UDR                          SPI_SR_UDR_Msk                     /*!< Underrun flag */
+//#define SPI_SR_UDR                          SPI_SR_UDR_Msk                     /*!< Underrun flag */
 #define SPI_SR_CRCERR_Pos                   (4U)                               
 #define SPI_SR_CRCERR_Msk                   (0x1U << SPI_SR_CRCERR_Pos)        /*!< 0x00000010 */
-#define SPI_SR_CRCERR                       SPI_SR_CRCERR_Msk                  /*!< CRC Error flag */
+//#define SPI_SR_CRCERR                       SPI_SR_CRCERR_Msk                  /*!< CRC Error flag */
 #define SPI_SR_MODF_Pos                     (5U)                               
 #define SPI_SR_MODF_Msk                     (0x1U << SPI_SR_MODF_Pos)          /*!< 0x00000020 */
-#define SPI_SR_MODF                         SPI_SR_MODF_Msk                    /*!< Mode fault */
+//#define SPI_SR_MODF                         SPI_SR_MODF_Msk                    /*!< Mode fault */
 #define SPI_SR_OVR_Pos                      (6U)                               
 #define SPI_SR_OVR_Msk                      (0x1U << SPI_SR_OVR_Pos)           /*!< 0x00000040 */
-#define SPI_SR_OVR                          SPI_SR_OVR_Msk                     /*!< Overrun flag */
+//#define SPI_SR_OVR                          SPI_SR_OVR_Msk                     /*!< Overrun flag */
 #define SPI_SR_BSY_Pos                      (7U)                               
 #define SPI_SR_BSY_Msk                      (0x1U << SPI_SR_BSY_Pos)           /*!< 0x00000080 */
-#define SPI_SR_BSY                          SPI_SR_BSY_Msk                     /*!< Busy flag */
+#define SPI_N_SR_BSY                          SPI_SR_BSY_Msk                     /*!< Busy flag */
 
 /********************  Bit definition for SPI_DR register  ********************/
 #define SPI_DR_DR_Pos                       (0U)                               

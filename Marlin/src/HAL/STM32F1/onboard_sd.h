@@ -6,8 +6,6 @@
 
 #pragma once
 
-#ifndef MKS_WIFI
-
 #define _DISKIO_WRITE   1   /* 1: Enable disk_write function */
 #define _DISKIO_IOCTL   1   /* 1: Enable disk_ioctl fucntion */
 #define _DISKIO_ISDIO   0   /* 1: Enable iSDIO control fucntion */
@@ -50,7 +48,7 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count);
   DRESULT disk_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count);
 #endif
 #if _DISKIO_IOCTL
-  DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff);
+  DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff);
 #endif
 
 /* Disk Status Bits (DSTATUS) */
@@ -96,5 +94,3 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count);
 #define CT_SD2      0x04        /* SD ver 2 */
 #define CT_SDC      (CT_SD1|CT_SD2) /* SD */
 #define CT_BLOCK    0x08        /* Block addressing */
-
-#endif

@@ -23,6 +23,7 @@
 
 /**
  * MKS Robin nano (STM32F130VET6) board pin assignments
+ * https://github.com/makerbase-mks/MKS-Robin-Nano-V1.X/tree/master/hardware
  */
 
 #if NOT_TARGET(STM32F1, STM32F1xx)
@@ -32,6 +33,11 @@
 #endif
 
 #define BOARD_INFO_NAME "MKS Robin Nano"
+
+#define BOARD_NO_NATIVE_USB
+
+// Avoid conflict with TIMER_SERVO when using the STM32 HAL
+#define TEMP_TIMER 5
 
 //
 // Release PB4 (Y_ENABLE_PIN) from JTAG NRST role
@@ -55,7 +61,7 @@ https://easyeda.com/sst78rust/fb4s-led-control
   #define MARLIN_EEPROM_SIZE    EEPROM_PAGE_SIZE  // 2KB
 #endif
 
-#define ENABLE_SPI2
+#define SPI_DEVICE                             2
 
 //
 // Limit Switches
@@ -179,7 +185,7 @@ BlTouch
 #endif
 
 #define SDIO_SUPPORT
-#define SDIO_CLOCK                       4500000  // 4.5 MHz
+#define SDIO_CLOCK                       18000000  // 4.5 MHz
 #define SD_DETECT_PIN                       PD12
 #define ONBOARD_SD_CS_PIN                   PC11
 
@@ -190,17 +196,13 @@ BlTouch
 
 /**
  * Note: MKS Robin TFT screens use various TFT controllers.
- * If the screen stays white, disable 'LCD_RESET_PIN'
+ * If the screen stays white, disable 'TFT_RESET_PIN'
  * to let the bootloader init the screen.
  */
-
 // Shared FSMC Configs
 #if HAS_FSMC_TFT
-  #define DOGLCD_MOSI                       -1    // prevent redefine Conditionals_post.h
+  #define DOGLCD_MOSI                       -1    // Prevent auto-define by Conditionals_post.h
   #define DOGLCD_SCK                        -1
-
-  #define FSMC_CS_PIN                       PD7   // NE4
-  #define FSMC_RS_PIN                       PD11  // A0
 
   #define TOUCH_CS_PIN                      PA7   // SPI2_NSS
   #define TOUCH_SCK_PIN                     PB13  // SPI2_SCK
@@ -216,52 +218,13 @@ BlTouch
   #define FSMC_DMA_DEV                      DMA2
   #define FSMC_DMA_CHANNEL               DMA_CH5
 
+  #define TFT_CS_PIN                 FSMC_CS_PIN
+  #define TFT_RS_PIN                 FSMC_RS_PIN
+
   #define TOUCH_BUTTONS_HW_SPI
   #define TOUCH_BUTTONS_HW_SPI_DEVICE          2
 
-  #define TFT_BUFFER_SIZE                  4800
-#endif
-
-// XPT2046 Touch Screen calibration
-#if EITHER(TFT_LVGL_UI_FSMC, TFT_480x320)
-  #ifndef XPT2046_X_CALIBRATION
-    #define XPT2046_X_CALIBRATION          17880
-  #endif
-  #ifndef XPT2046_Y_CALIBRATION
-    #define XPT2046_Y_CALIBRATION         -12234
-  #endif
-  #ifndef XPT2046_X_OFFSET
-    #define XPT2046_X_OFFSET                 -45
-  #endif
-  #ifndef XPT2046_Y_OFFSET
-   #define XPT2046_Y_OFFSET                  349
-  #endif
-#elif ENABLED(TFT_CLASSIC_UI)
-  #ifndef XPT2046_X_CALIBRATION
-    #define XPT2046_X_CALIBRATION          12149
-  #endif
-  #ifndef XPT2046_Y_CALIBRATION
-    #define XPT2046_Y_CALIBRATION          -8746
-  #endif
-  #ifndef XPT2046_X_OFFSET
-    #define XPT2046_X_OFFSET                 -35
-  #endif
-  #ifndef XPT2046_Y_OFFSET
-    #define XPT2046_Y_OFFSET                 256
-  #endif
-#elif ENABLED(TFT_320x240)
-  #ifndef XPT2046_X_CALIBRATION
-    #define XPT2046_X_CALIBRATION         -12246
-  #endif
-  #ifndef XPT2046_Y_CALIBRATION
-    #define XPT2046_Y_CALIBRATION           9453
-  #endif
-  #ifndef XPT2046_X_OFFSET
-    #define XPT2046_X_OFFSET                 360
-  #endif
-  #ifndef XPT2046_Y_OFFSET
-    #define XPT2046_Y_OFFSET                 -22
-  #endif
+  #define TFT_BUFFER_SIZE                  4000
 #endif
 
 #define HAS_SPI_FLASH                          1
@@ -273,6 +236,7 @@ BlTouch
   #define W25QXX_SCK_PIN                    PB13
 #endif
 
+
 /*
 Модуль MKS WIFI
 */
@@ -280,6 +244,7 @@ BlTouch
 
 #ifdef MKS_WIFI
 
+ #define MKS_WIFI_SERIAL_NUM                SERIAL_PORT_2
  #define MKS_WIFI_BAUDRATE                  115200
  #undef PLATFORM_M997_SUPPORT
 

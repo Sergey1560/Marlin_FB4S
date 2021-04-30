@@ -56,4 +56,5 @@
 
 #endif
 
+#include "../core/multi_language.h"
 #include "../libs/Segger/log.h"

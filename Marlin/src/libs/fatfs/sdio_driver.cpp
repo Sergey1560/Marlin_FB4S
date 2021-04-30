@@ -82,9 +82,9 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 
       
 	//Выключить DMA
-	DMA2->IFCR=DMA_S4_CLEAR;
+	DMA2_N->IFCR=DMA_S4_CLEAR;
 	DMA2_Channel4->CCR=0;
-	DMA2->IFCR=DMA_S4_CLEAR;
+	DMA2_N->IFCR=DMA_S4_CLEAR;
 	DMA2_Channel4->CCR=DMA_SDIO_CR;
 
 	multiblock = (cnt == 1) ? 0 : 1;
@@ -111,7 +111,7 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 	SDIO->DLEN=cnt*512;    //Количество байт (блок 512 байт)
 	SDIO->DCTRL= SDIO_DCTRL | (dir & SDIO_DCTRL_DTDIR);  //Direction. 0=Controller to card, 1=Card to Controller
 
-	DMA2_Channel4->CCR |= DMA_CCR_EN;
+	DMA2_Channel4->CCR |= 1;
 	SDIO->DCTRL|=1; //DPSM is enabled
 	ENABLE_IRQ;
 
@@ -122,29 +122,29 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 		transmit=0;
 		SDIO->ICR = SDIO_ICR_STATIC;
 		DMA2_Channel4->CCR = 0;
-		DMA2->IFCR = DMA_S4_CLEAR;
+		DMA2_N->IFCR = DMA_S4_CLEAR;
 		return error_flag;
 	}
 	
 	if(dir==SD2UM) { //Read
-		while((DMA2->ISR & (DMA_ISR_TEIF4|DMA_ISR_TCIF4)) == 0 ){
+		while((DMA2_N->ISR & (DMA_N_ISR_TEIF4|DMA_N_ISR_TCIF4)) == 0 ){
 				if(SDIO->STA & SDIO_STA_ERRORS)	{
 					transmit=0;
 					DMA2_Channel4->CCR = 0;
-					DMA2->IFCR = DMA_S4_CLEAR;
+					DMA2_N->IFCR = DMA_S4_CLEAR;
 					return 99;
 				}
 			};
 
-			if(DMA2->ISR & DMA_ISR_TEIF4){
+			if(DMA2_N->ISR & DMA_N_ISR_TEIF4){
 				transmit=0;
 				DMA2_Channel4->CCR = 0;
-				DMA2->IFCR = DMA_S4_CLEAR;
+				DMA2_N->IFCR = DMA_S4_CLEAR;
 				return 101;
 			}
 				
 			DMA2_Channel4->CCR = 0;
-			DMA2->IFCR = DMA_S4_CLEAR;
+			DMA2_N->IFCR = DMA_S4_CLEAR;
 
 	};
 
@@ -152,7 +152,7 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 
 	if(multiblock > 0) SD_Cmd(SD_CMD12, 0, SDIO_RESP_SHORT, (uint32_t*)response);
 	transmit=0;		
-	DMA2->IFCR = DMA_S4_CLEAR;
+	DMA2_N->IFCR = DMA_S4_CLEAR;
     SDIO->ICR=SDIO_ICR_STATIC;
 	return 0;	
 };

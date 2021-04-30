@@ -1,7 +1,7 @@
 #include "mks_wifi_sd.h"
 
 #include "../../MarlinCore.h"
-#include "../../lcd/ultralcd.h"
+#include "../../lcd/marlinui.h"
 #include "../../libs/fatfs/ff.h"
 #include "../../libs/buzzer.h"  
 #include "../temperature.h"
@@ -183,7 +183,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
    DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
    DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
-   DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+   DMA1_N->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    DMA1_Channel5->CCR |= DMA_CCR_EN;
    
 
@@ -201,8 +201,8 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
       iwdg_feed();
 
-      if(DMA1->ISR & DMA_ISR_TCIF5){
-         DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+      if(DMA1_N->ISR & DMA_ISR_TCIF5){
+         DMA1_N->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    
          //Указатель на полученный буфер
          buff=dma_buff[dma_buff_index];
@@ -315,7 +315,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          dma_timeout = DMA_TIMEOUT;
       }
 
-      if(DMA1->ISR & DMA_ISR_TEIF5){
+      if(DMA1_N->ISR & DMA_ISR_TEIF5){
          ERROR("DMA Error");
       }
 
@@ -323,7 +323,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    
 
    //Выключить DMA
-   DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+   DMA1_N->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    DMA1_Channel5->CCR = 0;
 
    //Восстановить USART1

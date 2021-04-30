@@ -117,7 +117,7 @@ enum {
 
 
 
-#define DMA_S4_CLEAR        ((uint32_t) DMA_IFCR_CTCIF4 | DMA_IFCR_CTEIF4 | DMA_IFCR_CGIF4 | DMA_IFCR_CHTIF4)
+#define DMA_S4_CLEAR        ((uint32_t) DMA_N_IFCR_CTCIF4 | DMA_N_IFCR_CTEIF4 | DMA_N_IFCR_CGIF4 | DMA_N_IFCR_CHTIF4)
 #define DMA_SDIO_CR			((uint32_t)( (0x03 << DMA_CCR_PL_Pos)	  | \
 										 (0x02 << DMA_CCR_MSIZE_Pos) | \
 										 (0x02 << DMA_CCR_PSIZE_Pos) | \

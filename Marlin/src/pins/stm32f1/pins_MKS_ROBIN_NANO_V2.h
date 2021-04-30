@@ -25,7 +25,7 @@
  * MKS Robin nano (STM32F130VET6) board pin assignments
  */
 
-#if NOT_TARGET(__STM32F1__)
+#if NOT_TARGET(__STM32F1__, STM32F1)
   #error "Oops! Select an STM32F1 board in 'Tools > Board.'"
 #elif HOTENDS > 2 || E_STEPPERS > 2
   #error "MKS Robin nano supports up to 2 hotends / E-steppers. Comment out this line to continue."
@@ -35,18 +35,15 @@
 
 #define BOARD_INFO_NAME "MKS Robin nano V2.0"
 
+#define BOARD_NO_NATIVE_USB
+
+// Avoid conflict with TIMER_SERVO when using the STM32 HAL
+#define TEMP_TIMER 5
+
 //
 // Release PB4 (Y_ENABLE_PIN) from JTAG NRST role
 //
-
 #define DISABLE_DEBUG
-
-/*
-Управление подсветкой платой в разъеме второго экструдера
-Управление ногой En
-https://easyeda.com/sst78rust/fb4s-led-control
-*/
-#define CASE_LED_INSTEAD_E1
 
 //
 // EEPROM
@@ -62,8 +59,12 @@ https://easyeda.com/sst78rust/fb4s-led-control
 //
 // Note: MKS Robin board is using SPI2 interface.
 //
-//#define SPI_MODULE                           2
-#define ENABLE_SPI2
+#define SPI_DEVICE                             2
+
+//
+// Servos
+//
+#define SERVO0_PIN                          PA8   // Enable BLTOUCH
 
 //
 // Limit Switches
@@ -110,14 +111,9 @@ https://easyeda.com/sst78rust/fb4s-led-control
   #define E0_CS_PIN                         PD9
 #endif
 
-#ifdef CASE_LED_INSTEAD_E1
-  #define LED_CASE_PIN                      PA3
-#else
 #define E1_ENABLE_PIN                       PA3
 #define E1_STEP_PIN                         PD15
 #define E1_DIR_PIN                          PA1
-#endif
-
 #ifndef E1_CS_PIN
   #define E1_CS_PIN                         PD8
 #endif
@@ -171,7 +167,7 @@ https://easyeda.com/sst78rust/fb4s-led-control
 
   // Reduce baud rate to improve software serial reliability
   #define TMC_BAUD_RATE                    19200
-#endif // TMC2208 || TMC2209
+#endif // HAS_TMC_UART
 
 //
 // Temperature Sensors
@@ -179,26 +175,13 @@ https://easyeda.com/sst78rust/fb4s-led-control
 #define TEMP_0_PIN                          PC1   // TH1
 #define TEMP_1_PIN                          PC2   // TH2
 #define TEMP_BED_PIN                        PC0   // TB1
-//Дополнительный термистор на корпусе
-#if TEMP_SENSOR_CHAMBER > 0
-  #define TEMP_CHAMBER_PIN                  PC2
-#endif
 
 //
 // Heaters / Fans
 //
 #define HEATER_0_PIN                        PC3   // HEATER1
+#define HEATER_1_PIN                        PB0   // HEATER2
 #define HEATER_BED_PIN                      PA0   // HOT BED
-
-#if HOTENDS == 1
-  #ifndef FAN1_PIN
-    #define FAN1_PIN                        PB0
-  #endif
-#else
-  #ifndef HEATER_1_PIN
-    #define HEATER_1_PIN                    PB0
-  #endif
-#endif
 
 #define FAN_PIN                             PB1   // FAN
 
@@ -238,8 +221,6 @@ https://easyeda.com/sst78rust/fb4s-led-control
   #define FIL_RUNOUT_PIN                    PA4
   #define FIL_RUNOUT2_PIN                   PE6
 #endif
-
-#define SERVO0_PIN                          PA8   // Enable BLTOUCH
 
 //#define LED_PIN                           PB2
 
@@ -294,75 +275,19 @@ https://easyeda.com/sst78rust/fb4s-led-control
   #define TOUCH_BUTTONS_HW_SPI
   #define TOUCH_BUTTONS_HW_SPI_DEVICE          1
 
-  #ifndef TFT_WIDTH
-    #define TFT_WIDTH                        480
-  #endif
-  #ifndef TFT_HEIGHT
-    #define TFT_HEIGHT                       320
-  #endif
-
-  #define LCD_READ_ID                       0xD3
   #define LCD_USE_DMA_SPI
 
 #endif
 
-#if ENABLED(TFT_LVGL_UI_SPI)
-
-  // LVGL
-
-  #define XPT2046_X_CALIBRATION           -17253
-  #define XPT2046_Y_CALIBRATION            11579
-  #define XPT2046_X_OFFSET                   514
-  #define XPT2046_Y_OFFSET                   -24
-
-#elif ENABLED(SPI_GRAPHICAL_TFT)
-
+#if ENABLED(TFT_CLASSIC_UI)
   // Emulated DOGM SPI
-
-  #ifndef XPT2046_X_CALIBRATION
-    #define XPT2046_X_CALIBRATION         -11386
-  #endif
-  #ifndef XPT2046_Y_CALIBRATION
-    #define XPT2046_Y_CALIBRATION           8684
-  #endif
-  #ifndef XPT2046_X_OFFSET
-    #define XPT2046_X_OFFSET                 339
-  #endif
-  #ifndef XPT2046_Y_OFFSET
-    #define XPT2046_Y_OFFSET                 -18
-  #endif
-
-  #ifndef GRAPHICAL_TFT_UPSCALE
-    #define GRAPHICAL_TFT_UPSCALE              3
-  #endif
-  #ifndef TFT_PIXEL_OFFSET_Y
-    #define TFT_PIXEL_OFFSET_Y                32
-  #endif
-
+  #define LCD_PINS_ENABLE                   PD13
+  #define LCD_PINS_RS                       PC6
   #define BTN_ENC                           PE13
   #define BTN_EN1                           PE8
   #define BTN_EN2                           PE11
-
-  #define LCD_PINS_ENABLE                   PD13
-  #define LCD_PINS_RS                       PC6
-
-#elif ENABLED(TFT_480x320_SPI)
-  #ifndef XPT2046_X_CALIBRATION
-    #define XPT2046_X_CALIBRATION         -17253
-  #endif
-  #ifndef XPT2046_Y_CALIBRATION
-    #define XPT2046_Y_CALIBRATION          11579
-  #endif
-  #ifndef XPT2046_X_OFFSET
-    #define XPT2046_X_OFFSET                 514
-  #endif
-  #ifndef XPT2046_Y_OFFSET
-    #define XPT2046_Y_OFFSET                 -24
-  #endif
-
-    #define TFT_DRIVER                    ST7796
-    #define TFT_BUFFER_SIZE               320*15
-
+#elif ENABLED(TFT_COLOR_UI)
+  #define TFT_BUFFER_SIZE                  4400
 #endif
 
 #if HAS_WIRED_LCD && !HAS_SPI_TFT
@@ -397,10 +322,15 @@ https://easyeda.com/sst78rust/fb4s-led-control
   #else                                           // !MKS_MINI_12864
 
     #define LCD_PINS_D4                     PE14
-    #if ENABLED(ULTIPANEL)
+    #if IS_ULTIPANEL
       #define LCD_PINS_D5                   PE15
       #define LCD_PINS_D6                   PD11
       #define LCD_PINS_D7                   PD10
+
+      #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
+        #define BTN_ENC_EN           LCD_PINS_D7  // Detect the presence of the encoder
+      #endif
+
     #endif
 
     #ifndef BOARD_ST7920_DELAY_1
@@ -418,8 +348,8 @@ https://easyeda.com/sst78rust/fb4s-led-control
 #endif // HAS_WIRED_LCD && !HAS_SPI_TFT
 
 #define HAS_SPI_FLASH                          1
-#define SPI_FLASH_SIZE                 0x1000000  // 16MB
 #if HAS_SPI_FLASH
+  #define SPI_FLASH_SIZE               0x1000000  // 16MB
   #define W25QXX_CS_PIN                     PB12
   #define W25QXX_MOSI_PIN                   PB15
   #define W25QXX_MISO_PIN                   PB14
@@ -438,11 +368,14 @@ https://easyeda.com/sst78rust/fb4s-led-control
 Модуль MKS WIFI
 */
 #define MKS_WIFI
+
 #ifdef MKS_WIFI
+
+ #define MKS_WIFI_SERIAL_NUM                SERIAL_PORT_2
  #define MKS_WIFI_BAUDRATE                  115200
  #undef PLATFORM_M997_SUPPORT
 
- #define MKS_WIFI_IO0                       PC13
+ #define MKS_WIFI_IO0                       PA8
  #define MKS_WIFI_IO4                       PC7
- #define MKS_WIFI_IO_RST                    PE9
+ #define MKS_WIFI_IO_RST                    PA5
 #endif
