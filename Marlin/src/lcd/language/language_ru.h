@@ -28,6 +28,7 @@
  * See also https://marlinfw.org/docs/development/lcd_language.html
  */
 #define DISPLAY_CHARSET_ISO10646_5
+#define DISPLAY_CHARSET_RUS
 
 namespace Language_ru {
   using namespace Language_en; // Inherit undefined strings from English
