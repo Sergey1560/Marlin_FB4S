@@ -70,20 +70,20 @@
 #define COLOR_DARK_PURPLE     0x9930  // #992380
 
 #ifndef COLOR_BACKGROUND
-  #define COLOR_BACKGROUND    0x0000  // #000000
+  #define COLOR_BACKGROUND    0x20AC  // #1E156E
 #endif
 #ifndef COLOR_SELECTION_BG
-  #define COLOR_SELECTION_BG    0xFC00  // #FF7F00
+  #define COLOR_SELECTION_BG    0x9930  // #992380
 #endif
 #ifndef COLOR_WEBSITE_URL
-  #define COLOR_WEBSITE_URL     0xFFFF
+  #define COLOR_WEBSITE_URL     0x03B7
 #endif
 
 #ifndef COLOR_INACTIVE
   #define COLOR_INACTIVE          COLOR_GREY
 #endif
 #ifndef COLOR_COLD
-  #define COLOR_COLD              COLOR_WHITE
+  #define COLOR_COLD              COLOR_AQUA
 #endif
 #ifndef COLOR_HOTEND
   #define COLOR_HOTEND            COLOR_SCARLET
@@ -95,39 +95,39 @@
   #define COLOR_CHAMBER           COLOR_DARK_ORANGE
 #endif
 #ifndef COLOR_FAN
-  #define COLOR_FAN               COLOR_WHITE
+  #define COLOR_FAN               COLOR_AQUA
 #endif
 
 #ifndef COLOR_AXIS_HOMED
   #define COLOR_AXIS_HOMED        COLOR_WHITE
 #endif
 #ifndef COLOR_AXIS_NOT_HOMED
-  #define COLOR_AXIS_NOT_HOMED    COLOR_GREY
+  #define COLOR_AXIS_NOT_HOMED    COLOR_YELLOW
 #endif
 
 #ifndef COLOR_RATE_100
-  #define COLOR_RATE_100          COLOR_ORANGE
+  #define COLOR_RATE_100          COLOR_VIVID_GREEN
 #endif
 #ifndef COLOR_RATE_ALTERED
-  #define COLOR_RATE_ALTERED      COLOR_ORANGE
+  #define COLOR_RATE_ALTERED      COLOR_YELLOW
 #endif
 
 #ifndef COLOR_PRINT_TIME
-  #define COLOR_PRINT_TIME        COLOR_WHITE
+  #define COLOR_PRINT_TIME        COLOR_AQUA
 #endif
 
 #ifndef COLOR_PROGRESS_FRAME
   #define COLOR_PROGRESS_FRAME    COLOR_WHITE
 #endif
 #ifndef COLOR_PROGRESS_BAR
-  #define COLOR_PROGRESS_BAR      COLOR_ORANGE
+  #define COLOR_PROGRESS_BAR      COLOR_BLUE
 #endif
 #ifndef COLOR_PROGRESS_BG
   #define COLOR_PROGRESS_BG       COLOR_BLACK
 #endif
 
 #ifndef COLOR_STATUS_MESSAGE
-  #define COLOR_STATUS_MESSAGE    COLOR_WHITE
+  #define COLOR_STATUS_MESSAGE    COLOR_YELLOW
 #endif
 
 #ifndef COLOR_CONTROL_ENABLED
@@ -147,7 +147,7 @@
 #endif
 
 #ifndef COLOR_MENU_TEXT
-  #define COLOR_MENU_TEXT         COLOR_WHITE
+  #define COLOR_MENU_TEXT         COLOR_YELLOW
 #endif
 #ifndef COLOR_MENU_VALUE
   #define COLOR_MENU_VALUE        COLOR_WHITE

@@ -245,7 +245,7 @@ https://easyeda.com/sst78rust/fb4s-led-control
   //#define PS_ON_PIN                       PB2   // PW_OFF
   #define FIL_RUNOUT_PIN                    PA4
   #ifdef CASE_LED_INSTEAD_E1
-    #define LED_SW_PIN                      PA2//PE6
+    #define LED_SW_PIN                      PE6
   #endif
   #ifndef LED_SW_PIN
     #define FIL_RUNOUT2_PIN                 PE6
