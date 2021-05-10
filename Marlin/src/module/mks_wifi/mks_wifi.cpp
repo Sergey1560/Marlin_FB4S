@@ -1,4 +1,6 @@
 #include "mks_wifi.h"
+
+
 #ifdef MKS_WIFI
 
 #include "../../lcd/marlinui.h"
@@ -372,5 +374,12 @@ void mks_wifi_send(uint8_t *packet, uint16_t size){
 		MYSERIAL2.write(packet[i]);
 	}
 }
+#else
+void mks_wifi_out_add(uint8_t *data, uint32_t size){
+	while(size--){
+		MYSERIAL2.write(*data++);
+	}
+	return;
+};
 
 #endif

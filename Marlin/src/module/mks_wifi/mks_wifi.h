@@ -1,10 +1,12 @@
 #ifndef MKS_WIFI_H
 #define MKS_WIFI_H
-
 #include "../../MarlinCore.h"
 #include "../../inc/MarlinConfig.h"
 #include "../../libs/Segger/log.h"
 #include "mks_wifi_settings.h"
+
+
+void mks_wifi_out_add(uint8_t *data, uint32_t size);
 
 #ifdef MKS_WIFI
 
@@ -12,10 +14,6 @@
 #define MKS_IN_BUFF_SIZE (ESP_PACKET_DATA_MAX_SIZE + 30)
 
 #define MKS_TOTAL_PACKET_SIZE (ESP_PACKET_DATA_MAX_SIZE+10)
-//#define SDIO_TEST_AT_STARTUP		
-//#define LIST_FILES_AT_STARTUP		(uint8_t)1
-
-//#define MKS_WIFI_SERIAL_NUM        (uint8_t)1
 #define WIFI_MODE_STA				(uint8_t)2
 #define WIFI_MODE_AP				(uint8_t)1
 
@@ -50,8 +48,6 @@ void mks_wifi_set_param(void);
 
 uint8_t mks_wifi_input(uint8_t data);
 void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet);
-
-void mks_wifi_out_add(uint8_t *data, uint32_t size);
 
 uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame);
 
