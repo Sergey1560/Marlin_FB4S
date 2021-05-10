@@ -22,10 +22,6 @@
 #pragma once
 
 #include "serial_base.h"
-
-//#if ENABLED(MKS_WIFI)
-//#include "../module/mks_wifi/mks_wifi.h"
-//#endif
 void mks_wifi_out_add(uint8_t *data, uint32_t size);
 
 // A mask containing a bitmap of the serial port to act upon
@@ -216,10 +212,7 @@ struct MultiSerial : public SerialBase< MultiSerial<Serial0T, Serial1T, offset, 
 
   NO_INLINE void write(uint8_t c) {
     if (portMask.enabled(FirstOutput))   serial0.write(c);
-    if (portMask.enabled(SecondOutput))  {
-      mks_wifi_out_add((uint8_t *)&c,1);
-      //serial1.write(c);
-      };
+    if (portMask.enabled(SecondOutput))  mks_wifi_out_add((uint8_t *)&c,1);
   }
   NO_INLINE void msgDone() {
     if (portMask.enabled(FirstOutput))   serial0.msgDone();
