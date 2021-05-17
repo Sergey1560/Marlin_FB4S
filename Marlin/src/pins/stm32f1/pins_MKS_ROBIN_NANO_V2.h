@@ -45,6 +45,13 @@
 //
 #define DISABLE_DEBUG
 
+/*
+Управление подсветкой платой в разъеме второго экструдера
+Управление ногой En
+https://easyeda.com/sst78rust/fb4s-led-control
+*/
+//#define CASE_LED_INSTEAD_E1
+
 //
 // EEPROM
 //
@@ -59,12 +66,8 @@
 //
 // Note: MKS Robin board is using SPI2 interface.
 //
-#define SPI_DEVICE                             2
-
-//
-// Servos
-//
-#define SERVO0_PIN                          PA8   // Enable BLTOUCH
+//#define SPI_MODULE                           2
+#define ENABLE_SPI2
 
 //
 // Limit Switches
@@ -111,9 +114,14 @@
   #define E0_CS_PIN                         PD9
 #endif
 
+#ifdef CASE_LED_INSTEAD_E1
+  #define LED_CASE_PIN                      PA3
+#else
 #define E1_ENABLE_PIN                       PA3
 #define E1_STEP_PIN                         PD15
 #define E1_DIR_PIN                          PA1
+#endif
+
 #ifndef E1_CS_PIN
   #define E1_CS_PIN                         PD8
 #endif
@@ -175,15 +183,36 @@
 #define TEMP_0_PIN                          PC1   // TH1
 #define TEMP_1_PIN                          PC2   // TH2
 #define TEMP_BED_PIN                        PC0   // TB1
+//Дополнительный термистор на корпусе
+#if TEMP_SENSOR_CHAMBER > 0
+  #define TEMP_CHAMBER_PIN                  PC2
+#endif
 
 //
 // Heaters / Fans
 //
 #define HEATER_0_PIN                        PC3   // HEATER1
-#define HEATER_1_PIN                        PB0   // HEATER2
 #define HEATER_BED_PIN                      PA0   // HOT BED
 
+#if HOTENDS == 1
+  #ifndef FAN1_PIN
+    #define FAN1_PIN                        PB0
+  #endif
+#else
+  #ifndef HEATER_1_PIN
+    #define HEATER_1_PIN                    PB0
+  #endif
+#endif
+
 #define FAN_PIN                             PB1   // FAN
+
+/*
+Управление питанием
+*/
+//#define SUICIDE_PIN                       PB2   
+//#define SUICIDE_PIN_INVERTING             false
+#define KILL_PIN                          PA2   // Enable MKSPWC DET PIN
+#define KILL_PIN_STATE                    true  // Enable MKSPWC PIN STATE
 
 //
 // Thermocouples
@@ -221,6 +250,8 @@
   #define FIL_RUNOUT_PIN                    PA4
   #define FIL_RUNOUT2_PIN                   PE6
 #endif
+
+#define SERVO0_PIN                          PA8   // Enable BLTOUCH
 
 //#define LED_PIN                           PB2
 
@@ -287,7 +318,7 @@
   #define BTN_EN1                           PE8
   #define BTN_EN2                           PE11
 #elif ENABLED(TFT_COLOR_UI)
-  #define TFT_BUFFER_SIZE                  4400
+  #define TFT_BUFFER_SIZE                  320*12
 #endif
 
 #if HAS_WIRED_LCD && !HAS_SPI_TFT
@@ -375,7 +406,7 @@
  #define MKS_WIFI_BAUDRATE                  115200
  #undef PLATFORM_M997_SUPPORT
 
- #define MKS_WIFI_IO0                       PA8
+ #define MKS_WIFI_IO0                       PC13
  #define MKS_WIFI_IO4                       PC7
- #define MKS_WIFI_IO_RST                    PA5
+ #define MKS_WIFI_IO_RST                    PE9
 #endif
