@@ -211,8 +211,8 @@ https://easyeda.com/sst78rust/fb4s-led-control
 */
 //#define SUICIDE_PIN                       PB2   
 //#define SUICIDE_PIN_INVERTING             false
-#define KILL_PIN                          PA2   // Enable MKSPWC DET PIN
-#define KILL_PIN_STATE                    true  // Enable MKSPWC PIN STATE
+//#define KILL_PIN                          PA2   // Enable MKSPWC DET PIN
+//#define KILL_PIN_STATE                    true  // Enable MKSPWC PIN STATE
 
 //
 // Thermocouples

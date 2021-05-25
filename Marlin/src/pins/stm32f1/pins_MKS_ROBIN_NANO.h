@@ -141,8 +141,11 @@ BlTouch
 /*
 Управление питанием
 */
-#define SUICIDE_PIN                       PE5   
-#define SUICIDE_PIN_INVERTING             false
+//#define SUICIDE_PIN                       PE5   
+//#define SUICIDE_PIN_INVERTING             false
+//#define PLR_PIN                           PA2   // PW_DET
+//#define KILL_PIN                          PA2   // Enable MKSPWC DET PIN
+//#define KILL_PIN_STATE                    true  // Enable MKSPWC PIN STATE
 
 
 //
