@@ -3,7 +3,6 @@
 #include "mks_wifi.h"
 #include "../../sd/cardreader.h"
 #include "small_cmsis.h"
-
 #include "../shared_mem/shared_mem.h"
 
 #ifdef MKS_WIFI

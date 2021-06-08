@@ -179,12 +179,12 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    */
    safe_delay(200);
 
-   DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
+   DMA1_Channel5->CCR = DMA_N_CCR_PL|DMA_N_CCR_MINC;
    DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
    DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
    DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
-   DMA1_N->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
-   DMA1_Channel5->CCR |= DMA_CCR_EN;
+   DMA1_N->IFCR = DMA_N_IFCR_CGIF5|DMA_N_IFCR_CTEIF5|DMA_N_IFCR_CHTIF5|DMA_N_IFCR_CTCIF5;
+   DMA1_Channel5->CCR |= DMA_N_CCR_EN;
    
 
    file_inc_size=0; //Счетчик принятых данных, для записи в файл
@@ -201,8 +201,8 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
       iwdg_feed();
 
-      if(DMA1_N->ISR & DMA_ISR_TCIF5){
-         DMA1_N->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+      if(DMA1_N->ISR & DMA_N_ISR_TCIF5){
+         DMA1_N->IFCR = DMA_N_IFCR_CGIF5|DMA_N_IFCR_CTEIF5|DMA_N_IFCR_CHTIF5|DMA_N_IFCR_CTCIF5;
    
          //Указатель на полученный буфер
          buff=dma_buff[dma_buff_index];
@@ -210,11 +210,11 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          dma_buff_index = (dma_buff_index) ? 0 : 1;
 
          //Запустить DMA на прием следующего пакета, пока обрабатывается этот
-         DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
+         DMA1_Channel5->CCR = DMA_N_CCR_PL|DMA_N_CCR_MINC;
          DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
          DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
          DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
-         DMA1_Channel5->CCR |= DMA_CCR_EN;
+         DMA1_Channel5->CCR |= DMA_N_CCR_EN;
 
          if(*buff != ESP_PROTOC_HEAD){
             ERROR("Wrong packet head");
@@ -315,7 +315,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          dma_timeout = DMA_TIMEOUT;
       }
 
-      if(DMA1_N->ISR & DMA_ISR_TEIF5){
+      if(DMA1_N->ISR & DMA_N_ISR_TEIF5){
          ERROR("DMA Error");
       }
 
@@ -323,7 +323,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    
 
    //Выключить DMA
-   DMA1_N->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+   DMA1_N->IFCR = DMA_N_IFCR_CGIF5|DMA_N_IFCR_CTEIF5|DMA_N_IFCR_CHTIF5|DMA_N_IFCR_CTCIF5;
    DMA1_Channel5->CCR = 0;
 
    //Восстановить USART1
