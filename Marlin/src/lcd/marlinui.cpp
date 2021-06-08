@@ -636,8 +636,8 @@ void MarlinUI::kill_screen(PGM_P lcd_error, PGM_P lcd_component) {
   // RED ALERT. RED ALERT.
   #ifdef LED_BACKLIGHT_TIMEOUT
     leds.set_color(LEDColorRed());
-    #ifdef NEOPIXEL_BKGD_LED_INDEX
-      neo.set_pixel_color(NEOPIXEL_BKGD_LED_INDEX, 255, 0, 0, 0);
+    #ifdef NEOPIXEL_BKGD_INDEX_FIRST
+      neo.set_background_color(255, 0, 0, 0);
       neo.show();
     #endif
   #endif
@@ -758,13 +758,9 @@ void MarlinUI::quick_feedback(const bool clear_buttons/*=true*/) {
   // Tell ui.update() to start a move to current_position after a short delay.
   //
   void ManualMove::soon(const AxisEnum move_axis
-    #if MULTI_E_MANUAL
-      , const int8_t eindex/*=-1*/
-    #endif
+    OPTARG(MULTI_E_MANUAL, const int8_t eindex/*=active_extruder*/)
   ) {
-    #if MULTI_E_MANUAL
-      if (move_axis == E_AXIS) e_index = eindex >= 0 ? eindex : active_extruder;
-    #endif
+    TERN_(MULTI_E_MANUAL, if (move_axis == E_AXIS) e_index = eindex);
     start_time = millis() + (menu_scale < 0.99f ? 0UL : 250UL); // delay for bigger moves
     axis = move_axis;
     //SERIAL_ECHOLNPAIR("Post Move with Axis ", AS_CHAR(axis_codes[axis]), " soon.");
