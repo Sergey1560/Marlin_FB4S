@@ -63,10 +63,10 @@ void mks_wifi_set_param(void){
 	mks_out_buffer[0] = WIFI_MODE_STA;
 
 	mks_out_buffer[1] = ap_len;
-	strncpy((char *)&mks_out_buffer[2], (const char *)MKS_WIFI_SSID, ap_len);
+	memcpy((char *)&mks_out_buffer[2],(const char *)MKS_WIFI_SSID,ap_len);
 
 	mks_out_buffer[2+ap_len] = key_len;
-	strncpy((char *)&mks_out_buffer[2 + ap_len + 1], (const char *)MKS_WIFI_KEY, key_len);
+	memcpy((char *)&mks_out_buffer[2 + ap_len + 1], (const char *)MKS_WIFI_KEY, key_len);
 
 	esp_frame.type=ESP_TYPE_NET;
 	esp_frame.dataLen= 2 + ap_len + key_len + 1;
@@ -364,8 +364,6 @@ uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
 
 
 void mks_wifi_send(uint8_t *packet, uint16_t size){
-
-	DEBUG("Send MKS packet %d bytes",size);
 
 	for( uint32_t i=0; i < (uint32_t)(size+1); i++){
 		while(MYSERIAL2.availableForWrite()==0){

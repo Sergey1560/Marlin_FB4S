@@ -1,6 +1,6 @@
 #include "fatfs_shared.h"
 
-FRESULT res;
-FATFS FATFS_Obj;
-DIR dir;
-FILINFO fno;
+volatile FRESULT res;
+volatile FATFS FATFS_Obj;
+volatile DIR dir;
+volatile FILINFO fno;

@@ -231,7 +231,7 @@ https://sergey1560.github.io/fb4s_howto/mks_pwc/
   #define TOUCH_BUTTONS_HW_SPI
   #define TOUCH_BUTTONS_HW_SPI_DEVICE          2
 
-  #define TFT_BUFFER_SIZE                  4000
+  #define TFT_BUFFER_SIZE                  480*10
 #endif
 
 #define HAS_SPI_FLASH                          1
@@ -252,7 +252,8 @@ https://sergey1560.github.io/fb4s_howto/mks_pwc/
 #ifdef MKS_WIFI
 
  #define MKS_WIFI_SERIAL_NUM                SERIAL_PORT_2
- #undef PLATFORM_M997_SUPPORT
+ #define MKS_WIFI_UART                      USART1
+  #undef PLATFORM_M997_SUPPORT
 
  #define MKS_WIFI_IO0                       PA8
  #define MKS_WIFI_IO4                       PC7

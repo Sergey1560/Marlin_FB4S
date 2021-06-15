@@ -6,6 +6,7 @@
 #include "../../libs/buzzer.h"  
 #include "../temperature.h"
 #include "../../libs/fatfs/fatfs_shared.h"
+#include "uart.h"
 
 #ifdef MKS_WIFI
 
@@ -26,29 +27,33 @@ volatile uint8_t *buff;
 FIL upload_file;
 
 void mks_wifi_sd_ls(void){
-    res = f_opendir(&dir, "0:");                       /* Open the directory */
+    res = f_opendir((DIR*)&dir, "0:");                       /* Open the directory */
     if (res == FR_OK) {
         for (;;) {
-            res = f_readdir(&dir, &fno);                   /* Read a directory item */
+            res = f_readdir((DIR*)&dir,(FILINFO*) &fno);                   /* Read a directory item */
             if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
                 DEBUG("%s\n", fno.fname);
             }
        }else{
           ERROR("Opendir error %d",res);
       }
-   f_closedir(&dir);
+   f_closedir((DIR*)&dir);
 }
 
 uint8_t mks_wifi_sd_init(void){
-   CardReader::release();
+   card.release();
+   DEBUG("Card release");
    res = f_mount((FATFS *)&FATFS_Obj, "0", 1);
    DEBUG("SD init result:%d",res);
    return (uint8_t)res;
 }
 
 void mks_wifi_sd_deinit(void){
-   f_mount(0, "", 0);                   
-   CardReader::mount();
+   DEBUG("Unmount SD");
+   f_mount(0, "", 1);
+   DEBUG("Marlin mount");
+   card.mount();
+   card.mount();
 };
 
 void sd_delete_file(char *filename){
@@ -68,16 +73,16 @@ uint8_t get_dos_filename(char *filename, char* dosfilename){
    
    mks_wifi_sd_init();
 
-    res = f_opendir(&dir, "0:");                       /* Open the directory */
+    res = f_opendir((DIR*)&dir, "0:");                       /* Open the directory */
     
     if (res == FR_OK) {
         for (;;) {
-            res = f_readdir(&dir, &fno);                   /* Read a directory item */
+            res = f_readdir((DIR*)&dir, (FILINFO*)&fno);                   /* Read a directory item */
             if (res != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
             
-            if(!strcmp(fno.fname,filename)){
+            if(!strcmp((char *)fno.fname,filename)){
                DEBUG("Found %s %s\n", fno.fname, fno.altname);
-               strncpy(dosfilename,fno.altname,13);
+               strncpy(dosfilename,(char *)fno.altname,13);
                ret_val = 1;
             }
                 
@@ -85,7 +90,7 @@ uint8_t get_dos_filename(char *filename, char* dosfilename){
        }else{
           ERROR("Opendir error %d",res);
       }
-   f_closedir(&dir);
+   f_closedir((DIR*)&dir);
 
    mks_wifi_sd_deinit();
 
@@ -102,7 +107,6 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    uint16_t in_sector;
    uint16_t last_sector;
 
-   uint32_t usart1_brr;
    volatile uint32_t dma_timeout;
    uint16_t data_size;
    int16_t save_bed,save_e0;
@@ -140,6 +144,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
       return;
    }
    
+   DEBUG("Open file");
    //открыть файл для записи
    res=f_open((FIL *)&upload_file,file_name,FA_CREATE_ALWAYS | FA_WRITE);
    if(res){
@@ -154,55 +159,41 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    mks_update_status(file_name+3,0,file_size);
    #endif   
 
-   //Выключить прием по UART RX, включить через DMA, изменить скорость, Выставить флаг приема по DMA
-   USART1->CR1 = 0;
-
-   safe_delay(100); 
-   //Сохранение делителя, чтобы потом восстановить
-   usart1_brr = USART1->BRR;
-
-   USART1->CR1 = USART_CR1_UE;
-   USART1->BRR = 0x25;
-   USART1->CR2 = 0;
-   USART1->CR3 = USART_CR3_DMAR;
-   USART1->CR1 |= USART_CR1_RE;
-
    dma_buff_index=0;
-   memset((uint8_t*)dma_buff[0],0,ESP_PACKET_SIZE);
-   memset((uint8_t*)dma_buff[1],0,ESP_PACKET_SIZE);
-
-   /*
-   Прием пакета с данными начинается примерно через 2 секунды
-   после переключения скорости.
-   Без этой тупой задержки, UART успевает принять 
-   мусор, до пакета с данными и все ломается
-   */
-   safe_delay(200);
-
-   DMA1_Channel5->CCR = DMA_N_CCR_PL|DMA_N_CCR_MINC;
-   DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
-   DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
-   DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
-   DMA1_N->IFCR = DMA_N_IFCR_CGIF5|DMA_N_IFCR_CTEIF5|DMA_N_IFCR_CHTIF5|DMA_N_IFCR_CTCIF5;
-   DMA1_Channel5->CCR |= DMA_N_CCR_EN;
-   
-
    file_inc_size=0; //Счетчик принятых данных, для записи в файл
    file_size_writen = 0; //Счетчик записанных в файл данных
    file_data_size = 0;
    dma_timeout = DMA_TIMEOUT; //Тайм-аут, на случай если передача зависла.
    last_sector = 0;
 
+
+   DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
+   DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
+   DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
+   DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
+   DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+   DMA1_Channel5->CCR |= DMA_CCR_EN;
+
+   USART1->CR1 = 0;
+   USART1->BRR = 0x25;
+   USART1->CR2 = 0;
+   USART1->CR3 = USART_CR3_DMAR;
+   USART1->SR = 0;
+
+   safe_delay(200);
+   USART1->CR1 = USART_CR1_RE | USART_CR1_UE;
+
+   TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
    DEBUG("DMA1 buff: %0X", dma_buff[0]);
    DEBUG("DMA2 buff: %0X", dma_buff[1]);
    DEBUG("File buff: %0X size %d (%0X)", file_buff, FILE_BUFFER_SIZE, FILE_BUFFER_SIZE);
 
    while(dma_timeout-- > 0){
 
-      iwdg_feed();
+      TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
 
-      if(DMA1_N->ISR & DMA_N_ISR_TCIF5){
-         DMA1_N->IFCR = DMA_N_IFCR_CGIF5|DMA_N_IFCR_CTEIF5|DMA_N_IFCR_CHTIF5|DMA_N_IFCR_CTCIF5;
+      if(DMA1->ISR & DMA_ISR_TCIF5){
+         DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    
          //Указатель на полученный буфер
          buff=dma_buff[dma_buff_index];
@@ -210,11 +201,11 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          dma_buff_index = (dma_buff_index) ? 0 : 1;
 
          //Запустить DMA на прием следующего пакета, пока обрабатывается этот
-         DMA1_Channel5->CCR = DMA_N_CCR_PL|DMA_N_CCR_MINC;
+         DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
          DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
          DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
          DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
-         DMA1_Channel5->CCR |= DMA_N_CCR_EN;
+         DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC|DMA_CCR_EN;
 
          if(*buff != ESP_PROTOC_HEAD){
             ERROR("Wrong packet head");
@@ -266,8 +257,6 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
             file_data_size = file_data_size - data_to_write;
             
             memcpy((uint8_t *)file_buff,(uint8_t *)(file_buff+data_to_write),file_data_size);
-            memset((uint8_t *)(file_buff+file_data_size),0,(FILE_BUFFER_SIZE-file_data_size));
-            
             WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
          }
 
@@ -311,32 +300,35 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          memcpy((uint8_t *)file_buff+file_data_size,(uint8_t*)(buff+8),data_size);
          file_data_size+=data_size;
 
-         memset((uint8_t*)buff,0,ESP_PACKET_SIZE);
+         //memset((uint8_t*)buff,0,ESP_PACKET_SIZE);
          dma_timeout = DMA_TIMEOUT;
       }
 
-      if(DMA1_N->ISR & DMA_N_ISR_TEIF5){
+      if(DMA1->ISR & DMA_ISR_TEIF5){
          ERROR("DMA Error");
+         break;
       }
 
    }
    
-
+   if(dma_timeout == 0){
+      DEBUG("End of while by timeout, NDTR: %d",DMA1_Channel5->CNDTR);
+   }
    //Выключить DMA
-   DMA1_N->IFCR = DMA_N_IFCR_CGIF5|DMA_N_IFCR_CTEIF5|DMA_N_IFCR_CHTIF5|DMA_N_IFCR_CTCIF5;
+   DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    DMA1_Channel5->CCR = 0;
 
-   //Восстановить USART1
-   USART1->CR1 = 0;
-   USART1->CR1 = (USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE);
-   USART1->CR3 = 0;
-   USART1->BRR = usart1_brr;
-   USART1->CR1 |= USART_CR1_UE;
+   MYSERIAL2.begin(BAUDRATE_2);
 
-
+   TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
    f_close((FIL *)&upload_file);
+   DEBUG("File closed");
 
    if( (file_size == file_inc_size) && (file_size == file_size_writen) ){
+         TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
+         mks_wifi_sd_deinit();
+         DEBUG("Remount SD");
+
          #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
          mks_end_transmit();
          #endif
@@ -345,11 +337,13 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          BUZZ(1000,260);
 
          if(!strcmp(file_name,"0:/Robin_Nano35.bin")){
+            TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
             DEBUG("Firmware found, reboot");
             safe_delay(1000);
-            nvic_sys_reset();
+            NVIC_SystemReset();
          }
    }else{
+         TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
          #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
          mks_end_transmit();
          #endif
@@ -366,6 +360,10 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          DEBUG("Rename file %s",file_name);
          f_rename(file_name,"file_failed.gcode");
 
+         TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
+         mks_wifi_sd_deinit();
+         DEBUG("Remount SD");
+
          BUZZ(436,392);
          BUZZ(109,0);
          BUZZ(436,392);
@@ -373,8 +371,8 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          BUZZ(436,392);
    }
 
-   mks_wifi_sd_deinit();
 
+   TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
    thermalManager.setTargetBed(save_bed);
    thermalManager.setTargetHotend(save_e0,0);
    DEBUG("Restore thermal settings E0:%d Bed:%d",save_bed,save_e0);

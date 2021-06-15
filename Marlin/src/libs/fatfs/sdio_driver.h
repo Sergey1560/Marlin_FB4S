@@ -1,7 +1,9 @@
 #ifndef SDIO_DRIVER_H
 #define SDIO_DRIVER_H
 
-#include "../../module/mks_wifi/small_cmsis.h"
+#include "../../module/mks_wifi/mks_wifi.h"
+
+//#include "../../module/mks_wifi/small_cmsis.h"
 #ifdef MKS_WIFI
 
 // SD card description
@@ -117,7 +119,7 @@ enum {
 
 
 
-#define DMA_S4_CLEAR        ((uint32_t) DMA_N_IFCR_CTCIF4 | DMA_N_IFCR_CTEIF4 | DMA_N_IFCR_CGIF4 | DMA_N_IFCR_CHTIF4)
+#define DMA_S4_CLEAR        ((uint32_t) DMA_IFCR_CTCIF4 | DMA_IFCR_CTEIF4 | DMA_IFCR_CGIF4 | DMA_IFCR_CHTIF4)
 #define DMA_SDIO_CR			((uint32_t)( (0x03 << DMA_CCR_PL_Pos)	  | \
 										 (0x02 << DMA_CCR_MSIZE_Pos) | \
 										 (0x02 << DMA_CCR_PSIZE_Pos) | \

@@ -11,7 +11,7 @@
 */
 
 #include "../../../inc/MarlinConfigPre.h"
-#include "../../../src/core/language.h"
+#include "../../../core/language.h"
 
 #if HAS_GRAPHICAL_TFT
 

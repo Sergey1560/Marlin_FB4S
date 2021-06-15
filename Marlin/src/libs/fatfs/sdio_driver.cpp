@@ -82,9 +82,9 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 
       
 	//Выключить DMA
-	DMA2_N->IFCR=DMA_S4_CLEAR;
+	DMA2->IFCR=DMA_S4_CLEAR;
 	DMA2_Channel4->CCR=0;
-	DMA2_N->IFCR=DMA_S4_CLEAR;
+	DMA2->IFCR=DMA_S4_CLEAR;
 	DMA2_Channel4->CCR=DMA_SDIO_CR;
 
 	multiblock = (cnt == 1) ? 0 : 1;
@@ -103,7 +103,7 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 	transmit=1;
 	error_flag=0;
 	
-	DISABLE_IRQ;
+	//DISABLE_IRQ;
 	SD_Cmd(cmd, blk, SDIO_RESP_SHORT, (uint32_t*)response);
 
 	SDIO->ICR=SDIO_ICR_DATA_FLAGS;
@@ -113,7 +113,7 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 
 	DMA2_Channel4->CCR |= 1;
 	SDIO->DCTRL|=1; //DPSM is enabled
-	ENABLE_IRQ;
+	//ENABLE_IRQ;
 
 	while((SDIO->STA & (SDIO_STA_DATAEND|SDIO_STA_ERRORS)) == 0){__asm volatile ("nop");};
 	
@@ -122,29 +122,29 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 		transmit=0;
 		SDIO->ICR = SDIO_ICR_STATIC;
 		DMA2_Channel4->CCR = 0;
-		DMA2_N->IFCR = DMA_S4_CLEAR;
+		DMA2->IFCR = DMA_S4_CLEAR;
 		return error_flag;
 	}
 	
 	if(dir==SD2UM) { //Read
-		while((DMA2_N->ISR & (DMA_N_ISR_TEIF4|DMA_N_ISR_TCIF4)) == 0 ){
+		while((DMA2->ISR & (DMA_ISR_TEIF4|DMA_ISR_TCIF4)) == 0 ){
 				if(SDIO->STA & SDIO_STA_ERRORS)	{
 					transmit=0;
 					DMA2_Channel4->CCR = 0;
-					DMA2_N->IFCR = DMA_S4_CLEAR;
+					DMA2->IFCR = DMA_S4_CLEAR;
 					return 99;
 				}
 			};
 
-			if(DMA2_N->ISR & DMA_N_ISR_TEIF4){
+			if(DMA2->ISR & DMA_ISR_TEIF4){
 				transmit=0;
 				DMA2_Channel4->CCR = 0;
-				DMA2_N->IFCR = DMA_S4_CLEAR;
+				DMA2->IFCR = DMA_S4_CLEAR;
 				return 101;
 			}
 				
 			DMA2_Channel4->CCR = 0;
-			DMA2_N->IFCR = DMA_S4_CLEAR;
+			DMA2->IFCR = DMA_S4_CLEAR;
 
 	};
 
@@ -152,7 +152,7 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 
 	if(multiblock > 0) SD_Cmd(SD_CMD12, 0, SDIO_RESP_SHORT, (uint32_t*)response);
 	transmit=0;		
-	DMA2_N->IFCR = DMA_S4_CLEAR;
+	DMA2->IFCR = DMA_S4_CLEAR;
     SDIO->ICR=SDIO_ICR_STATIC;
 	return 0;	
 };
@@ -166,7 +166,7 @@ uint8_t SD_Init(void) {
 
 	SDIO->CLKCR = SDIO_CLKCR_CLKEN | (58 << SDIO_CLKCR_CLKDIV_Pos); 
 	SDIO->POWER |= SDIO_POWER_PWRCTRL;
-
+	SDIO->MASK = 0;
 
 	result = SD_Cmd(SD_CMD0,0x00,SDIO_RESP_NONE,(uint32_t*)response);  //NORESP
 	if (result != 0){
