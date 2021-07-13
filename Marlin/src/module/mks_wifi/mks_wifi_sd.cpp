@@ -51,8 +51,17 @@ uint8_t mks_wifi_sd_init(void){
 void mks_wifi_sd_deinit(void){
    DEBUG("Unmount SD");
    f_mount(0, "", 1);
+   
+   SDIO->POWER &= ~SDIO_POWER_PWRCTRL;
+   SDIO->CLKCR = SDIO_CLKCR_CLKEN | (58 << SDIO_CLKCR_CLKDIV_Pos);
+   SDIO->MASK = 0;
+   RCC->AHBENR &= ~RCC_AHBENR_SDIOEN;
+   RCC->AHBENR |= RCC_AHBENR_SDIOEN;
+   DMA2->IFCR = (DMA_IFCR_CTCIF4 | DMA_IFCR_CTEIF4 | DMA_IFCR_CGIF4 | DMA_IFCR_CHTIF4); 
+   DMA2_Channel4->CCR = 0;
+   
    DEBUG("Marlin mount");
-   card.mount();
+   card.manage_media();
    card.mount();
 };
 
@@ -166,7 +175,14 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    dma_timeout = DMA_TIMEOUT; //Тайм-аут, на случай если передача зависла.
    last_sector = 0;
 
+   MYSERIAL2.end();
 
+   __HAL_RCC_USART1_FORCE_RESET();
+   __HAL_RCC_USART1_RELEASE_RESET();
+   __HAL_RCC_USART1_CLK_ENABLE();
+
+   __HAL_RCC_DMA1_CLK_ENABLE();
+   
    DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
    DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
    DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
@@ -178,9 +194,10 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    USART1->BRR = 0x25;
    USART1->CR2 = 0;
    USART1->CR3 = USART_CR3_DMAR;
+   (void)USART1->DR;
    USART1->SR = 0;
 
-   safe_delay(200);
+   //safe_delay(200);
    USART1->CR1 = USART_CR1_RE | USART_CR1_UE;
 
    TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
