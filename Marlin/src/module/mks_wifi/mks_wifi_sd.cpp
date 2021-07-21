@@ -156,7 +156,11 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    }
 
    #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
-   mks_update_status(file_name+3,0,file_size);
+      #ifdef SHOW_PROGRESS
+      mks_update_status(file_name+3,0,file_size);
+      #else
+      mks_upload_screen();
+      #endif
    #endif   
 
    dma_buff_index=0;
@@ -248,7 +252,9 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
             }
             
             #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
-            mks_update_status(file_name+3,file_inc_size,file_size);
+               #ifdef SHOW_PROGRESS
+               mks_update_status(file_name+3,file_inc_size,file_size);
+               #endif
             #else
             sprintf(str,"Upload %ld%%",file_inc_size*100/file_size);
             ui.set_status((const char *)str,true);

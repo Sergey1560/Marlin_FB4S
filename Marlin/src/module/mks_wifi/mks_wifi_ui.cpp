@@ -52,6 +52,17 @@ void mks_update_status(char *filename,uint32_t current_filesize, uint32_t file_s
 
 }
 
+
+void mks_upload_screen(void){
+
+      tft.queue.reset();
+      tft.canvas(0, 0, TFT_WIDTH, TFT_HEIGHT);
+      tft.set_background(COLOR_BACKGROUND);
+      tft.add_text(8, 100, COLOR_WHITE, "Uploading...");
+      tft.queue.sync();
+}
+
+
 void mks_end_transmit(void){
   tft.queue.reset();
   tft.fill(0, 0, TFT_WIDTH, TFT_HEIGHT, COLOR_BACKGROUND);
