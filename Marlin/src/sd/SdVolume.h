@@ -93,7 +93,7 @@ class SdVolume {
    * Reasons for failure include not finding a valid partition, not finding
    * a valid FAT file system or an I/O error.
    */
-  bool init(DiskIODriver *dev) { return init(dev, 1) ? true : init(dev, 0); }
+  bool init(DiskIODriver *dev) { return init(dev, 1) || init(dev, 0); }
   bool init(DiskIODriver *dev, uint8_t part);
 
   // inline functions that return volume info

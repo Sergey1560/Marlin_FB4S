@@ -18,10 +18,10 @@ void debug_to_uart(char *fmt,...){
     //SERIAL_ECHOLN((char *)&buffer);	
 
     while(*ptr){
-      while(MYSERIAL1.availableForWrite()==0){
+      while(MYSERIAL2.availableForWrite()==0){
         safe_delay(10);				
       }
-		MYSERIAL1.write(*ptr++);
+		MYSERIAL2.write(*ptr++);
     }
    
 
