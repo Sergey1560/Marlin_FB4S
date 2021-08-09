@@ -968,7 +968,7 @@ const char* CardReader::diveToFile(const bool update_cwd, SdFile* &inDirPtr, con
 
   while (atom_ptr) {
     // Find next subdirectory delimiter
-    char * const name_end = strchr(atom_ptr, '/');
+    const char * const name_end = strchr(atom_ptr, '/');
 
     // Last atom in the path? Item found.
     if (name_end <= atom_ptr) break;
@@ -1053,6 +1053,7 @@ int8_t CardReader::cdup() {
 void CardReader::cdroot() {
   workDir = root;
   flag.workDirIsRoot = true;
+  workDirDepth = 0;
   TERN_(SDCARD_SORT_ALPHA, presort());
 }
 
