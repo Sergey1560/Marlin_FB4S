@@ -18,11 +18,12 @@ volatile uint8_t *file_buff=shared_mem;
 volatile uint8_t *file_buff_pos;
 volatile uint16_t file_data_size;
 
-volatile uint8_t *dma_buff1=file_buff+FILE_BUFFER_SIZE;
-volatile uint8_t *dma_buff2=dma_buff1+ESP_PACKET_SIZE;
-volatile uint8_t *dma_buff[] = {dma_buff1,dma_buff2};
+volatile uint8_t *dma_buff[] = {file_buff+FILE_BUFFER_SIZE,file_buff+FILE_BUFFER_SIZE+ESP_PACKET_SIZE};
 volatile uint8_t dma_buff_index=0;
 volatile uint8_t *buff;
+
+volatile uint8_t buffer_ready;
+volatile uint8_t dma_stopped;
 
 FIL upload_file;
 
@@ -112,8 +113,9 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    int16_t save_bed,save_e0;
 
    uint32_t data_to_write=0;
-
+   uint8_t *data_packet;
    char file_name[100];
+
 
    save_bed=thermalManager.degTargetBed();
    save_e0=thermalManager.degTargetHotend(0);
@@ -169,116 +171,117 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    file_data_size = 0;
    dma_timeout = DMA_TIMEOUT; //Тайм-аут, на случай если передача зависла.
    last_sector = 0;
+   buffer_ready = 0;
 
+   //Отключение тактирования не используемых блоков
+   RCC->APB1ENR &= ~(RCC_APB1ENR_TIM5EN|RCC_APB1ENR_TIM4EN);
+   RCC->APB1ENR &= ~(RCC_APB1ENR_SPI2EN|RCC_APB1ENR_USART3EN);
+   RCC->APB2ENR &= ~RCC_APB2ENR_TIM1EN;
+   RCC->AHBENR &= ~(RCC_AHBENR_FSMCEN);
 
-   DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
+   //Максимальная частота в режиме out
+   GPIOC->CRL |= GPIO_CRL_MODE7;
+   GPIOC->CRL &= ~GPIO_CRL_CNF7;
+
+   DMA1_Channel5->CCR = DMA_CONF;
    DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
    DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
    DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
    DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
-   DMA1_Channel5->CCR |= DMA_CCR_EN;
+   DMA1_Channel5->CCR = DMA_CONF|DMA_CCR_EN;
 
-   USART1->CR1 = 0;
+   NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+
+   USART1->CR1 = USART_CR1_UE;
+   USART1->CR1 = USART_CR1_TE | USART_CR1_UE;
    USART1->BRR = 0x25;
    USART1->CR2 = 0;
    USART1->CR3 = USART_CR3_DMAR;
    USART1->SR = 0;
+   USART1->CR1 |= USART_CR1_RE;
 
    safe_delay(200);
-   USART1->CR1 = USART_CR1_RE | USART_CR1_UE;
-
+   (void)USART1->DR;
+   
    TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
    DEBUG("DMA1 buff: %0X", dma_buff[0]);
    DEBUG("DMA2 buff: %0X", dma_buff[1]);
    DEBUG("File buff: %0X size %d (%0X)", file_buff, FILE_BUFFER_SIZE, FILE_BUFFER_SIZE);
 
-   while(dma_timeout-- > 0){
-
-      TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
-
-      if(DMA1->ISR & DMA_ISR_TCIF5){
-         DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
+   //На время передачи отключение systick
+   SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
    
-         //Указатель на полученный буфер
-         buff=dma_buff[dma_buff_index];
-         //переключить индекс
-         dma_buff_index = (dma_buff_index) ? 0 : 1;
+   data_packet = 0;
 
-         //Запустить DMA на прием следующего пакета, пока обрабатывается этот
-         DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC;
-         DMA1_Channel5->CPAR = (uint32_t)&USART1->DR;
-         DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
-         DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
-         DMA1_Channel5->CCR = DMA_CCR_PL|DMA_CCR_MINC|DMA_CCR_EN;
+   while(--dma_timeout > 0){
 
-         if(*buff != ESP_PROTOC_HEAD){
+      if(buffer_ready > 0){
+         
+         if(data_packet != buff){
+            data_packet = (uint8_t *)buff;
+         }else{
+            DEBUG("Change");
+            if(dma_buff_index){
+               data_packet = (uint8_t *)dma_buff[1];
+            }else{
+               data_packet = (uint8_t *)dma_buff[0];
+            }
+         }
+
+
+         if(*data_packet != ESP_PROTOC_HEAD){
             ERROR("Wrong packet head");
             break;
          }
 
-         in_sector = (*(buff+5) << 8) | *(buff+4);
+         in_sector = (*(data_packet+5) << 8) | *(data_packet+4);
+         
          if((in_sector - last_sector) > 1){
             ERROR("IN Sec: %d Prev sec: %d",in_sector,last_sector);
+            dma_stopped = 2;
             break;
          }else{
             last_sector=in_sector;
          }
 
-         data_size = (*(buff+3) << 8) | *(buff+2);
+         data_size = (*(data_packet+3) << 8) | *(data_packet+2);
          data_size -= 4; //4 байта с номером сегмента и флагами
 
-         data_to_write = file_data_size / 512;
-         data_to_write = data_to_write * 512;
-
-         //DEBUG("In[%d] d_size: %d f_size: %d to_w: %d",in_sector,data_size,file_data_size,data_to_write);
+         memcpy((uint8_t *)file_buff+file_data_size,(uint8_t*)(data_packet+8),data_size);
+         file_data_size+=data_size;
 
          //Если буфер полон и писать некуда, запись в файл
-         if((data_size + file_data_size) > FILE_BUFFER_SIZE){
-            WRITE(MKS_WIFI_IO4, HIGH); //Остановить передачу от ESP
+         if((file_data_size + ESP_PACKET_SIZE) > FILE_BUFFER_SIZE){
+            data_to_write = file_data_size / 512;
+            data_to_write = data_to_write * 512;
 
             file_inc_size += data_to_write; 
-            DEBUG("[%d]Save %d bytes (%d of %d) ",in_sector,data_to_write,file_inc_size,file_size);
+            DEBUG("%d [%d]Save %d bytes (%d of %d) ",buffer_ready,in_sector,data_to_write,file_inc_size,file_size);
             
             res=f_write((FIL *)&upload_file,(uint8_t*)file_buff,data_to_write,&bytes_writen);
             if(res){
                ERROR("Write err %d",res);
                break;
             }
+
             file_size_writen+=bytes_writen;
-            res=f_sync((FIL *)&upload_file);
-            if(res){
-               ERROR("Fsync err %d",res);
-               break;
-            }
-            
-            #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
-               #ifdef SHOW_PROGRESS
-               mks_update_status(file_name+3,file_inc_size,file_size);
-               #endif
-            #else
-            sprintf(str,"Upload %ld%%",file_inc_size*100/file_size);
-            ui.set_status((const char *)str,true);
-            ui.update();
-            #endif
-            file_data_size = file_data_size - data_to_write;
+            file_data_size -= data_to_write;
             
             memcpy((uint8_t *)file_buff,(uint8_t *)(file_buff+data_to_write),file_data_size);
-            WRITE(MKS_WIFI_IO4, LOW); //Записано, сигнал ESP продолжать
          }
-
-         //DEBUG("Check in_sector %d data %d filesize %d",in_sector,data_size,file_size);
 
          if(in_sector == 0){
             if(data_size == file_size){
                DEBUG("1-packet file");
-               *(buff+7) = 0x80;
+               *(data_packet+7) = 0x80;
             }
          }
 
-         if(*(buff+7) == 0x80){ //Последний пакет с данными
+         if(*(data_packet+7) == 0x80){ //Последний пакет с данными
             WRITE(MKS_WIFI_IO4, HIGH); //Остановить передачу от ESP
             DEBUG("Last packet");
-            if(file_data_size != 0){ //В буфере что-то есть
+
+            if(file_data_size != 0 ){
                file_inc_size += file_data_size; 
 
                DEBUG("Save last %d bytes from buffer (%d of %d) ",file_data_size,file_inc_size,file_size);
@@ -288,45 +291,57 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
                   break;
                }
                file_size_writen+=bytes_writen;
-            }   
-           
-            file_inc_size += data_size;
-            DEBUG("Save %d bytes from dma (%d of %d) ",data_size,file_inc_size,file_size);
-            res=f_write((FIL *)&upload_file,(uint8_t*)(buff+8),data_size,&bytes_writen);
-            if(res){
-               ERROR("Write err %d",res);
-               break;
             }
-            file_size_writen+=bytes_writen;
-            
-            f_sync((FIL *)&upload_file);
+
             break;
          }
-         
-         memcpy((uint8_t *)file_buff+file_data_size,(uint8_t*)(buff+8),data_size);
-         file_data_size+=data_size;
 
-         //memset((uint8_t*)buff,0,ESP_PACKET_SIZE);
+         if(buffer_ready > 0){
+            --buffer_ready;
+         };
+
+         if((buffer_ready == 0) && (dma_stopped == 1)){
+               DEBUG("Start");
+               (void)USART1->SR;
+               GPIOC->BSRR = GPIO_BSRR_BR7;
+               dma_stopped=0;
+         }
+
+         if(dma_stopped == 2){
+            break;
+         }
+
          dma_timeout = DMA_TIMEOUT;
+      }else{
+         TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
       }
-
-      if(DMA1->ISR & DMA_ISR_TEIF5){
-         ERROR("DMA Error");
-         break;
-      }
-
    }
    
-   if(dma_timeout == 0){
-      DEBUG("End of while by timeout, NDTR: %d",DMA1_Channel5->CNDTR);
+   //Включение обратно переферии
+   SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
+   RCC->APB1ENR |= (RCC_APB1ENR_TIM5EN|RCC_APB1ENR_TIM4EN);
+   RCC->APB1ENR |= (RCC_APB1ENR_SPI2EN|RCC_APB1ENR_USART3EN);
+   RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+   RCC->AHBENR |= (RCC_AHBENR_FSMCEN);
+
+   if((dma_timeout == 0) || (dma_stopped == 2)) {
+      DEBUG("DMA timeout, NDTR: %d",DMA1_Channel5->CNDTR);
+      DEBUG("SR: %0X",USART1->SR);
+      //Restart ESP8266
+      WRITE(MKS_WIFI_IO_RST, LOW);
+      delay(200);	
+      WRITE(MKS_WIFI_IO_RST, HIGH);
    }
+   
    //Выключить DMA
    DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    DMA1_Channel5->CCR = 0;
 
    MYSERIAL2.begin(BAUDRATE_2);
+   WRITE(MKS_WIFI_IO4, LOW); //Включить передачу от ESP 
 
    TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
+   
    f_close((FIL *)&upload_file);
    DEBUG("File closed");
 
@@ -382,7 +397,35 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    thermalManager.setTargetBed(save_bed);
    thermalManager.setTargetHotend(save_e0,0);
    DEBUG("Restore thermal settings E0:%d Bed:%d",save_bed,save_e0);
-   WRITE(MKS_WIFI_IO4, LOW); //Включить передачу от ESP 
+
+}
+
+
+extern "C" void DMA1_Channel5_IRQHandler(void){
+
+      if(DMA1->ISR & DMA_ISR_TEIF5){
+         DEBUG("DMA Error");
+         dma_stopped = 2;
+         DMA1->IFCR = DMA_CLEAR;
+         return;
+      }
+      
+      if(buffer_ready > 0){ 
+         GPIOC->BSRR = GPIO_BSRR_BS7;  //остановить передачу от esp
+         dma_stopped=1;
+      };
+
+      DMA1->IFCR = DMA_CLEAR;
+      //Указатель на полученный буфер
+      buff=dma_buff[dma_buff_index];
+      //переключить индекс
+      dma_buff_index = (dma_buff_index) ? 0 : 1;
+
+      DMA1_Channel5->CCR = DMA_CONF;
+      DMA1_Channel5->CMAR = (uint32_t)dma_buff[dma_buff_index];
+      DMA1_Channel5->CNDTR = ESP_PACKET_SIZE;
+      DMA1_Channel5->CCR = DMA_CONF|DMA_CCR_EN;
+      ++buffer_ready;
 }
 
 #endif

@@ -89,12 +89,11 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 
 	multiblock = (cnt == 1) ? 0 : 1;
 	if (dir==UM2SD){ //Запись
-				DMA2_Channel4->CCR|=(0x01 << DMA_CCR_DIR_Pos);
-				cmd=(cnt == 1)? SD_CMD24 : SD_CMD25;
-			} 
-	else if (dir==SD2UM){ //Чтение
-				cmd=(cnt == 1)? SD_CMD17 : SD_CMD18;
-			};
+		DMA2_Channel4->CCR|=(0x01 << DMA_CCR_DIR_Pos);
+		cmd=(cnt == 1)? SD_CMD24 : SD_CMD25;
+	}else{ //Чтение
+		cmd=(cnt == 1)? SD_CMD17 : SD_CMD18;
+	};
    	
     DMA2_Channel4->CMAR=(uint32_t)buf;    //Memory address	
 	DMA2_Channel4->CPAR=(uint32_t)&(SDIO->FIFO);  //SDIO FIFO Address 

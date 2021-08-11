@@ -18,6 +18,7 @@
 /
 /----------------------------------------------------------------------------*/
 
+
 #include "ff.h"			/* Declarations of FatFs API */
 #include "diskio.h"		/* Declarations of device I/O functions */
 #ifdef MKS_WIFI
@@ -6532,7 +6533,7 @@ static void putc_bfd (putbuff* pb, TCHAR c)
 	WCHAR hs, wc;
 #if FF_LFN_UNICODE == 2
 	DWORD dc;
-	const TCHAR *tp;
+	TCHAR *tp;
 #endif
 #endif
 
@@ -6574,7 +6575,7 @@ static void putc_bfd (putbuff* pb, TCHAR c)
 			return;
 		}
 	}
-	tp = (const TCHAR*)pb->bs;
+	tp = (TCHAR*)pb->bs;
 	dc = tchar2uni(&tp);	/* UTF-8 ==> UTF-16 */
 	if (dc == 0xFFFFFFFF) return;	/* Wrong code? */
 	wc = (WCHAR)dc;

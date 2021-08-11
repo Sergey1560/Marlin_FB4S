@@ -6,18 +6,18 @@
 
 #ifdef MKS_WIFI
 
-#define SHOW_PROGRESS
+//#define SHOW_PROGRESS
 
-#define DMA_TIMEOUT 0x0ffffff
+#define DMA_TIMEOUT 0x1ffffff
 #define ESP_PACKET_SIZE     1024
+
+#define DMA_CONF    (uint32_t)(DMA_CCR_PL|DMA_CCR_MINC|DMA_CCR_TEIE|DMA_CCR_TCIE)
+#define DMA_CLEAR   (uint32_t)(DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5)
 
 //Под буфер для DMA два последних КБ из буфера
 #define ESP_FILE_BUFF_COUNT (SHARED_MEM_1KB_COUNT-2)
 //Под буфер для записи в файл все оставшееся с начала
 #define FILE_BUFFER_SIZE  ESP_PACKET_SIZE*ESP_FILE_BUFF_COUNT
-
-extern volatile uint8_t *dma_buff1;
-extern volatile uint8_t *dma_buff2;
 
 void mks_wifi_sd_ls(void);
 

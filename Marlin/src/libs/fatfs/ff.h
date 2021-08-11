@@ -28,7 +28,6 @@
 
 #include "ffconf.h"		/* FatFs configuration options */
 
-
 #if FF_DEFINED != FFCONF_DEF
 #error Wrong configuration file (ffconf.h).
 #endif
@@ -130,7 +129,7 @@ typedef DWORD LBA_t;
 
 /* Filesystem object structure (FATFS) */
 
-typedef struct {
+typedef __attribute__ ((aligned (32))) struct {
 	BYTE	fs_type;		/* Filesystem type (0:not mounted) */
 	BYTE	pdrv;			/* Associated physical drive */
 	BYTE	n_fats;			/* Number of FATs (1 or 2) */
@@ -203,7 +202,7 @@ typedef struct {
 
 /* File object structure (FIL) */
 
-typedef struct {
+typedef __attribute__ ((aligned (32))) struct {
 	FFOBJID	obj;			/* Object identifier (must be the 1st member to detect invalid object pointer) */
 	BYTE	flag;			/* File status flags */
 	BYTE	err;			/* Abort flag (error code) */

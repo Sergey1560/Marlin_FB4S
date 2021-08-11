@@ -231,7 +231,7 @@ https://sergey1560.github.io/fb4s_howto/mks_pwc/
   #define TOUCH_BUTTONS_HW_SPI
   #define TOUCH_BUTTONS_HW_SPI_DEVICE          2
 
-  #define TFT_BUFFER_SIZE                  480*10
+  #define TFT_BUFFER_SIZE                  480*8
 #endif
 
 #define HAS_SPI_FLASH                          1
