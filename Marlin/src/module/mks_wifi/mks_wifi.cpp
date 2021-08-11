@@ -135,10 +135,10 @@ uint8_t mks_wifi_input(uint8_t data){
 	uint8_t ret_val=1;
 
 	//Не отдавать данные в очередь команд, если идет печать
-	if (CardReader::isPrinting()){
-		DEBUG("No input while printing");
-		return 1;
-	}	
+	// if (CardReader::isPrinting()){
+	// 	DEBUG("No input while printing");
+	// 	return 1;
+	// }	
 	
 	if(data == ESP_PROTOC_HEAD){
 		payload_size = ESP_PACKET_DATA_MAX_SIZE;
@@ -147,6 +147,7 @@ uint8_t mks_wifi_input(uint8_t data){
 		memset((uint8_t*)mks_in_buffer,0,MKS_IN_BUFF_SIZE);
 	}else if(!packet_start_flag){
 		DEBUG("Byte not in packet %0X",data);
+		return 1;
 	}
 
 	if(packet_start_flag){
@@ -179,6 +180,7 @@ uint8_t mks_wifi_input(uint8_t data){
 			return 1;
 		}
 
+
 		esp_frame.type = packet_type;
 		esp_frame.dataLen = payload_size;
 		esp_frame.data = (uint8_t*)&mks_in_buffer[4];
@@ -198,21 +200,21 @@ uint8_t mks_wifi_input(uint8_t data){
 	}
 
 	/* Если в пакете G-Сode, отдаем payload дальше в обработчик марлина */
-	if((packet_type == ESP_TYPE_GCODE) && 
-	   (packet_index >= 4) && 
-	   (packet_index < payload_size+5) 
-	  ){
+	// if((packet_type == ESP_TYPE_GCODE) && 
+	//    (packet_index >= 4) && 
+	//    (packet_index < payload_size+5) 
+	//   ){
 
-		if(!check_char_allowed(data)){
-			ret_val=0;
-		}else{
-			ERROR("Char not allowed: %0X %c",data,data);
-			packet_start_flag=0;
-			packet_index=0;
-			return 1;
-		}
+	// 	if(!check_char_allowed(data)){
+	// 		ret_val=0;
+	// 	}else{
+	// 		ERROR("Char not allowed: %0X %c",data,data);
+	// 		packet_start_flag=0;
+	// 		packet_index=0;
+	// 		return 1;
+	// 	}
 		
-	}
+	// }
 
 	if(packet_start_flag){
 		packet_index++;
@@ -307,6 +309,26 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 			}
 			break;
 		case ESP_TYPE_GCODE:
+				char gcode_cmd[50];
+				uint32_t cmd_index;
+				// packet->data[packet->dataLen] = 0;
+				// DEBUG("Gcode packet: %s",packet->data);
+				
+				cmd_index = 0;
+				memset(gcode_cmd,0,50);
+				for(uint32_t i=0; i<packet->dataLen; i++){
+					
+					if(packet->data[i] != 0x0A){
+						gcode_cmd[cmd_index++] = packet->data[i];
+					}else{
+						GCodeQueue::ring_buffer.enqueue((const char *)gcode_cmd, false, MKS_WIFI_SERIAL_NUM);
+						cmd_index = 0;
+						memset(gcode_cmd,0,50);
+					}
+
+				}
+				
+				
 			break;
 		case ESP_TYPE_FILE_FIRST:
 				DEBUG("[FILE_FIRST]");

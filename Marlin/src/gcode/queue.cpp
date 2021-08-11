@@ -429,10 +429,9 @@ void GCodeQueue::get_serial_commands() {
       текстовую часть с G-Code пропускаем дальше 
       */
       if(p == MKS_WIFI_SERIAL_NUM){
-        if(mks_wifi_input(c)){
-          continue;
-        };
-      }
+        mks_wifi_input(c);
+        continue;
+      };
       #endif
 
       

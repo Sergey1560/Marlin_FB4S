@@ -4,7 +4,7 @@
 #include "../../inc/MarlinConfig.h"
 #include "../../libs/Segger/log.h"
 #include "mks_wifi_settings.h"
-
+#include "../../gcode/queue.h"
 
 void mks_wifi_out_add(uint8_t *data, uint32_t size);
 
