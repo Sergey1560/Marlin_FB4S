@@ -192,7 +192,7 @@ https://sergey1560.github.io/fb4s_howto/mks_pwc/
 #endif
 
 #define SDIO_SUPPORT
-#define SDIO_CLOCK                       18000000  
+#define SDIO_CLOCK                       4500000  
 #define SD_DETECT_PIN                       PD12
 #define ONBOARD_SD_CS_PIN                   PC11
 
