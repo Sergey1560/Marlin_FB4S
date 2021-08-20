@@ -16,7 +16,7 @@ void eeprom_test(void);
 
 void eeprom_init(void){
     DEBUG("Start EEPROM");
-    W25QXX.init(SPI_QUARTER_SPEED);
+    W25QXX.init(SPI_EIGHTH_SPEED);
     //eeprom_test();
     W25QXX.SPI_FLASH_BufferRead((uint8_t *)spi_eeprom,SPI_EEPROM_OFFSET,MARLIN_EEPROM_SIZE);
 }

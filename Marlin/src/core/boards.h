@@ -392,6 +392,7 @@
 #define BOARD_ANET_ET4                4228  // ANET ET4 V1.x (STM32F407VGT6)
 #define BOARD_ANET_ET4P               4229  // ANET ET4P V1.x (STM32F407VGT6)
 #define BOARD_FYSETC_CHEETAH_V20      4230  // FYSETC Cheetah V2.0
+#define BOARD_MKS_ROBIN_NANO_S_V13    4231  // MKS Robin Nano-S V1.3 (STM32F407VG)
 
 //
 // ARM Cortex M7

@@ -5,7 +5,6 @@
 
 #include "../../lcd/marlinui.h"
 #include "mks_wifi_sd.h"
-#include "mks_test_sdio.h"
 
 volatile uint8_t mks_in_buffer[MKS_IN_BUFF_SIZE];
 uint8_t mks_out_buffer[MKS_OUT_BUFF_SIZE];
@@ -34,18 +33,6 @@ void mks_wifi_init(void){
 	
 	safe_delay(200);	
 	WRITE(MKS_WIFI_IO4, LOW);
-
-	#ifdef SDIO_TEST_AT_STARTUP
-	mks_test_sdio();
-	#endif
-	
-	#ifdef LIST_FILES_AT_STARTUP
-	mks_wifi_sd_deinit(); 
-	mks_wifi_sd_init();  
-	mks_wifi_sd_ls();
-	mks_wifi_sd_deinit(); 
-	#endif
-
 }
 
 

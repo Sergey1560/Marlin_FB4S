@@ -11,7 +11,17 @@
 // #endif
 
 #include "integer.h"
-#include "sdio_driver.h"
+
+#include "../../module/mks_wifi/mks_wifi.h"
+
+#ifdef STM32F1
+#include "sdio_driver_f1.h"
+#endif
+
+#ifdef STM32F4
+#include "sdio_driver_f4.h"
+#endif
+
 #include "../../MarlinCore.h"
 
 #ifdef MKS_WIFI

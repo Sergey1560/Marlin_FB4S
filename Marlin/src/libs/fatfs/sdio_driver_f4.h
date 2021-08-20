@@ -3,9 +3,8 @@
 
 #include "../../module/mks_wifi/mks_wifi.h"
 
-//#include "../../module/mks_wifi/small_cmsis.h"
 #ifdef MKS_WIFI
-
+#ifdef STM32F4
 // SD card description
 typedef struct {
 	uint32_t    Capacity;        // Card capacity (MBytes for SDHC/SDXC, bytes otherwise)
@@ -118,6 +117,7 @@ enum {
 #define SD2UM         (0x02)
 
 
+#ifdef STM32F1
 
 #define DMA_S4_CLEAR        ((uint32_t) DMA_IFCR_CTCIF4 | DMA_IFCR_CTEIF4 | DMA_IFCR_CGIF4 | DMA_IFCR_CHTIF4)
 #define DMA_SDIO_CR			((uint32_t)( (0x00 << DMA_CCR_PL_Pos)	  | \
@@ -142,6 +142,51 @@ enum {
 #define SDIO_STA_CMD_ERROR_FLAGS (SDIO_STA_CTIMEOUT | SDIO_STA_CCRCFAIL)
 #define SDIO_STA_TRX_ACT_FLAGS   (SDIO_STA_RXACT|SDIO_STA_TXACT)
 #define SDIO_STA_CMD_FLAGS		(uint32_t)(SDIO_STA_CCRCFAIL|SDIO_STA_CTIMEOUT|SDIO_STA_CMDSENT|SDIO_STA_CMDREND)
+#endif
+
+#ifdef STM32F4
+#define SDIO_DATA_R_TIMEOUT   ((uint32_t)((SystemCoreClock / (2) / 1000) * 250)) // Data read timeout is 250ms
+#define SDIO_DATA_W_TIMEOUT   ((uint32_t)((SystemCoreClock / (2) / 1000) * 500)) // Date write timeout is 500ms
+
+// SDIO bus width
+#define SD_BUS_1BIT                   0 // 1-bit wide bus (SDIO_D0 used)
+#define SD_BUS_4BIT                   SDIO_CLKCR_WIDBUS_0 // 4-bit wide bus (SDIO_D[3:0] used)
+#define SD_BUS_8BIT                   SDIO_CLKCR_WIDBUS_1 // 8-bit wide bus (SDIO_D[7:0] used)
+//#define SDIO_CLK_DIV_INIT      ((uint32_t)0x00000076U)  // SDIO clock 400kHz  (48MHz / (0x76 + 2) = 400kHz)
+#define SDIO_CLK_DIV_INIT		(uint32_t)(((((RCC_HSE/RCC_PLL_M)*RCC_PLL_N)/RCC_PLL_Q)/400000) - 2)
+
+// Bitmap to clear the SDIO static flags (command and data)
+#define SDIO_ICR_STATIC     ((uint32_t)(SDIO_ICR_CCRCFAILC | SDIO_ICR_DCRCFAILC | SDIO_ICR_CTIMEOUTC | \
+                                        SDIO_ICR_DTIMEOUTC | SDIO_ICR_TXUNDERRC | SDIO_ICR_RXOVERRC  | \
+                                        SDIO_ICR_CMDRENDC  | SDIO_ICR_CMDSENTC  | SDIO_ICR_DATAENDC  | \
+                                         SDIO_ICR_DBCKENDC | SDIO_ICR_STBITERRC ))
+
+
+#define DMA_SDIO_CR			((uint32_t)( (0x04 << DMA_SxCR_CHSEL_Pos) | \
+										 (0x01 << DMA_SxCR_MBURST_Pos)| \
+										 (0x01 << DMA_SxCR_PBURST_Pos)| \
+										 (0x00 << DMA_SxCR_DBM_Pos)   | \
+										 (0x03 << DMA_SxCR_PL_Pos)	  | \
+										 (0x00 << DMA_SxCR_PINCOS_Pos)| \
+										 (0x02 << DMA_SxCR_MSIZE_Pos) | \
+										 (0x02 << DMA_SxCR_PSIZE_Pos) | \
+										 (0x01 << DMA_SxCR_MINC_Pos)  | \
+										 (0x00 << DMA_SxCR_PINC_Pos)  | \
+										 (0x00 << DMA_SxCR_CIRC_Pos)  | \
+										 (0x01 << DMA_SxCR_PFCTRL_Pos)))
+
+
+#define DMA_SDIO_FCR			((uint32_t)  (0x21 | (0 << DMA_SxFCR_FEIE_Pos) | (1 << DMA_SxFCR_DMDIS_Pos) | (3 << DMA_SxFCR_FTH_Pos)))
+#define DMA_S3_CLEAR            ((uint32_t) DMA_LIFCR_CTCIF3 | DMA_LIFCR_CTEIF3 | DMA_LIFCR_CDMEIF3 | DMA_LIFCR_CFEIF3 | DMA_LIFCR_CHTIF3)
+
+#define SDIO_DCTRL				(uint32_t)((uint32_t) 9 << SDIO_DCTRL_DBLOCKSIZE_Pos ) | ((uint32_t) 1 << SDIO_DCTRL_DMAEN_Pos)
+#define SDIO_STA_ERRORS			(uint32_t)(SDIO_STA_STBITERR |  SDIO_STA_RXOVERR | SDIO_STA_TXUNDERR | SDIO_STA_DTIMEOUT | SDIO_STA_DCRCFAIL )
+#define SDIO_MASK_ERRORS		(uint32_t)(SDIO_MASK_STBITERRIE |  SDIO_MASK_RXOVERRIE | SDIO_MASK_TXUNDERRIE | SDIO_MASK_DTIMEOUTIE | SDIO_MASK_DCRCFAILIE  )
+
+#define SDIO_XFER_COMMON_FLAGS  (SDIO_STA_DTIMEOUT | SDIO_STA_DCRCFAIL | SDIO_STA_STBITERR)
+#define SDIO_XFER_ERROR_FLAGS   (SDIO_XFER_COMMON_FLAGS | SDIO_STA_TXUNDERR | SDIO_STA_RXOVERR)
+#endif
+
 
 
 #define DISABLE_IRQ 	{ __asm volatile ("cpsid i" : : : "memory");}
@@ -157,5 +202,5 @@ uint8_t SD_Init(void);
 //void SDIO_Config(void);
 
 #endif
-
+#endif
 #endif

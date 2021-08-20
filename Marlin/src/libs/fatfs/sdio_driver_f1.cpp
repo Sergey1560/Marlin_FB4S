@@ -1,5 +1,6 @@
-#include "sdio_driver.h"
+#include "sdio_driver_f1.h"
 #ifdef MKS_WIFI
+#ifdef STM32F1
 
 volatile SDCard_TypeDef SDCard;
 volatile SD_Status_TypeDef SDStatus;
@@ -296,4 +297,5 @@ void SD_parse_CSD(uint32_t* reg){
 	SDCard.Capacity=(tmp+1)*512;
 };
 
+#endif
 #endif

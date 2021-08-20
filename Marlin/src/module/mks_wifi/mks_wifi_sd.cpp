@@ -173,6 +173,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    last_sector = 0;
    buffer_ready = 0;
 
+   #ifdef STM32F1
    //Отключение тактирования не используемых блоков
    RCC->APB1ENR &= ~(RCC_APB1ENR_TIM5EN|RCC_APB1ENR_TIM4EN);
    RCC->APB1ENR &= ~(RCC_APB1ENR_SPI2EN|RCC_APB1ENR_USART3EN);
@@ -199,6 +200,28 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    USART1->CR3 = USART_CR3_DMAR;
    USART1->SR = 0;
    USART1->CR1 |= USART_CR1_RE;
+   #endif
+
+   #ifdef STM32F4
+   DMA2_Stream5->CR = 0;
+   DMA2->HIFCR=DMA_S5_CLEAR;
+   
+   DMA2_Stream5->PAR = (uint32_t)&USART1->DR;
+   DMA2_Stream5->M0AR = (uint32_t)dma_buff[dma_buff_index];
+   DMA2_Stream5->NDTR = ESP_PACKET_SIZE;
+   
+   DMA2_Stream5->CR = DMA_CONF|DMA_SxCR_EN;
+
+   NVIC_EnableIRQ(DMA2_Stream5_IRQn);
+
+   USART1->CR1 = USART_CR1_UE;
+   USART1->CR1 = USART_CR1_TE | USART_CR1_UE;
+   USART1->BRR = (uint32_t)(84000000+1958400/2)/1958400;
+   USART1->CR2 = 0;
+   USART1->CR3 = USART_CR3_DMAR;
+   USART1->SR = 0;
+   USART1->CR1 |= USART_CR1_RE;
+   #endif
 
    safe_delay(200);
    (void)USART1->DR;
@@ -317,15 +340,27 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
       }
    }
    
+   #ifdef STM32F1
    //Включение обратно переферии
    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
    RCC->APB1ENR |= (RCC_APB1ENR_TIM5EN|RCC_APB1ENR_TIM4EN);
    RCC->APB1ENR |= (RCC_APB1ENR_SPI2EN|RCC_APB1ENR_USART3EN);
    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
    RCC->AHBENR |= (RCC_AHBENR_FSMCEN);
+   #endif
 
+   #ifdef STM32F4
+   SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
+   #endif
+   
    if((dma_timeout == 0) || (dma_stopped == 2)) {
+      #ifdef STM32F1
       DEBUG("DMA timeout, NDTR: %d",DMA1_Channel5->CNDTR);
+      #endif
+      #ifdef STM32F4
+      DEBUG("DMA timeout, NDTR: %d",DMA2_Stream5->NDTR);
+      #endif
+
       DEBUG("SR: %0X",USART1->SR);
       //Restart ESP8266
       WRITE(MKS_WIFI_IO_RST, LOW);
@@ -333,9 +368,17 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
       WRITE(MKS_WIFI_IO_RST, HIGH);
    }
    
+   #ifdef STM32F1
    //Выключить DMA
    DMA1->IFCR = DMA_IFCR_CGIF5|DMA_IFCR_CTEIF5|DMA_IFCR_CHTIF5|DMA_IFCR_CTCIF5;
    DMA1_Channel5->CCR = 0;
+   #endif
+
+   #ifdef STM32F4
+   //Выключить DMA
+   DMA2->HIFCR=DMA_S5_CLEAR;
+   DMA2_Stream5->CR = 0;
+   #endif
 
    MYSERIAL2.begin(BAUDRATE_2);
    WRITE(MKS_WIFI_IO4, LOW); //Включить передачу от ESP 
@@ -400,7 +443,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
 }
 
-
+#ifdef STM32F1
 extern "C" void DMA1_Channel5_IRQHandler(void){
 
       if(DMA1->ISR & DMA_ISR_TEIF5){
@@ -427,5 +470,37 @@ extern "C" void DMA1_Channel5_IRQHandler(void){
       DMA1_Channel5->CCR = DMA_CONF|DMA_CCR_EN;
       ++buffer_ready;
 }
+#endif
+
+#ifdef STM32F4
+extern "C" void DMA2_Stream5_IRQHandler(void){
+
+      if(DMA2->HISR & DMA_HISR_TEIF5){
+         DEBUG("DMA Error");
+         dma_stopped = 2;
+         DMA2->HIFCR=DMA_S5_CLEAR;
+         return;
+      }
+      
+      if(buffer_ready > 0){ 
+         GPIOC->BSRR = GPIO_BSRR_BS7;  //остановить передачу от esp
+         dma_stopped=1;
+      };
+
+      DMA2->HIFCR=DMA_S5_CLEAR;
+      //Указатель на полученный буфер
+      buff=dma_buff[dma_buff_index];
+      //переключить индекс
+      dma_buff_index = (dma_buff_index) ? 0 : 1;
+
+
+      DMA2_Stream5->CR = DMA_CONF;
+      DMA2_Stream5->M0AR = (uint32_t)dma_buff[dma_buff_index];
+      DMA2_Stream5->NDTR = ESP_PACKET_SIZE;
+      DMA2_Stream5->CR = DMA_CONF|DMA_SxCR_EN;
+
+      ++buffer_ready;
+}
+#endif
 
 #endif

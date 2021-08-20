@@ -220,7 +220,7 @@
     #define LCD_PROGRESS_BAR
   #endif
   #if ENABLED(TFTGLCD_PANEL_I2C)
-    #define LCD_I2C_ADDRESS           0x33  // Must be 0x33 for STM32 main boards and equal to panel's I2C slave addres
+    #define LCD_I2C_ADDRESS           0x33  // Must be 0x33 for STM32 main boards and equal to panel's I2C slave address
   #endif
   #define LCD_USE_I2C_BUZZER                // Enable buzzer on LCD, used for both I2C and SPI buses (LiquidTWI2 not required)
   #define STD_ENCODER_PULSES_PER_STEP 2
@@ -482,10 +482,6 @@
 #endif
 
 // Aliases for LCD features
-#if EITHER(IS_ULTRA_LCD, EXTENSIBLE_UI)
-  #define HAS_DISPLAY 1
-#endif
-
 #if IS_ULTRA_LCD
   #define HAS_WIRED_LCD 1
   #if ENABLED(DOGLCD)
@@ -495,6 +491,10 @@
   #elif DISABLED(HAS_GRAPHICAL_TFT)
     #define HAS_MARLINUI_HD44780 1
   #endif
+#endif
+
+#if EITHER(HAS_WIRED_LCD, EXTENSIBLE_UI)
+  #define HAS_DISPLAY 1
 #endif
 
 #if ANY(HAS_DISPLAY, DWIN_CREALITY_LCD, GLOBAL_STATUS_MESSAGE)
