@@ -1327,10 +1327,17 @@
 #endif
 
 #ifdef FB_5_STOCK
+#if MOTHERBOARD == BOARD_MKS_ROBIN_NANO_S_V13
+#define USR_E0_DIR false
+#define USR_X_DIR true
+#define USR_Y_DIR true
+#define USR_Z_DIR false
+#else
 #define USR_E0_DIR false
 #define USR_X_DIR false
 #define USR_Y_DIR false
 #define USR_Z_DIR false
+#endif
 #endif
 
 
