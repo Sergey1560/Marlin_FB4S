@@ -30,7 +30,7 @@
 
 #define BOARD_INFO_NAME "MKS Robin Nano-S V1.3"
 
-#define EXT_EXTRUDER_DRIVER 1 // Если нужен сменный драйвер в слоте второго экструдера как основной экструдер, установить в единицу!
+#define EXT_EXTRUDER_DRIVER 0 // Если нужен сменный драйвер в слоте второго экструдера как основной экструдер, установить в единицу!
 
 #define SPI_DEVICE                             2
 
