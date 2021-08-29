@@ -30,6 +30,8 @@
 
 #define BOARD_INFO_NAME "MKS Robin Nano-S V1.3"
 
+#define EXT_EXTRUDER_DRIVER 0 // Если нужен сменный драйвер в слоте второго экструдера как основной экструдер, установить в единицу!
+
 #define SPI_DEVICE                             2
 
 // Avoid conflict with TIMER_TONE
@@ -63,16 +65,28 @@
 #define Z_STEP_PIN                          PB5
 #define Z_DIR_PIN                           PB4
 
+#if EXT_EXTRUDER_DRIVER
+#define E0_ENABLE_PIN                       PA3
+#define E0_STEP_PIN                         PA6
+#define E0_DIR_PIN                          PA1
+#else
 #define E0_ENABLE_PIN                       PB3
 #define E0_STEP_PIN                         PD6
 #define E0_DIR_PIN                          PD3
+#endif
 #ifndef E0_CS_PIN
   #define E0_CS_PIN                         PD9
 #endif
 
+#ifndef EXT_EXTRUDER_DRIVER
 #define E1_ENABLE_PIN                       PA3
 #define E1_STEP_PIN                         PA6
 #define E1_DIR_PIN                          PA1
+#else
+//#define E1_ENABLE_PIN                     PA3
+//#define E1_STEP_PIN                       PA6
+//#define E1_DIR_PIN                        PA1
+#endif
 
 #if HAS_TMC_UART
   //
