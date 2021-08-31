@@ -1,6 +1,6 @@
 # Marlin 3D Printer Firmware for Flying Bear 4S and 5
 
-Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S и 5 (плата MKS Robin Nano 1.x).
+Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S и 5. На данный момент поддерживаются платы MKS Robin Nano 1.x, MKS Robin Nano v2, MKS Robin Nano-s v1.3
 
 Эта ветка содержит дополнительный код для работы с модулем [MKS WIFI](https://github.com/makerbase-mks/MKS-WIFI), установленным в FB4S и FB5. Загрузка файлов через стандартный plugin в Cura.
 
@@ -29,11 +29,23 @@
 
 ### Варианты прошивки
 
-Если вас устраивает типовой вариант конфигурации, можно взять готовые файлы прошивки можно в разделе [Releases](https://github.com/Sergey1560/Marlin_FB4S/releases)
+Если вас устраивает типовой вариант конфигурации, можно взять готовые файлы прошивки можно в разделе [Releases](https://github.com/Sergey1560/Marlin_FB4S/releases) (на данный момент только для плат robin nano v1.*)
 
 Вернуть стандартную прошивку можно в любой момент. Просто запишите ее на SD и включите принтер.
 
 Для настройки под свои нужды, прошивку нужно собрать самостоятельно.
+
+Плата Robin Nano-s v1.3 сделана на другом микроконтроллере (stm32f407), поэтому для сборки прошивки под эту плату нужно изменить:
+
+* В файле Marlin/Configuration.h параметр MOTHERBOARD:
+
+```C
+#ifndef MOTHERBOARD
+  #define MOTHERBOARD BOARD_MKS_ROBIN_NANO_S_V13
+#endif
+```
+
+* В файле platformio.ini в параметре default_envs указать mks_robin_nano_v1_3
 
 ### Первое, что нужно сделать, после прошивки
 
@@ -45,9 +57,11 @@
 
 [Видео](https://www.youtube.com/watch?v=HirIZk0rWOQ) Дмитрия Соркина
 
-Нужная плата, Robin Nano, уже выбрана в качестве платы по-умолчанию. В меню Platformio можно не выбирать плату, а использовать сочетание клавиш Ctrl+Alt+B.
+Плата, Robin Nano v1.*, уже выбрана в качестве платы по-умолчанию. Для платы Robin Nano-s v1.3 нужно изменить параметры сборки (описано выше).
 
-После компиляции, готовая прошивка лежит в .pio/build/mks_robin_nano35/Robin_nano35.bin
+В меню Platformio можно не выбирать плату, а использовать сочетание клавиш Ctrl+Alt+B.
+
+После компиляции, готовая прошивка лежит в .pio/build/mks_robin_nano35/Robin_nano35.bin для плат Robin Nano v1.* и в .pio/build/mks_robin_nano_v1_3/Robin_nano35.bin для плат Robin Nano-s v1.3
 
 На SD карту нужно записывать именно Robin_nano35.bin, а не firmaware.bin
 
@@ -233,7 +247,7 @@ EEPROM_W25Q
 #define TFT_COLOR_UI
 ```
 
-* Графический интерфейс от MKS. Этот интерфейс требует изменений в конфигурации. Кроме того, поддержка WIFI на данный момент есть только в ветке "для разработчиков". В связи с этим, вариант прошивки с этим интерфейсом [сделан отдельно](https://github.com/FBGhost-community/Marlin)
+* Графический интерфейс от MKS. Этот интерфейс требует значительного изменения в конфигурации. В связи с этим, вариант прошивки с этим интерфейсом [сделан отдельно](https://github.com/FBGhost-community/Marlin/tree/MKS_UI_FB4S_5)
 
 ## WIFI модуль, отправка команд и файлов
 
