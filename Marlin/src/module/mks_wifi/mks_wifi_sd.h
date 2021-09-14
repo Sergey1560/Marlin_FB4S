@@ -21,7 +21,7 @@
 										 (0x00 << DMA_SxCR_MBURST_Pos)| \
 										 (0x00 << DMA_SxCR_PBURST_Pos)| \
 										 (0x00 << DMA_SxCR_DBM_Pos)   | \
-										 (0x03 << DMA_SxCR_PL_Pos)	  | \
+										 (0x00 << DMA_SxCR_PL_Pos)	  | \
 										 (0x00 << DMA_SxCR_PINCOS_Pos)| \
 										 (0x00 << DMA_SxCR_MSIZE_Pos) | \
 										 (0x00 << DMA_SxCR_PSIZE_Pos) | \

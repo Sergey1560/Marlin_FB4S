@@ -53,7 +53,7 @@ uint8_t SD_Cmd(uint8_t cmd, uint32_t arg, uint16_t response_type, uint32_t *resp
 	return 0;
 }
 
-uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
+uint32_t __attribute__((optimize("O0"))) SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 	uint32_t trials;
 	uint8_t cmd=0;
 
@@ -99,7 +99,7 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 
 	transmit=1;
 	error_flag=0;
-	__disable_irq();
+	//__disable_irq();
 	SD_Cmd(cmd, blk, SDIO_RESP_SHORT, (uint32_t*)response);
 
 	SDIO->DTIMER=(uint32_t)SDIO_DATA_R_TIMEOUT;
@@ -109,8 +109,9 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 	SDIO->ICR=SDIO_ICR_STATIC;
 
 	DMA2_Stream3->CR |= DMA_SxCR_EN;
+	__DSB();
 	SDIO->DCTRL|=1; //DPSM is enabled
-	__enable_irq();
+	//__enable_irq();
 
 	while((SDIO->STA & (SDIO_STA_DATAEND|SDIO_STA_ERRORS)) == 0){asm("nop");};
 

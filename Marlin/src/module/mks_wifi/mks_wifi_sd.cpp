@@ -54,7 +54,6 @@ void mks_wifi_sd_deinit(void){
    f_mount(0, "", 1);
    DEBUG("Marlin mount");
    card.mount();
-   card.mount();
 };
 
 void sd_delete_file(char *filename){
