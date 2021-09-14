@@ -125,7 +125,6 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    thermalManager.setTargetBed(0);
    thermalManager.setTargetHotend(0,0);
    thermalManager.manage_heater();
-   OUT_WRITE(FAN1_PIN,HIGH);
  	//Установить имя файла. Смещение на 3 байта, чтобы добавить путь к диску
    file_name[0]='0';
    file_name[1]=':';
@@ -233,7 +232,15 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
    //На время передачи отключение systick
    SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
-   
+
+   OUT_WRITE(FAN1_PIN,HIGH);
+   OUT_WRITE(HEATER_0_PIN,LOW);
+   OUT_WRITE(HEATER_BED_PIN,LOW);
+
+   #if HOTENDS == 2
+      OUT_WRITE(HEATER_1_PIN,LOW);
+   #endif
+
    data_packet = 0;
 
    while(--dma_timeout > 0){
