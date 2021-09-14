@@ -222,7 +222,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    USART1->CR1 |= USART_CR1_RE;
    #endif
 
-   safe_delay(200);
+   delay(200);	
    (void)USART1->DR;
    
    TERN_(USE_WATCHDOG, HAL_watchdog_refresh());
