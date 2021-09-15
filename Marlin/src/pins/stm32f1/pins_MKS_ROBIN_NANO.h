@@ -36,6 +36,16 @@
 
 #define BOARD_NO_NATIVE_USB
 
+//#define PRINTER_NAME_FB5
+#define PRINTER_NAME_FB4S
+
+
+#ifdef PRINTER_NAME_FB5
+  #ifdef PRINTER_NAME_FB4S
+    #error "Select only one printer name"
+  #endif
+#endif
+
 // Avoid conflict with TIMER_SERVO when using the STM32 HAL
 #define TEMP_TIMER 5
 
@@ -182,6 +192,18 @@ https://sergey1560.github.io/fb4s_howto/mks_pwc/
   //#define PS_ON_PIN                       PB2   // PW_OFF
   #define FIL_RUNOUT_PIN                    PA4
   #define FIL_RUNOUT2_PIN                   PE6
+#endif
+
+#ifdef PRINTER_NAME_FB5
+  #define FIL_RUNOUT_LEVEL  LOW
+#endif 
+
+#ifdef PRINTER_NAME_FB4S
+  #define FIL_RUNOUT_LEVEL  HIGH
+#endif 
+
+#ifndef FIL_RUNOUT_LEVEL
+  #define FIL_RUNOUT_LEVEL HIGH
 #endif
 
 //

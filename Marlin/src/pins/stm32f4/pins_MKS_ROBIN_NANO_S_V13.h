@@ -30,6 +30,8 @@
 
 #define BOARD_INFO_NAME "MKS Robin Nano-S V1.3"
 
+#define PRINTER_NAME_FB5
+
 #define EXT_EXTRUDER_DRIVER 0 // Если нужен сменный драйвер в слоте второго экструдера как основной экструдер, установить в единицу!
 
 #define SPI_DEVICE                             2
@@ -146,6 +148,10 @@
 #endif
 #ifndef FIL_RUNOUT2_PIN
   #define FIL_RUNOUT2_PIN           MT_DET_2_PIN
+#endif
+
+#ifndef FIL_RUNOUT_LEVEL
+  #define FIL_RUNOUT_LEVEL HIGH
 #endif
 
 #ifndef SDCARD_CONNECTION
