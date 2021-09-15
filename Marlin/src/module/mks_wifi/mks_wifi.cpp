@@ -323,6 +323,11 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 				//поэтому печать в этот момент не возможна.
 				if (!CardReader::isPrinting()){
 					mks_wifi_start_file_upload(packet);
+				}else{
+					//Попытка запустить передачу файла во время печати
+					//Отключение модуля wifi
+					DEBUG("Shutdown wifi");
+					WRITE(MKS_WIFI_IO_RST, LOW);
 				}
 			break;
 		case ESP_TYPE_FILE_FRAGMENT:
