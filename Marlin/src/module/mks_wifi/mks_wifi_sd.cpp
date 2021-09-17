@@ -201,6 +201,10 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    #endif
 
    #ifdef STM32F4
+
+   RCC->APB1ENR &= ~RCC_APB1ENR_TIM5EN;
+   RCC->APB2ENR &= ~RCC_APB2ENR_TIM10EN;
+
    DMA2_Stream5->CR = 0;
    DMA2->HIFCR=DMA_S5_CLEAR;
    
@@ -356,6 +360,9 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    #endif
 
    #ifdef STM32F4
+   RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
+   RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
+
    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
    #endif
    
