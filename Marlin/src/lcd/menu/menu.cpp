@@ -179,6 +179,8 @@ bool printer_busy() {
 void MarlinUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const uint8_t top/*=0*/, const uint8_t items/*=0*/) {
   if (currentScreen != screen) {
 
+    TERN_(IS_DWIN_MARLINUI, did_first_redraw = false);
+
     TERN_(HAS_TOUCH_BUTTONS, repeat_delay = BUTTON_DELAY_MENU);
 
     TERN_(LCD_SET_PROGRESS_MANUALLY, progress_reset());
@@ -283,6 +285,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
 #if HAS_BUZZER
   void MarlinUI::completion_feedback(const bool good/*=true*/) {
+    TERN_(HAS_TOUCH_SLEEP, wakeup_screen()); // Wake up on rotary encoder click...
     if (good) {
       BUZZ(100, 659);
       BUZZ(100, 698);
@@ -312,7 +315,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
       const int16_t babystep_increment = int16_t(ui.encoderPosition) * (BABYSTEP_SIZE_Z);
       ui.encoderPosition = 0;
 
-      const float diff = planner.steps_to_mm[Z_AXIS] * babystep_increment,
+      const float diff = planner.mm_per_step[Z_AXIS] * babystep_increment,
                   new_probe_offset = probe.offset.z + diff,
                   new_offs = TERN(BABYSTEP_HOTEND_Z_OFFSET
                     , do_probe ? new_probe_offset : hotend_offset[active_extruder].z - diff
