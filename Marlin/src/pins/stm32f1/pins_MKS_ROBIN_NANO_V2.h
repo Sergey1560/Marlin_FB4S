@@ -45,13 +45,6 @@
 //
 #define DISABLE_DEBUG
 
-/*
-Управление подсветкой платой в разъеме второго экструдера
-Управление ногой En
-https://easyeda.com/sst78rust/fb4s-led-control
-*/
-//#define CASE_LED_INSTEAD_E1
-
 //
 // EEPROM
 //
@@ -66,8 +59,12 @@ https://easyeda.com/sst78rust/fb4s-led-control
 //
 // Note: MKS Robin board is using SPI2 interface.
 //
-//#define SPI_MODULE                           2
-#define ENABLE_SPI2
+#define SPI_DEVICE                             2
+
+//
+// Servos
+//
+#define SERVO0_PIN                          PA8   // Enable BLTOUCH
 
 //
 // Limit Switches
@@ -114,14 +111,9 @@ https://easyeda.com/sst78rust/fb4s-led-control
   #define E0_CS_PIN                         PD9
 #endif
 
-#ifdef CASE_LED_INSTEAD_E1
-  #define LED_CASE_PIN                      PA3
-#else
 #define E1_ENABLE_PIN                       PA3
 #define E1_STEP_PIN                         PD15
 #define E1_DIR_PIN                          PA1
-#endif
-
 #ifndef E1_CS_PIN
   #define E1_CS_PIN                         PD8
 #endif
@@ -154,10 +146,6 @@ https://easyeda.com/sst78rust/fb4s-led-control
   //#define E0_HARDWARE_SERIAL MSerial1
   //#define E1_HARDWARE_SERIAL MSerial1
 
-  //
-  // Software serial
-  //
-
   #define X_SERIAL_TX_PIN                   PD5
   #define X_SERIAL_RX_PIN                   PD5
 
@@ -183,36 +171,15 @@ https://easyeda.com/sst78rust/fb4s-led-control
 #define TEMP_0_PIN                          PC1   // TH1
 #define TEMP_1_PIN                          PC2   // TH2
 #define TEMP_BED_PIN                        PC0   // TB1
-//Дополнительный термистор на корпусе
-#if TEMP_SENSOR_CHAMBER > 0
-  #define TEMP_CHAMBER_PIN                  PC2
-#endif
 
 //
 // Heaters / Fans
 //
 #define HEATER_0_PIN                        PC3   // HEATER1
+#define HEATER_1_PIN                        PB0   // HEATER2
 #define HEATER_BED_PIN                      PA0   // HOT BED
 
-#if HOTENDS == 1
-  #ifndef FAN1_PIN
-    #define FAN1_PIN                        PB0
-  #endif
-#else
-  #ifndef HEATER_1_PIN
-    #define HEATER_1_PIN                    PB0
-  #endif
-#endif
-
 #define FAN_PIN                             PB1   // FAN
-
-/*
-Управление питанием
-*/
-//#define SUICIDE_PIN                       PB2   
-//#define SUICIDE_PIN_INVERTING             false
-//#define KILL_PIN                          PA2   // Enable MKSPWC DET PIN
-//#define KILL_PIN_STATE                    true  // Enable MKSPWC PIN STATE
 
 //
 // Thermocouples
@@ -223,34 +190,30 @@ https://easyeda.com/sst78rust/fb4s-led-control
 //
 // Power Supply Control
 //
-#if ENABLED(PSU_CONTROL)                          // MKSPWC
-  #if HAS_TFT_LVGL_UI
-    #error "PSU_CONTROL cannot be used with TFT_LVGL_UI. Disable PSU_CONTROL to continue."
+#if ENABLED(MKS_PWC)
+  #if ENABLED(TFT_LVGL_UI)
+    #undef PSU_CONTROL
+    #undef MKS_PWC
+    #define SUICIDE_PIN                     PB2
+    #define SUICIDE_PIN_STATE               LOW
+  #else
+    #define PS_ON_PIN                       PB2   // PW_OFF
   #endif
-  #ifndef PS_ON_PIN
-    #define PS_ON_PIN                       PB2   // SUICIDE
-  #endif
-  #ifndef KILL_PIN
-    #define KILL_PIN                        PA2
-    #define KILL_PIN_STATE                  HIGH
-  #endif
-#else
-  #define SUICIDE_PIN                       PB2
-  #define SUICIDE_PIN_INVERTING            false
+  #define KILL_PIN                          PA2
+  #define KILL_PIN_STATE                    HIGH
 #endif
 
 //
 // Misc. Functions
 //
 #if HAS_TFT_LVGL_UI
+  #define MT_DET_1_PIN                      PA4
+  #define MT_DET_2_PIN                      PE6
+  #define MT_DET_PIN_STATE                  LOW
 
-  #define MT_DET_1_PIN                      PA4   // LVGL UI FILAMENT RUNOUT1 PIN
-  #define MT_DET_2_PIN                      PE6   // LVGL UI FILAMENT RUNOUT2 PIN
-  #define MT_DET_PIN_INVERTING             false  // LVGL UI filament RUNOUT PIN STATE
-
-  #define WIFI_IO0_PIN                      PC13  // MKS ESP WIFI IO0 PIN
-  #define WIFI_IO1_PIN                      PC7   // MKS ESP WIFI IO1 PIN
-  #define WIFI_RESET_PIN                    PE9   // MKS ESP WIFI RESET PIN
+  #define WIFI_IO0_PIN                      PC13
+  #define WIFI_IO1_PIN                      PC7
+  #define WIFI_RESET_PIN                    PE9
 
   #if ENABLED(MKS_TEST)
     #define MKS_TEST_POWER_LOSS_PIN         PA2   // PW_DET
@@ -262,8 +225,6 @@ https://easyeda.com/sst78rust/fb4s-led-control
   #define FIL_RUNOUT_PIN                    PA4
   #define FIL_RUNOUT2_PIN                   PE6
 #endif
-
-#define SERVO0_PIN                          PA8   // Enable BLTOUCH
 
 //#define LED_PIN                           PB2
 
@@ -339,7 +300,7 @@ https://easyeda.com/sst78rust/fb4s-led-control
   #define BTN_EN1                           PE8
   #define BTN_EN2                           PE11
 #elif ENABLED(TFT_COLOR_UI)
-  #define TFT_BUFFER_SIZE                  320*12
+  #define TFT_BUFFER_SIZE                  14400
 #endif
 
 #if HAS_WIRED_LCD && !HAS_SPI_TFT
@@ -388,7 +349,7 @@ https://easyeda.com/sst78rust/fb4s-led-control
     #if SD_CONNECTION_IS(ONBOARD)
       #define FORCE_SOFT_SPI
     #endif
-	//#define LCD_SCREEN_ROT_180
+    //#define LCD_SCREEN_ROT_180
 
   #else                                           // !MKS_MINI_12864
 
@@ -404,14 +365,10 @@ https://easyeda.com/sst78rust/fb4s-led-control
 
     #endif
 
-    #ifndef BOARD_ST7920_DELAY_1
-      #define BOARD_ST7920_DELAY_1 DELAY_NS(125)
-    #endif
-    #ifndef BOARD_ST7920_DELAY_2
-      #define BOARD_ST7920_DELAY_2 DELAY_NS(125)
-    #endif
-    #ifndef BOARD_ST7920_DELAY_3
-      #define BOARD_ST7920_DELAY_3 DELAY_NS(125)
+    #if ENABLED(U8GLIB_ST7920)
+      #define BOARD_ST7920_DELAY_1           125
+      #define BOARD_ST7920_DELAY_2           125
+      #define BOARD_ST7920_DELAY_3           125
     #endif
 
   #endif // !MKS_MINI_12864
@@ -421,10 +378,10 @@ https://easyeda.com/sst78rust/fb4s-led-control
 #define HAS_SPI_FLASH                          1
 #if HAS_SPI_FLASH
   #define SPI_FLASH_SIZE               0x1000000  // 16MB
-  #define W25QXX_CS_PIN                     PB12
-  #define W25QXX_MOSI_PIN                   PB15
-  #define W25QXX_MISO_PIN                   PB14
-  #define W25QXX_SCK_PIN                    PB13
+  #define SPI_FLASH_CS_PIN                  PB12
+  #define SPI_FLASH_MOSI_PIN                PB15
+  #define SPI_FLASH_MISO_PIN                PB14
+  #define SPI_FLASH_SCK_PIN                 PB13
 #endif
 
 #ifndef BEEPER_PIN
@@ -433,20 +390,4 @@ https://easyeda.com/sst78rust/fb4s-led-control
 
 #if ENABLED(SPEAKER) && BEEPER_PIN == PC5
   #error "MKS Robin nano default BEEPER_PIN is not a SPEAKER."
-#endif
-
-/*
-Модуль MKS WIFI
-*/
-#define MKS_WIFI
-
-#ifdef MKS_WIFI
-
- #define MKS_WIFI_SERIAL_NUM                SERIAL_PORT_2
- #define MKS_WIFI_BAUDRATE                  115200
- #undef PLATFORM_M997_SUPPORT
-
- #define MKS_WIFI_IO0                       PC13
- #define MKS_WIFI_IO4                       PC7
- #define MKS_WIFI_IO_RST                    PE9
 #endif

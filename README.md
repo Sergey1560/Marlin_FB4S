@@ -41,11 +41,11 @@
 
 ```C
 #ifndef MOTHERBOARD
-  #define MOTHERBOARD BOARD_MKS_ROBIN_NANO_S_V13
+  #define MOTHERBOARD BOARD_MKS_ROBIN_NANO_V1_3_F4
 #endif
 ```
 
-* В файле platformio.ini в параметре default_envs указать mks_robin_nano_v1_3
+* В файле platformio.ini в параметре default_envs указать mks_robin_nano_v1_3_f4
 
 ### Первое, что нужно сделать, после прошивки
 

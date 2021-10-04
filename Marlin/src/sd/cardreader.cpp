@@ -33,6 +33,8 @@
 
 #if ENABLED(DWIN_CREALITY_LCD)
   #include "../lcd/e3v2/creality/dwin.h"
+#elif ENABLED(DWIN_CREALITY_LCD_ENHANCED)
+  #include "../lcd/e3v2/enhanced/dwin.h"
 #endif
 
 #include "../module/planner.h"        // for synchronize
@@ -395,7 +397,7 @@ void CardReader::ls(TERN_(LONG_FILENAME_HOST_SUPPORT, bool includeLongNames/*=fa
       // Go to the next segment
       while (path[++i]) { }
 
-      //SERIAL_ECHOLNPAIR("Looking for segment: ", segment);
+      //SERIAL_ECHOLNPGM("Looking for segment: ", segment);
 
       // Find the item, setting the long filename
       diveDir.rewind();
@@ -426,7 +428,7 @@ void CardReader::ls(TERN_(LONG_FILENAME_HOST_SUPPORT, bool includeLongNames/*=fa
       if (!dir.open(&diveDir, segment, O_READ)) {
         SERIAL_EOL();
         SERIAL_ECHO_START();
-        SERIAL_ECHOPAIR(STR_SD_CANT_OPEN_SUBDIR, segment);
+        SERIAL_ECHOPGM(STR_SD_CANT_OPEN_SUBDIR, segment);
         break;
       }
 
@@ -502,7 +504,7 @@ void CardReader::manage_media() {
   uint8_t stat = uint8_t(IS_SD_INSERTED());
   if (stat == prev_stat) return;
 
-  DEBUG_ECHOLNPAIR("SD: Status changed from ", prev_stat, " to ", stat);
+  DEBUG_ECHOLNPGM("SD: Status changed from ", prev_stat, " to ", stat);
 
   flag.workDirIsRoot = true;          // Return to root on mount/release
 
@@ -593,7 +595,7 @@ void CardReader::startOrResumeFilePrinting() {
 //
 void CardReader::endFilePrintNow(TERN_(SD_RESORT, const bool re_sort/*=false*/)) {
   TERN_(ADVANCED_PAUSE_FEATURE, did_pause_print = 0);
-  TERN_(DWIN_CREALITY_LCD, HMI_flag.print_finish = flag.sdprinting);
+  TERN_(HAS_DWIN_E3V2_BASIC, HMI_flag.print_finish = flag.sdprinting);
   flag.abort_sd_printing = false;
   if (isFileOpen()) file.close();
   TERN_(SD_RESORT, if (re_sort) presort());
@@ -633,7 +635,7 @@ void CardReader::getAbsFilenameInCWD(char *dst) {
 }
 
 void openFailed(const char * const fname) {
-  SERIAL_ECHOLNPAIR(STR_SD_OPEN_FILE_FAIL, fname, ".");
+  SERIAL_ECHOLNPGM(STR_SD_OPEN_FILE_FAIL, fname, ".");
 }
 
 void announceOpen(const uint8_t doing, const char * const path) {
@@ -642,7 +644,7 @@ void announceOpen(const uint8_t doing, const char * const path) {
     SERIAL_ECHO_START();
     SERIAL_ECHOPGM("Now ");
     SERIAL_ECHOPGM_P(doing == 1 ? PSTR("doing") : PSTR("fresh"));
-    SERIAL_ECHOLNPAIR(" file: ", path);
+    SERIAL_ECHOLNPGM(" file: ", path);
   }
 }
 
@@ -705,7 +707,7 @@ void CardReader::openFileRead(const char * const path, const uint8_t subcall_typ
 
     { // Don't remove this block, as the PORT_REDIRECT is a RAII
       PORT_REDIRECT(SerialMask::All);
-      SERIAL_ECHOLNPAIR(STR_SD_FILE_OPENED, fname, STR_SD_SIZE, filesize);
+      SERIAL_ECHOLNPGM(STR_SD_FILE_OPENED, fname, STR_SD_SIZE, filesize);
       SERIAL_ECHOLNPGM(STR_SD_FILE_SELECTED);
     }
 
@@ -717,7 +719,7 @@ void CardReader::openFileRead(const char * const path, const uint8_t subcall_typ
 }
 
 inline void echo_write_to_file(const char * const fname) {
-  SERIAL_ECHOLNPAIR(STR_SD_WRITE_TO_FILE, fname);
+  SERIAL_ECHOLNPGM(STR_SD_WRITE_TO_FILE, fname);
 }
 
 //
@@ -757,7 +759,7 @@ void CardReader::openFileWrite(const char * const path) {
 bool CardReader::fileExists(const char * const path) {
   if (!isMounted()) return false;
 
-  DEBUG_ECHOLNPAIR("fileExists: ", path);
+  DEBUG_ECHOLNPGM("fileExists: ", path);
 
   // Dive to the file's directory and get the base name
   SdFile *diveDir = nullptr;
@@ -789,21 +791,21 @@ void CardReader::removeFile(const char * const name) {
   if (!fname) return;
 
   #if ENABLED(SDCARD_READONLY)
-    SERIAL_ECHOLNPAIR("Deletion failed (read-only), File: ", fname, ".");
+    SERIAL_ECHOLNPGM("Deletion failed (read-only), File: ", fname, ".");
   #else
     if (file.remove(itsDirPtr, fname)) {
-      SERIAL_ECHOLNPAIR("File deleted:", fname);
+      SERIAL_ECHOLNPGM("File deleted:", fname);
       sdpos = 0;
       TERN_(SDCARD_SORT_ALPHA, presort());
     }
     else
-      SERIAL_ECHOLNPAIR("Deletion failed, File: ", fname, ".");
+      SERIAL_ECHOLNPGM("Deletion failed, File: ", fname, ".");
   #endif
 }
 
 void CardReader::report_status() {
   if (isPrinting()) {
-    SERIAL_ECHOPAIR(STR_SD_PRINTING_BYTE, sdpos);
+    SERIAL_ECHOPGM(STR_SD_PRINTING_BYTE, sdpos);
     SERIAL_CHAR('/');
     SERIAL_ECHOLN(filesize);
   }
@@ -951,12 +953,12 @@ const char* CardReader::diveToFile(const bool update_cwd, SdFile* &inDirPtr, con
   // Parsing the path string
   const char *atom_ptr = path;
 
-  DEBUG_ECHOLNPAIR(" path = '", path, "'");
+  DEBUG_ECHOLNPGM(" path = '", path, "'");
 
   if (path[0] == '/') {               // Starting at the root directory?
     inDirPtr = &root;
     atom_ptr++;
-    DEBUG_ECHOLNPAIR(" CWD to root: ", hex_address((void*)inDirPtr));
+    DEBUG_ECHOLNPGM(" CWD to root: ", hex_address((void*)inDirPtr));
     if (update_cwd) workDirDepth = 0; // The cwd can be updated for the benefit of sub-programs
   }
   else
@@ -964,7 +966,7 @@ const char* CardReader::diveToFile(const bool update_cwd, SdFile* &inDirPtr, con
 
   startDirPtr = inDirPtr;
 
-  DEBUG_ECHOLNPAIR(" startDirPtr = ", hex_address((void*)startDirPtr));
+  DEBUG_ECHOLNPGM(" startDirPtr = ", hex_address((void*)startDirPtr));
 
   while (atom_ptr) {
     // Find next subdirectory delimiter
@@ -981,7 +983,7 @@ const char* CardReader::diveToFile(const bool update_cwd, SdFile* &inDirPtr, con
 
     if (echo) SERIAL_ECHOLN(dosSubdirname);
 
-    DEBUG_ECHOLNPAIR(" sub = ", hex_address((void*)sub));
+    DEBUG_ECHOLNPGM(" sub = ", hex_address((void*)sub));
 
     // Open inDirPtr (closing first)
     sub->close();
@@ -993,24 +995,24 @@ const char* CardReader::diveToFile(const bool update_cwd, SdFile* &inDirPtr, con
 
     // Close inDirPtr if not at starting-point
     if (inDirPtr != startDirPtr) {
-      DEBUG_ECHOLNPAIR(" closing inDirPtr: ", hex_address((void*)inDirPtr));
+      DEBUG_ECHOLNPGM(" closing inDirPtr: ", hex_address((void*)inDirPtr));
       inDirPtr->close();
     }
 
     // inDirPtr now subDir
     inDirPtr = sub;
-    DEBUG_ECHOLNPAIR(" inDirPtr = sub: ", hex_address((void*)inDirPtr));
+    DEBUG_ECHOLNPGM(" inDirPtr = sub: ", hex_address((void*)inDirPtr));
 
     // Update workDirParents and workDirDepth
     if (update_cwd) {
-      DEBUG_ECHOLNPAIR(" update_cwd");
+      DEBUG_ECHOLNPGM(" update_cwd");
       if (workDirDepth < MAX_DIR_DEPTH)
         workDirParents[workDirDepth++] = *inDirPtr;
     }
 
     // Point sub at the other scratch object
     sub = (inDirPtr != &newDir1) ? &newDir1 : &newDir2;
-    DEBUG_ECHOLNPAIR(" swapping sub = ", hex_address((void*)sub));
+    DEBUG_ECHOLNPGM(" swapping sub = ", hex_address((void*)sub));
 
     // Next path atom address
     atom_ptr = name_end + 1;
@@ -1018,12 +1020,12 @@ const char* CardReader::diveToFile(const bool update_cwd, SdFile* &inDirPtr, con
 
   if (update_cwd) {
     workDir = *inDirPtr;
-    DEBUG_ECHOLNPAIR(" final workDir = ", hex_address((void*)inDirPtr));
+    DEBUG_ECHOLNPGM(" final workDir = ", hex_address((void*)inDirPtr));
     flag.workDirIsRoot = (workDirDepth == 0);
     TERN_(SDCARD_SORT_ALPHA, presort());
   }
 
-  DEBUG_ECHOLNPAIR(" returning string ", atom_ptr ?: "nullptr");
+  DEBUG_ECHOLNPGM(" returning string ", atom_ptr ?: "nullptr");
   return atom_ptr;
 }
 
@@ -1165,9 +1167,9 @@ void CardReader::cdroot() {
             selectFileByIndex(i);
             SET_SORTNAME(i);
             SET_SORTSHORT(i);
-            // char out[30];
-            // sprintf_P(out, PSTR("---- %i %s %s"), i, flag.filenameIsDir ? "D" : " ", sortnames[i]);
-            // SERIAL_ECHOLN(out);
+            //char out[30];
+            //sprintf_P(out, PSTR("---- %i %s %s"), i, flag.filenameIsDir ? "D" : " ", sortnames[i]);
+            //SERIAL_ECHOLN(out);
             #if HAS_FOLDER_SORTING
               const uint16_t bit = i & 0x07, ind = i >> 3;
               if (bit == 0) isDir[ind] = 0x00;

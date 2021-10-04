@@ -50,7 +50,6 @@ typedef struct __attribute__((__packed__)) {
 } tGlyph;
 */
 
-
 extern const uint8_t Helvetica14_symbols[63] = {
   0,18,19,0,252,14,0,0,0,0,1,9,252,16,252,14,252, // tFont
   0,0,0,0,0,0,  // 0x01 - LCD_STR_REFRESH
