@@ -332,7 +332,21 @@ void CardReader::printListing(
       }else{
       SERIAL_ECHO(createFilename(filename, p));
       SERIAL_CHAR(' ');
-      SERIAL_ECHOLN(p.fileSize);
+      #if ENABLED(LONG_FILENAME_HOST_SUPPORT)
+        if (!includeLongNames)
+      #endif
+          SERIAL_ECHOLN(p.fileSize);
+      #if ENABLED(LONG_FILENAME_HOST_SUPPORT)
+        else {
+          SERIAL_ECHO(p.fileSize);
+          SERIAL_CHAR(' ');
+          if (prependLong) {
+            SERIAL_ECHO(prependLong);
+            SERIAL_CHAR('/');
+          }
+          SERIAL_ECHOLN(longFilename[0] ? longFilename : "???");
+        }
+      #endif
     }
       #else
       SERIAL_ECHO(createFilename(filename, p));
