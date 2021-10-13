@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- *
  * Copyright (c) 2021 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
- * Copyright (c) 2016 Bob Cousins bobcousins42@googlemail.com
- * Copyright (c) 2015-2016 Nico Tonnhofer wurstnase.reprap@gmail.com
+ *
+ * Based on Sprinter and grbl.
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,18 @@
  */
 #pragma once
 
-//
-// EEPROM
-//
-void eeprom_init();
-void eeprom_write_byte(uint8_t *pos, uint8_t value);
-uint8_t eeprom_read_byte(uint8_t *pos);
-#include <SPI.h>
+/**
+ * Panda M4 pin assignments
+ */
 
-using MarlinSPI = SPIClass;
+#define BOARD_INFO_NAME "Panda_M4"
+
+#include "pins_PANDA_common.h"
+
+//
+// Steppers
+//
+#define X_ENABLE_PIN                         115
+#define Y_ENABLE_PIN                         114
+#define Z_ENABLE_PIN                         113
+#define E0_ENABLE_PIN                        112

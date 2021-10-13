@@ -24,6 +24,7 @@
 #include <SPI.h>
 
 using MarlinSPI = SPIClass;
+
 //
 // EEPROM
 //

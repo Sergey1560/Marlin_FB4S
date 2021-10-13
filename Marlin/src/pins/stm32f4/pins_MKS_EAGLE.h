@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- *
  * Copyright (c) 2021 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
- * Copyright (c) 2016 Bob Cousins bobcousins42@googlemail.com
- * Copyright (c) 2015-2016 Nico Tonnhofer wurstnase.reprap@gmail.com
+ *
+ * Based on Sprinter and grbl.
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,15 @@
  */
 #pragma once
 
-//
-// EEPROM
-//
-void eeprom_init();
-void eeprom_write_byte(uint8_t *pos, uint8_t value);
-uint8_t eeprom_read_byte(uint8_t *pos);
-#include <SPI.h>
+#define ALLOW_STM32DUINO
+#include "env_validate.h"
 
-using MarlinSPI = SPIClass;
+#if HOTENDS > 2 || E_STEPPERS > 2
+  #error "MKS Eagle supports up to 2 hotends / E-steppers."
+#elif HAS_FSMC_TFT
+  #error "MKS Eagle doesn't support FSMC-based TFT displays."
+#endif
+
+#define BOARD_INFO_NAME "MKS Eagle"
+
+#include "pins_MKS_ROBIN_NANO_V3_common.h"
