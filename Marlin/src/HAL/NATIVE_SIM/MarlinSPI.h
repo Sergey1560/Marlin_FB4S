@@ -21,12 +21,6 @@
  */
 #pragma once
 
-//
-// EEPROM
-//
-void eeprom_init();
-void eeprom_write_byte(uint8_t *pos, uint8_t value);
-uint8_t eeprom_read_byte(uint8_t *pos);
 #include <SPI.h>
 
 using MarlinSPI = SPIClass;
