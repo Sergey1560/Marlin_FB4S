@@ -96,17 +96,3 @@
 #ifndef XPT2046_Y_OFFSET
   #define XPT2046_Y_OFFSET                  349
 #endif
-
-#if HAS_TMC220x
-  /**
-   * TMC2208/TMC2209 stepper drivers
-   */
-  //
-  // Software serial
-  //
-  #define E0_SERIAL_TX_PIN                  PC14
-  #define E0_SERIAL_RX_PIN                  PC14
-
-  // Reduce baud rate to improve software serial reliability
-  #define TMC_BAUD_RATE 19200
-#endif
