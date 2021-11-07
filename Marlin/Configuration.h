@@ -1322,6 +1322,9 @@
 #define ALL_DRV_2208
 //#define FB_4S_STOCK
 //#define FB_5_STOCK
+//#define FB_5_NANO_S_V1_3
+#define FB_5_NANO_V1_3_4TMC
+//#define FB_5_NANO_V1_3
 
 #ifdef ALL_DRV_2208
 #define USR_E0_DIR true
@@ -1337,18 +1340,32 @@
 #define USR_Z_DIR false
 #endif
 
-#ifdef FB_5_STOCK
-#if MOTHERBOARD == BOARD_MKS_ROBIN_NANO_V1_3_F4
-#define USR_E0_DIR false
-#define USR_X_DIR true
-#define USR_Y_DIR true
-#define USR_Z_DIR false
-#else
+#ifdef FB_5_STOCK_
 #define USR_E0_DIR false
 #define USR_X_DIR false
 #define USR_Y_DIR false
 #define USR_Z_DIR false
 #endif
+
+#ifdef FB_5_NANO_S_V1_3
+#define USR_E0_DIR false
+#define USR_X_DIR true
+#define USR_Y_DIR true
+#define USR_Z_DIR false
+#endif
+
+#ifdef FB_5_NANO_V1_3
+#define USR_E0_DIR false
+#define USR_X_DIR false
+#define USR_Y_DIR false
+#define USR_Z_DIR false
+#endif
+
+#ifdef FB_5_NANO_V1_3_4TMC
+#define USR_E0_DIR true
+#define USR_X_DIR false
+#define USR_Y_DIR false
+#define USR_Z_DIR true
 #endif
 
 

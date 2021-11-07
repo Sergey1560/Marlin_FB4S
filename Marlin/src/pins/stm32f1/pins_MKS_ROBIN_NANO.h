@@ -55,6 +55,22 @@
   #endif
 #endif
 
+//#define E1_EXTRUDER_DRIVER
+#ifdef E1_EXTRUDER_DRIVER
+  #undef E1_ENABLE_PIN
+  #undef E1_STEP_PIN
+  #undef E1_DIR_PIN
+  #undef E0_ENABLE_PIN
+  #undef E0_STEP_PIN
+  #undef E0_DIR_PIN
+
+  #define E0_ENABLE_PIN                       PA3
+  #define E0_STEP_PIN                         PA6
+  #define E0_DIR_PIN                          PA1
+#endif
+
+
+
 /*
 Управление подсветкой платой в разъеме второго экструдера
 Управление ногой En
