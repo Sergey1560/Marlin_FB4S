@@ -1,0 +1,29 @@
+
+Breakpoint=/home/sergey/Projects/3D_Printer/FirmWare/Marlin/Marlin2.0/Marlin/src/HAL/STM32/Sd2Card_sdio_stm32duino.cpp:197, State=BP_STATE_ON
+OpenDocument="xpt2046.cpp", FilePath="/home/sergey/Projects/3D_Printer/FirmWare/Marlin/Marlin2.0/Marlin/src/HAL/STM32/tft/xpt2046.cpp", Line=136
+OpenDocument="SdVolume.h", FilePath="/home/sergey/Projects/3D_Printer/FirmWare/Marlin/Marlin2.0/Marlin/src/sd/SdVolume.h", Line=88
+OpenDocument="cardreader.cpp", FilePath="/home/sergey/Projects/3D_Printer/FirmWare/Marlin/Marlin2.0/Marlin/src/sd/cardreader.cpp", Line=477
+OpenDocument="stl_algobase.h", FilePath="/home/sergey/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include/c++/9.2.1/bits/stl_algobase.h", Line=190
+OpenDocument="stm32f1xx_hal_spi.c", FilePath="/home/sergey/.platformio/packages/framework-arduinoststm32@4.10900.200819/system/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c", Line=416
+OpenDocument="planner.h", FilePath="/home/sergey/Projects/3D_Printer/FirmWare/Marlin/Marlin2.0/Marlin/src/module/planner.h", Line=873
+OpenDocument="Sd2Card_sdio_stm32duino.cpp", FilePath="/home/sergey/Projects/3D_Printer/FirmWare/Marlin/Marlin2.0/Marlin/src/HAL/STM32/Sd2Card_sdio_stm32duino.cpp", Line=216
+OpenDocument="main.cpp", FilePath="/home/sergey/.platformio/packages/framework-arduinoststm32@4.10900.200819/cores/arduino/main.cpp", Line=36
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Call Stack", DockArea=RIGHT, x=0, y=0, w=421, h=464, TabPos=1, TopOfStack=0, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=0, w=421, h=464, TabPos=0, TopOfStack=1, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, FilteredItems=[], RefreshRate=1
+OpenWindow="Source Files", DockArea=LEFT, x=0, y=0, w=326, h=464, TabPos=0, TopOfStack=0, FilterBarShown=1, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Disassembly", DockArea=LEFT, x=0, y=0, w=326, h=464, TabPos=2, TopOfStack=1, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Break & Tracepoints", DockArea=LEFT, x=0, y=0, w=326, h=464, TabPos=1, TopOfStack=0, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VectorCatchIndexMask=254
+OpenWindow="Memory 1", DockArea=BOTTOM, x=1, y=0, w=448, h=279, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, EditorAddress=0x2000D940
+OpenWindow="Watched Data 1", DockArea=BOTTOM, x=2, y=0, w=529, h=279, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Terminal", DockArea=BOTTOM, x=0, y=0, w=549, h=279, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="RTOS", DockArea=RIGHT, x=0, y=0, w=421, h=464, TabPos=2, TopOfStack=0, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, Showing=""
+TableHeader="Call Stack", SortCol="Function", SortOrder="ASCENDING", VisibleCols=["Function";"Stack Frame";"Source";"PC";"Return Address";"Stack Used"], ColWidths=[238;126;88;82;156;100]
+TableHeader="Vector Catches", SortCol="None", SortOrder="ASCENDING", VisibleCols=["";"Vector Catch";"Description"], ColWidths=[50;300;500]
+TableHeader="Break & Tracepoints", SortCol="None", SortOrder="ASCENDING", VisibleCols=["";"Type";"Location";"Extras"], ColWidths=[55;102;112;189]
+TableHeader="Source Files", SortCol="File", SortOrder="DESCENDING", VisibleCols=["File";"Status";"Size";"#Insts";"Path"], ColWidths=[147;59;48;57;1113]
+TableHeader="Power Sampling", SortCol="Index", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
+TableHeader="Watched Data 1", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh";"Access"], ColWidths=[100;100;100;229;100]
+TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]
+TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[203;153;259]
+TableHeader="TargetExceptionDialog", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Address";"Description"], ColWidths=[200;100;100;792]
