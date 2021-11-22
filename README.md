@@ -1,89 +1,70 @@
-# Marlin 3D Printer Firmware
+# Marlin 3D Printer Firmware for Flying Bear 4S and 5
 
-![GitHub](https://img.shields.io/github/license/marlinfirmware/marlin.svg)
-![GitHub contributors](https://img.shields.io/github/contributors/marlinfirmware/marlin.svg)
-![GitHub Release Date](https://img.shields.io/github/release-date/marlinfirmware/marlin.svg)
-[![Build Status](https://github.com/MarlinFirmware/Marlin/workflows/CI/badge.svg?branch=bugfix-2.0.x)](https://github.com/MarlinFirmware/Marlin/actions)
+Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S и 5. На данный момент поддерживаются платы MKS Robin Nano 1.x, MKS Robin Nano v2, MKS Robin Nano-s v1.3, MKS Robin Nano v1.3
 
-<img align="right" width=175 src="buildroot/share/pixmaps/logo/marlin-250.png" />
+![MKS UI](https://github.com/makerbase-mks/Mks-Robin-Nano-Marlin2.0-Firmware/blob/master/Images/MKS_Robin_Nano_printing.png)
 
-Additional documentation can be found at the [Marlin Home Page](https://marlinfw.org/).
-Please test this firmware and let us know if it misbehaves in any way. Volunteers are standing by!
+В данном репозитории есть несколько веток:
 
-## Marlin 2.0
+* [FB4S_WIFI](https://github.com/Sergey1560/Marlin_FB4S/tree/FB4S_WIFI) - основная ветка. Эта ветка содержит дополнительный код для работы с модулем [MKS WIFI](https://github.com/makerbase-mks/MKS-WIFI), установленным в FB4S и FB5. Загрузка файлов через стандартный plugin в Cura. Классический интерфейс Color UI.
+* [vanilla_fb_2.0.x](https://github.com/Sergey1560/Marlin_FB4S/tree/vanilla_fb_2.0.x) - ветка на основе 2.0.x ветки Marlin. Никаких изменений в коде. Все изменения только в файлах конфигурации, под платы robin nano и принтеры Flying Bear. Классический интерфейс Color UI. WIFI модуль не работает.
+* [MKS_UI](https://github.com/Sergey1560/Marlin_FB4S/tree/MKS_UI) - ветка на основе 2.0.x ветки Marlin. В коде есть очень небольшое изменение размера буфера, для сборки на STM32F1. На STM32F4 никаких изменений в коде нет. Все изменения только в файлах конфигурации, под платы robin nano и принтеры Flying Bear. Интерфейс MKS UI. WIFI модуль работает.
 
-Marlin 2.0 takes this popular RepRap firmware to the next level by adding support for much faster 32-bit and ARM-based boards while improving support for 8-bit AVR boards. Read about Marlin's decision to use a "Hardware Abstraction Layer" below.
+Если у вас есть какие-то вопросы по настройке прошивки или по ее использованию, вы можете задать свой вопрос в [telegram группе](https://t.me/Ghostbustersss).
 
-Download earlier versions of Marlin on the [Releases page](https://github.com/MarlinFirmware/Marlin/releases).
+## MKS WIFI модуль
 
-## Example Configurations
+В данной ветке WIFI модуль работает.
 
-Before building Marlin you'll need to configure it for your specific hardware. Your vendor should have already provided source code with configurations for the installed firmware, but if you ever decide to upgrade you'll need updated configuration files. Marlin users have contributed dozens of tested example configurations to get you started. Visit the [MarlinFirmware/Configurations](https://github.com/MarlinFirmware/Configurations) repository to find the right configuration for your hardware.
+### Варианты прошивки
 
-## Building Marlin 2.0
+Для настройки под свои нужды, прошивку нужно собрать самостоятельно.
 
-To build Marlin 2.0 you'll need [Arduino IDE 1.8.8 or newer](https://www.arduino.cc/en/main/software) or [PlatformIO](http://docs.platformio.org/en/latest/ide.html#platformio-ide). Detailed build and install instructions are posted at:
+Все настройки для плат Robin Nano v1.1(1.2) уже сделаны, можно ничего не менять.
 
-  - [Installing Marlin (Arduino)](http://marlinfw.org/docs/basics/install_arduino.html)
-  - [Installing Marlin (VSCode)](http://marlinfw.org/docs/basics/install_platformio_vscode.html).
+Плата Robin Nano-s v1.3 и Robin Nano v1.3  сделана на другом микроконтроллере (stm32f407), поэтому для сборки прошивки под эту плату нужно изменить:
 
-### Supported Platforms
+* В файле Marlin/Configuration.h параметр MOTHERBOARD:
 
-  Platform|MCU|Example Boards
-  --------|---|-------
-  [Arduino AVR](https://www.arduino.cc/)|ATmega|RAMPS, Melzi, RAMBo
-  [Teensy++ 2.0](http://www.microchip.com/wwwproducts/en/AT90USB1286)|AT90USB1286|Printrboard
-  [Arduino Due](https://www.arduino.cc/en/Guide/ArduinoDue)|SAM3X8E|RAMPS-FD, RADDS, RAMPS4DUE
-  [ESP32](https://github.com/espressif/arduino-esp32)|ESP32|FYSETC E4, E4d@BOX, MRR
-  [LPC1768](http://www.nxp.com/products/microcontrollers-and-processors/arm-based-processors-and-mcus/lpc-cortex-m-mcus/lpc1700-cortex-m3/512kb-flash-64kb-sram-ethernet-usb-lqfp100-package:LPC1768FBD100)|ARM® Cortex-M3|MKS SBASE, Re-ARM, Selena Compact
-  [LPC1769](https://www.nxp.com/products/processors-and-microcontrollers/arm-microcontrollers/general-purpose-mcus/lpc1700-cortex-m3/512kb-flash-64kb-sram-ethernet-usb-lqfp100-package:LPC1769FBD100)|ARM® Cortex-M3|Smoothieboard, Azteeg X5 mini, TH3D EZBoard
-  [STM32F103](https://www.st.com/en/microcontrollers-microprocessors/stm32f103.html)|ARM® Cortex-M3|Malyan M200, GTM32 Pro, MKS Robin, BTT SKR Mini
-  [STM32F401](https://www.st.com/en/microcontrollers-microprocessors/stm32f401.html)|ARM® Cortex-M4|ARMED, Rumba32, SKR Pro, Lerdge, FYSETC S6
-  [STM32F7x6](https://www.st.com/en/microcontrollers-microprocessors/stm32f7x6.html)|ARM® Cortex-M7|The Borg, RemRam V1
-  [SAMD51P20A](https://www.adafruit.com/product/4064)|ARM® Cortex-M4|Adafruit Grand Central M4
-  [Teensy 3.5](https://www.pjrc.com/store/teensy35.html)|ARM® Cortex-M4|
-  [Teensy 3.6](https://www.pjrc.com/store/teensy36.html)|ARM® Cortex-M4|
-  [Teensy 4.0](https://www.pjrc.com/store/teensy40.html)|ARM® Cortex-M7|
-  [Teensy 4.1](https://www.pjrc.com/store/teensy41.html)|ARM® Cortex-M7|
-  Linux Native|x86/ARM/etc.|Raspberry Pi
+```C
+#ifndef MOTHERBOARD
+  #define MOTHERBOARD BOARD_MKS_ROBIN_NANO_V1_3_F4
+#endif
+```
 
-## Submitting Changes
+* В файле platformio.ini в параметре default_envs указать mks_robin_nano_v1_3_f4
 
-- Submit **Bug Fixes** as Pull Requests to the ([bugfix-2.0.x](https://github.com/MarlinFirmware/Marlin/tree/bugfix-2.0.x)) branch.
-- Follow the [Coding Standards](http://marlinfw.org/docs/development/coding_standards.html) to gain points with the maintainers.
-- Please submit your questions and concerns to the [Issue Queue](https://github.com/MarlinFirmware/Marlin/issues).
+В меню Platformio можно не выбирать плату, а использовать для сборки сочетание клавиш Ctrl+Alt+B.
 
-## Marlin Support
+После компиляции, готовая прошивка лежит в .pio/build/mks_robin_nano35/Robin_nano35.bin для плат Robin Nano v1.1(1.2) и в .pio/build/mks_robin_nano_v1_3/Robin_nano35.bin для плат Robin Nano-s v1.3 и Robin Nano v1.3
 
-The Issue Queue is reserved for Bug Reports and Feature Requests. To get help with configuration and troubleshooting, please use the following resources:
+На SD карту нужно записывать именно Robin_nano35.bin, а не firmaware.bin
 
-- [Marlin Documentation](http://marlinfw.org) - Official Marlin documentation
-- [Marlin Discord](https://discord.gg/n5NJ59y) - Discuss issues with Marlin users and developers
-- Facebook Group ["Marlin Firmware"](https://www.facebook.com/groups/1049718498464482/)
-- RepRap.org [Marlin Forum](http://forums.reprap.org/list.php?415)
-- Facebook Group ["Marlin Firmware for 3D Printers"](https://www.facebook.com/groups/3Dtechtalk/)
-- [Marlin Configuration](https://www.youtube.com/results?search_query=marlin+configuration) on YouTube
+### Что нужно настроить
 
-## Contributors
+Нужно настроить направления движения по осям под свои драйвера в файле [Configuration.h](./Marlin/Configuration.h) (параметры INVERT_?_DIR, строка 1373).
 
-Marlin is constantly improving thanks to a huge number of contributors from all over the world bringing their specialties and talents. Huge thanks are due to [all the contributors](https://github.com/MarlinFirmware/Marlin/graphs/contributors) who regularly patch up bugs, help direct traffic, and basically keep Marlin from falling apart. Marlin's continued existence would not be possible without them.
+Для удобства, в файле [Configuration.h](./Marlin/Configuration.h) уже есть готовые наборы настроек для всех типовых конфигураций.
 
-## Administration
+Для плат Robin Nano v1.1(1.2):
 
-Regular users can open and close their own issues, but only the administrators can do project-related things like add labels, merge changes, set milestones, and kick trolls. The current Marlin admin team consists of:
+* ALL_DRV_2208 - 4 драйвера TMC 2208/2209
+* FB_4S_STOCK - 4 драйвера A4988. Это конфигурация для FB4S с стандартными драйверами.
+* FB_5_STOCK - 2 TMC 2208 (на осях X,Y) и 2 A4988 (на осях Z,E)
 
- - Scott Lahteine [[@thinkyhead](https://github.com/thinkyhead)] - USA - Project Maintainer &nbsp; [![Donate](https://api.flattr.com/button/flattr-badge-large.png)](http://www.thinkyhead.com/donate-to-marlin)
- - Roxanne Neufeld [[@Roxy-3D](https://github.com/Roxy-3D)] - USA
- - Keith Bennett [[@thisiskeithb](https://github.com/thisiskeithb)] - USA
- - Victor Oliveira [[@rhapsodyv](https://github.com/rhapsodyv)] - Brazil
- - Chris Pepper [[@p3p](https://github.com/p3p)] - UK
- - Jason Smith [[@sjasonsmith](https://github.com/sjasonsmith)] - USA
- - Luu Lac [[@shitcreek](https://github.com/shitcreek)] - USA
- - Bob Kuhn [[@Bob-the-Kuhn](https://github.com/Bob-the-Kuhn)] - USA
- - Erik van der Zalm [[@ErikZalm](https://github.com/ErikZalm)] - Netherlands &nbsp; [![Flattr Erik](https://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ErikZalm&url=https://github.com/MarlinFirmware/Marlin&title=Marlin&language=&tags=github&category=software)
+Для плат Robin Nano v1.3:
 
-## License
+* FB_5_NANO_S_V1_3 - для платы Robin Nano-S v1.3
+* FB_5_NANO_V1_3_4TMC - Robin Nano v1.3 c 4 драйверами TMC 2208/2209
+* FB_5_NANO_V1_3 - Robin Nano v1.3 c 2 драйверами TMC 2208/2209 и 2 драйверами A4988
 
-Marlin is published under the [GPL license](/LICENSE) because we believe in open development. The GPL comes with both rights and obligations. Whether you use Marlin firmware as the driver for your open or closed-source product, you must keep Marlin open, and you must provide your compatible Marlin source code to end users upon request. The most straightforward way to comply with the Marlin license is to make a fork of Marlin on Github, perform your modifications, and direct users to your modified fork.
+В строке 1322 нужно выбрать только один из вариантов:
 
-While we can't prevent the use of this code in products (3D printers, CNC, etc.) that are closed source or crippled by a patent, we would prefer that you choose another firmware or, better yet, make your own.
+```C
+#define ALL_DRV_2208
+//#define FB_4S_STOCK
+//#define FB_5_STOCK
+//#define FB_5_NANO_S_V1_3
+//#define FB_5_NANO_V1_3_4TMC
+//#define FB_5_NANO_V1_3
+```
