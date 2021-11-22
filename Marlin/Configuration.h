@@ -1319,11 +1319,25 @@
 
 // @section machine
 
+/**************** Driver DIR Configuration *******************/
+//Robin Nano v1.1 and v1.2 configs:
+// 4 x TMC 2208/2209
 #define ALL_DRV_2208
+
+// 4 x A4988
 //#define FB_4S_STOCK
+
+// 2 x A4988, 2 x TMC 2208/2209
 //#define FB_5_STOCK
+
+//Robin Nano v1.3 and Robin Nano-S v1.3:
+//Robin Nano-S v1.3
 //#define FB_5_NANO_S_V1_3
+
+//Robin Nano v1.3 with 4 x TMC 2208/2209
 //#define FB_5_NANO_V1_3_4TMC
+
+//Robin Nano v1.3 with 2x A4988 and 2 x TMC 2208/2209
 //#define FB_5_NANO_V1_3
 
 
