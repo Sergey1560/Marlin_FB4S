@@ -2,7 +2,7 @@
 #define LOG_H
 
 //#define DEBUG_TO_UART
-//#define DEBUG_TO_SEGGER_RTT
+#define DEBUG_TO_SEGGER_RTT
 
 #ifdef DEBUG_TO_UART
     #include <stdarg.h>
