@@ -31,10 +31,10 @@
 #endif
 
 #include <lvgl.h>
-
+#include "../../../pins/pins.h"
 //#define TFT_ROTATION TFT_ROTATE_180
 
-extern uint8_t bmp_public_buf[14 * 1024];
+extern uint8_t bmp_public_buf[BUF_SIZE_KB * 1024];
 extern uint8_t public_buf[513];
 
 void tft_lvgl_init();

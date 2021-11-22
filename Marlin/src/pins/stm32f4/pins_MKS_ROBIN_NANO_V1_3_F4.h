@@ -43,3 +43,7 @@
 #define LED_PIN                             PB1
 
 #include "../stm32f1/pins_MKS_ROBIN_NANO_common.h"
+
+#if HAS_TFT_LVGL_UI
+  #define BUF_SIZE_KB                       14
+#endif

@@ -197,7 +197,7 @@
   #define TOUCH_BUTTONS_HW_SPI
   #define TOUCH_BUTTONS_HW_SPI_DEVICE          2
 
-  #define TFT_BUFFER_SIZE                  14400
+  #define TFT_BUFFER_SIZE                  20*480
 #endif
 
 #define HAS_SPI_FLASH                          1

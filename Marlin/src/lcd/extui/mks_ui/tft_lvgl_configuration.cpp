@@ -84,7 +84,7 @@ lv_group_t*  g;
 uint16_t DeviceCode = 0x9488;
 extern uint8_t sel_id;
 
-uint8_t bmp_public_buf[14 * 1024];
+uint8_t bmp_public_buf[BUF_SIZE_KB * 1024];
 uint8_t public_buf[513];
 
 extern bool flash_preview_begin, default_preview_flg, gcode_preview_over;
