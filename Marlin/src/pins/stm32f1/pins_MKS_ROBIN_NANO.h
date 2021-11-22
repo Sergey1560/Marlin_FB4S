@@ -47,5 +47,5 @@
 #include "pins_MKS_ROBIN_NANO_common.h"
 
 #if HAS_TFT_LVGL_UI
-  #define BUF_SIZE_KB                       6
+  #define BUF_SIZE_KB                       12
 #endif
