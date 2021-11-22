@@ -1,10 +1,12 @@
 # Marlin 3D Printer Firmware for Flying Bear 4S and 5
 
-Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S и 5. На данный момент поддерживаются платы MKS Robin Nano 1.x, MKS Robin Nano v2, MKS Robin Nano-s v1.3
+Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S и 5. На данный момент поддерживаются платы MKS Robin Nano 1.x, MKS Robin Nano v2, MKS Robin Nano-s v1.3, MKS Robin Nano v1.3
 
-Эта ветка содержит дополнительный код для работы с модулем [MKS WIFI](https://github.com/makerbase-mks/MKS-WIFI), установленным в FB4S и FB5. Загрузка файлов через стандартный plugin в Cura.
+В данном репозитории есть несколько веток:
 
-Прошивка работает на принтерах Flying Bear Ghost 4S и 5. Экран работает. WIFI работает.
+* [FB4S_WIFI](https://github.com/Sergey1560/Marlin_FB4S/tree/FB4S_WIFI) - эта, основная ветка. Эта ветка содержит дополнительный код для работы с модулем [MKS WIFI](https://github.com/makerbase-mks/MKS-WIFI), установленным в FB4S и FB5. Загрузка файлов через стандартный plugin в Cura. Классический интерфейс Color UI.
+* [vanilla_fb_2.0.x](https://github.com/Sergey1560/Marlin_FB4S/tree/vanilla_fb_2.0.x) - ветка на основе 2.0.x ветки Marlin. Никаких изменений в коде. Все изменения только в файлах конфигурации, под платы robin nano и принтеры Flying Bear. Классический интерфейс Color UI. WIFI модуль не работает.
+* [MKS_UI](https://github.com/Sergey1560/Marlin_FB4S/tree/MKS_UI) - ветка на основе 2.0.x ветки Marlin. В коде есть очень небольшое изменение размера буфера, для сборки на STM32F1. На STM32F4 никаких изменений в коде нет. Все изменения только в файлах конфигурации, под платы robin nano и принтеры Flying Bear. Интерфейс MKS UI. WIFI модуль работает.
 
 Если у вас есть какие-то вопросы по настройке прошивки или по ее использованию, вы можете задать свой вопрос в [telegram группе](https://t.me/Ghostbustersss).
 
@@ -29,13 +31,13 @@
 
 ### Варианты прошивки
 
-Если вас устраивает типовой вариант конфигурации, можно взять готовые файлы прошивки в разделе [Releases](https://github.com/Sergey1560/Marlin_FB4S/releases) (на данный момент только для плат robin nano v1.*)
+Если вас устраивает типовой вариант конфигурации, можно взять готовые файлы прошивки в разделе [Releases](https://github.com/Sergey1560/Marlin_FB4S/releases)
 
-Вернуть стандартную прошивку можно в любой момент. Просто запишите ее на SD и включите принтер.
+Вернуть стандартную прошивку можно в любой момент. Просто запишите ее на SD и включите принтер. Взять стандартную прошивку для нужной платы можно [тут](https://sergey1560.github.io/fb4s_howto/mks_board/)
 
 Для настройки под свои нужды, прошивку нужно собрать самостоятельно.
 
-Плата Robin Nano-s v1.3 сделана на другом микроконтроллере (stm32f407), поэтому для сборки прошивки под эту плату нужно изменить:
+Плата Robin Nano-s v1.3 и Robin Nano v1.3  сделана на другом микроконтроллере (stm32f407), поэтому для сборки прошивки под эту плату нужно изменить:
 
 * В файле Marlin/Configuration.h параметр MOTHERBOARD:
 
@@ -57,30 +59,41 @@
 
 [Видео](https://www.youtube.com/watch?v=HirIZk0rWOQ) Дмитрия Соркина
 
-Плата, Robin Nano v1.*, уже выбрана в качестве платы по-умолчанию. Для платы Robin Nano-s v1.3 нужно изменить параметры сборки (описано выше).
+Плата, Robin Nano v1.1 (1.2), уже выбрана в качестве платы по-умолчанию. Для плат Robin Nano-s v1.3 и Robin Nano v1.3 нужно изменить параметры сборки (описано выше).
 
 В меню Platformio можно не выбирать плату, а использовать сочетание клавиш Ctrl+Alt+B.
 
-После компиляции, готовая прошивка лежит в .pio/build/mks_robin_nano35/Robin_nano35.bin для плат Robin Nano v1.* и в .pio/build/mks_robin_nano_v1_3/Robin_nano35.bin для плат Robin Nano-s v1.3
+После компиляции, готовая прошивка лежит в .pio/build/mks_robin_nano35/Robin_nano35.bin для плат Robin Nano v1.1(1.2) и в .pio/build/mks_robin_nano_v1_3/Robin_nano35.bin для плат Robin Nano-s v1.3 и Robin Nano v1.3
 
 На SD карту нужно записывать именно Robin_nano35.bin, а не firmaware.bin
 
 ### Что нужно настроить, если собираете сами
 
-Нужно настроить направления движения по осям под свои драйвера в файле [Configuration.h](./Marlin/Configuration.h) (параметры INVERT_?_DIR, строка 1125).
+Нужно настроить направления движения по осям под свои драйвера в файле [Configuration.h](./Marlin/Configuration.h) (параметры INVERT_?_DIR, строка 1373).
 
-По умолчанию стоят настройки под драйвера 2208/2209 на всех осях. В файле [Configuration.h](./Marlin/Configuration.h) уже есть несколько готовых наборов настроек:
+Для удобства, в файле [Configuration.h](./Marlin/Configuration.h) уже есть готовые наборы настроек для всех типовых конфигураций.
 
-* ALL_DRV_2208 - если установлены драйвера TMC 2208 или TMC 2209 на всех осях
-* FB_4S_STOCK - если установлены драйвера A4988 на всех осях. Это конфигурация для FB4S с стандартными драйверами.
-* FB_5_STOCK - конфигурация для FB 5 (2208 на осях X,Y и A4988 на Z,E)
+Для плат Robin Nano v1.1(1.2):
 
-В строке 1098 нужно выбрать только один из вариантов:
+* ALL_DRV_2208 - 4 драйвера TMC 2208/2209
+* FB_4S_STOCK - 4 драйвера A4988. Это конфигурация для FB4S с стандартными драйверами.
+* FB_5_STOCK - 2 TMC 2208 (на осях X,Y) и 2 A4988 (на осях Z,E)
+
+Для плат Robin Nano v1.3:
+
+* FB_5_NANO_S_V1_3 - для платы Robin Nano-S v1.3
+* FB_5_NANO_V1_3_4TMC - Robin Nano v1.3 c 4 драйверами TMC 2208/2209
+* FB_5_NANO_V1_3 - Robin Nano v1.3 c 2 драйверами TMC 2208/2209 и 2 драйверами A4988
+
+В строке 1322 нужно выбрать только один из вариантов:
 
 ```C
 #define ALL_DRV_2208
 //#define FB_4S_STOCK
 //#define FB_5_STOCK
+//#define FB_5_NANO_S_V1_3
+//#define FB_5_NANO_V1_3_4TMC
+//#define FB_5_NANO_V1_3
 ```
 
 ### Настройки WIFI, если вы используете готовую прошивку
@@ -107,10 +120,6 @@
 Если файл успешно принят отобразится "Upload done" и **прозвучит один звуковой сигнал**
 
 Если во время приема файла были ошибки, отобразится надпись "Upload Failed" и **прозвучит три звуковых сигнала**
-
-### Отключение кода связанного с WIFI модулем
-
-Для отключения всего кода, который связан с WIFI модулем нужно в файле [Marlin/src/pins/stm32f1/pins_MKS_ROBIN_NANO.h](./Marlin/src/pins/stm32f1/pins_MKS_ROBIN_NANO.h) отключить "#define MKS_WIFI". После этого в коде останутся только несколько незначительных изменений, которые не должны влиять на стабильность работы. Если нужен абсолютно чистый код, без каких либо изменений, взять его можно из [оффициального репозитория Marlin](https://github.com/MarlinFirmware/Marlin) и использовать файлы [Configuration.h](./Marlin/Configuration.h) и [Configuration_adv.h](./Marlin/Configuration_adv.h) как образец.
 
 ### BLTouch
 
@@ -144,7 +153,7 @@ Firmware retract позволяет изменять значения ректр
 
 ### EEPROM
 
-На FB4S установлена плата [MKS Robin Nano v.1.1](https://fbghost.info/bin/view/Main/%D0%AD%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%B8%D0%BA%D0%B0%20%2F%20%D0%AD%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%BE%D0%BD%D0%B8%D0%BA%D0%B0/%D0%A3%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D1%8F%D1%8E%D1%89%D0%B0%D1%8F%20%D0%BF%D0%BB%D0%B0%D1%82%D0%B0/MKS%20Robin%20Nano%20V1.1/). На плате установленно 2 микросхемы флеш памяти: AT24C16 (2кб, подключена по I2C) и W25Q64 (подключена по SPI).
+На платах Robin Nano установленно 2 микросхемы флеш памяти: AT24C16 (2кб, подключена по I2C) и W25Q64 (подключена по SPI).
 
 Размер данных, которые сохраняются в EEPROM зависит от включенных опций. При сохранении настроек командой M500, в ответе есть размер сохраняемых данных.
 
@@ -206,48 +215,6 @@ EEPROM_W25Q
 После настройки, для отправки прошивки на принтер, в меню platformio нужно выбрать Upload или нажать Ctrl+Alt+U.
 
 После успешной передачи файла принтер перезагрузится автоматически.
-
-## Выбор графического интерфейса
-
-В коде Marlin есть 3 варианта графического интерфейса, которые работают на FB4S и FB5. Для выбора интерфейса нужно выбрать тип экрана и тип интерфейса в [Configuration.h](./Marlin/Configuration.h), в разделе Graphical TFTs (около 2270 строки).
-
-Для экрана на FB4S и FB5 тип экрана - MKS_ROBIN_TFT35:
-
-```
-/**
- * TFT Type - Select your Display type
- *
- * Available options are:
- *   MKS_TS35_V2_0,
- *   MKS_ROBIN_TFT24, MKS_ROBIN_TFT28, MKS_ROBIN_TFT32, MKS_ROBIN_TFT35,
- *   MKS_ROBIN_TFT43, MKS_ROBIN_TFT_V1_1R
- *   TFT_TRONXY_X5SA, ANYCUBIC_TFT35, LONGER_LK_TFT28
- *   TFT_GENERIC
- *
- * For TFT_GENERIC, you need to configure these 3 options:
- *   Driver:     TFT_DRIVER
- *               Current Drivers are: AUTO, ST7735, ST7789, ST7796, R61505, ILI9328, ILI9341, ILI9488
- *   Resolution: TFT_WIDTH and TFT_HEIGHT
- *   Interface:  TFT_INTERFACE_FSMC or TFT_INTERFACE_SPI
- */
-#define MKS_ROBIN_TFT35
-```
-
-Есть 3 варианта интерфейса, которые можно выбрать:
-
-* Классический Marlin, "текстовый" интерфейс. Включение:
-
-```
-#define TFT_CLASSIC_UI
-```
-
-* Новый, графический интерфейс, расчитанные под тач-экраны:
-
-```
-#define TFT_COLOR_UI
-```
-
-* Графический интерфейс от MKS. Этот интерфейс требует значительного изменения в конфигурации. В связи с этим, вариант прошивки с этим интерфейсом [сделан отдельно](https://github.com/FBGhost-community/Marlin/tree/MKS_UI_FB4S_5)
 
 ## WIFI модуль, отправка команд и файлов
 
