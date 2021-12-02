@@ -1070,6 +1070,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       #if ENABLED(MKS_WIFI)
 				case 991: if(port.index == MKS_WIFI_SERIAL_NUM){mks_m991();}; return;
+				case 992: if(port.index == MKS_WIFI_SERIAL_NUM){mks_m992();}; return;
+				case 994: if(port.index == MKS_WIFI_SERIAL_NUM){mks_m994();}; return;
       #endif
       
       #if ENABLED(MKS_WIFI)

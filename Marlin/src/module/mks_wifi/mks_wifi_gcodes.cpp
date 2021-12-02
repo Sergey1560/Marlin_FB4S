@@ -1,5 +1,9 @@
 #include "mks_wifi_gcodes.h"
 #ifdef MKS_WIFI
+#include "../../module/printcounter.h"
+#include "../../libs/duration_t.h"
+
+
 
 const uint8_t pak[5]={0xA5,0x07,0x00,0x00,0xFC};
 
@@ -62,6 +66,31 @@ void mks_m997(void){
 void mks_m115(void){
   mks_wifi_out_add((uint8_t *)m115_firmware,strlen(m115_firmware));
 }
+
+
+void mks_m992(void){
+  char buffer[30];
+  uint32_t duration_sec = print_job_timer.duration();
+  uint16_t hours = duration_sec / 3600;
+  uint16_t minutes = (duration_sec - hours*3600) / 60;
+  uint16_t seconds = (duration_sec - hours*3600 - minutes*60);
+
+  sprintf((char *)buffer, "M992 %02d:%02d:%02d\r\n", hours, minutes, seconds);
+  mks_wifi_out_add((uint8_t *)buffer,strlen(buffer));
+}
+
+void mks_m994(void){
+  char buffer[150];
+  char filename[101];
+
+  if(CardReader::isPrinting()){
+    CardReader::GetSelectedFilename(filename);
+    sprintf((char *)buffer, ("M994 %s;%ld\n"), filename, CardReader::GetSelectedFilesize());
+    mks_wifi_out_add((uint8_t *)buffer,strlen(buffer));
+  }
+  
+}
+
 
 void mks_m27(void){
 

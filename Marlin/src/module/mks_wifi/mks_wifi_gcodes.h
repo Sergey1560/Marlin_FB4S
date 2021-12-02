@@ -10,6 +10,8 @@
 #ifdef MKS_WIFI
 
 void mks_m991(void);
+void mks_m992(void);
+void mks_m994(void);
 void mks_m997(void);
 void mks_m115(void);
 void mks_m105(void);

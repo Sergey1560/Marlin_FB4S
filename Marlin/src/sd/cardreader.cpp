@@ -1375,4 +1375,34 @@ void CardReader::fileHasFinished() {
 
 #endif // POWER_LOSS_RECOVERY
 
+
+#if ENABLED(MKS_WIFI)
+void CardReader::GetSelectedFilename(char *filename) {
+  if (file.isOpen()) {
+    char dosFilename[FILENAME_LENGTH];
+    file.getDosName(dosFilename);
+    #if ENABLED(LONG_FILENAME_HOST_SUPPORT)
+      selectFileByName(dosFilename);
+      if (longFilename[0]) {
+        strncpy(filename,longFilename,100);
+      }else{
+        strncpy(filename,dosFilename,100);
+      }
+    #else
+    strncpy(filename,dosFilename,100);
+    #endif
+  }
+  else
+    SERIAL_ECHOPGM("(no file)");
+
+  SERIAL_EOL();
+}
+
+
+uint32_t CardReader::GetSelectedFilesize(void) {
+  return filesize;
+}
+
+#endif
+
 #endif // SDSUPPORT
