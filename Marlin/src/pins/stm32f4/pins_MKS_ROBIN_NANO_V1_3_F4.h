@@ -48,9 +48,10 @@
   #define BUF_SIZE_KB                       14
 #endif
 
-#define EXT_EXTRUDER_DRIVER 0 // Если нужен сменный драйвер в слоте второго экструдера как основной экструдер, установить в единицу!
+// Если нужен сменный драйвер в слоте второго экструдера как основной экструдер,  нужно раскоментировать этот параметр
+//#define EXT_EXTRUDER_DRIVER
 
-#if EXT_EXTRUDER_DRIVER
+#ifdef EXT_EXTRUDER_DRIVER
   #undef E1_ENABLE_PIN
   #undef E1_STEP_PIN
   #undef E1_DIR_PIN
