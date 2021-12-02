@@ -47,3 +47,18 @@
 #if HAS_TFT_LVGL_UI
   #define BUF_SIZE_KB                       14
 #endif
+
+#define EXT_EXTRUDER_DRIVER 0 // Если нужен сменный драйвер в слоте второго экструдера как основной экструдер, установить в единицу!
+
+#if EXT_EXTRUDER_DRIVER
+  #undef E1_ENABLE_PIN
+  #undef E1_STEP_PIN
+  #undef E1_DIR_PIN
+  #undef E0_ENABLE_PIN
+  #undef E0_STEP_PIN
+  #undef E0_DIR_PIN
+
+  #define E0_ENABLE_PIN                       PA3
+  #define E0_STEP_PIN                         PA6
+  #define E0_DIR_PIN                          PA1
+#endif
