@@ -75,8 +75,10 @@ void mks_m992(void){
   uint16_t minutes = (duration_sec - hours*3600) / 60;
   uint16_t seconds = (duration_sec - hours*3600 - minutes*60);
 
-  sprintf((char *)buffer, "M992 %02d:%02d:%02d\r\n", hours, minutes, seconds);
-  mks_wifi_out_add((uint8_t *)buffer,strlen(buffer));
+  if(CardReader::isPrinting()){
+    sprintf((char *)buffer, "M992 %02d:%02d:%02d\r\n", hours, minutes, seconds);
+    mks_wifi_out_add((uint8_t *)buffer,strlen(buffer));
+  };
 }
 
 void mks_m994(void){
