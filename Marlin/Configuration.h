@@ -1374,6 +1374,7 @@
 #endif
 
 #ifdef FB_5_NANO_V1_3
+#define USR_E0_DIR false
 #define USR_X_DIR false
 #define USR_Y_DIR false
 #define USR_Z_DIR false
