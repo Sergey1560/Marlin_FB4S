@@ -62,12 +62,10 @@ namespace Language_hu {
   LSTR MSG_DEBUG_MENU                     = _UxGT("Hiba Menü");
   LSTR MSG_PROGRESS_BAR_TEST              = _UxGT("Haladás sáv teszt");
   LSTR MSG_AUTO_HOME                      = _UxGT("X-Y-Z auto kezdöpont");
+  LSTR MSG_AUTO_HOME_A                    = _UxGT("Kezdö @");
   LSTR MSG_AUTO_HOME_X                    = _UxGT("X kezdöpont");
   LSTR MSG_AUTO_HOME_Y                    = _UxGT("Y kezdöpont");
   LSTR MSG_AUTO_HOME_Z                    = _UxGT("Z kezdöpont");
-  LSTR MSG_AUTO_HOME_I                    = _UxGT("Kezdö ") LCD_STR_I;
-  LSTR MSG_AUTO_HOME_J                    = _UxGT("Kezdö ") LCD_STR_J;
-  LSTR MSG_AUTO_HOME_K                    = _UxGT("Kezdö ") LCD_STR_K;
   LSTR MSG_AUTO_Z_ALIGN                   = _UxGT("Auto Z-igazítás");
   LSTR MSG_ITERATION                      = _UxGT("G34 Ismétlés: %i");
   LSTR MSG_DECREASING_ACCURACY            = _UxGT("Pontosság csökken!");
@@ -553,7 +551,7 @@ namespace Language_hu {
   LSTR MSG_CASE_LIGHT_BRIGHTNESS          = _UxGT("Fényerösség");
   LSTR MSG_KILL_EXPECTED_PRINTER          = _UxGT("HELYTELEN NYOMTATÓ");
 
-  #if LCD_WIDTH >= 20
+  #if LCD_WIDTH >= 20 || HAS_DWIN_E3V2
     LSTR MSG_INFO_PRINT_COUNT             = _UxGT("Nyomtatás számláló");
     LSTR MSG_INFO_COMPLETED_PRINTS        = _UxGT("Befejezett");
     LSTR MSG_INFO_PRINT_TIME              = _UxGT("Összes nyomtatási idö");
