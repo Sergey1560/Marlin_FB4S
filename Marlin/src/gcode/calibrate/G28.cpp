@@ -305,21 +305,6 @@ void GcodeSuite::G28() {
       stepperK.rms_current(K_CURRENT_HOME);
       if (DEBUGGING(LEVELING)) debug_current(F(AXIS6_STR), tmc_save_current_K, K_CURRENT_HOME);
     #endif
-    #if HAS_CURRENT_HOME(I)
-      const int16_t tmc_save_current_I = stepperI.getMilliamps();
-      stepperI.rms_current(I_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(AXIS4_STR), tmc_save_current_I, I_CURRENT_HOME);
-    #endif
-    #if HAS_CURRENT_HOME(J)
-      const int16_t tmc_save_current_J = stepperJ.getMilliamps();
-      stepperJ.rms_current(J_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(AXIS5_STR), tmc_save_current_J, J_CURRENT_HOME);
-    #endif
-    #if HAS_CURRENT_HOME(K)
-      const int16_t tmc_save_current_K = stepperK.getMilliamps();
-      stepperK.rms_current(K_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(AXIS6_STR), tmc_save_current_K, K_CURRENT_HOME);
-    #endif
     #if HAS_CURRENT_HOME(Z) && ENABLED(DELTA)
       const int16_t tmc_save_current_Z = stepperZ.getMilliamps();
       stepperZ.rms_current(Z_CURRENT_HOME);
@@ -456,15 +441,9 @@ void GcodeSuite::G28() {
       }
     #endif
 
-    #if LINEAR_AXES >= 4
-      if (doI) homeaxis(I_AXIS);
-    #endif
-    #if LINEAR_AXES >= 5
-      if (doJ) homeaxis(J_AXIS);
-    #endif
-    #if LINEAR_AXES >= 6
-      if (doK) homeaxis(K_AXIS);
-    #endif
+    TERN_(HAS_I_AXIS, if (doI) homeaxis(I_AXIS));
+    TERN_(HAS_J_AXIS, if (doJ) homeaxis(J_AXIS));
+    TERN_(HAS_K_AXIS, if (doK) homeaxis(K_AXIS));
 
     sync_plan_position();
 

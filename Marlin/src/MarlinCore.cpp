@@ -1618,6 +1618,10 @@ void setup() {
   #if ENABLED(EASYTHREED_UI)
     SETUP_RUN(easythreed_ui.init());
   #endif
+
+  #if ENABLED(EASYTHREED_UI)
+    SETUP_RUN(easythreed_ui.init());
+  #endif
   #if ENABLED(MKS_WIFI)
     mks_wifi_init();
   #endif

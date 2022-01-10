@@ -824,7 +824,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "LCD_PROGRESS_BAR requires SDSUPPORT or LCD_SET_PROGRESS_MANUALLY."
   #elif NONE(HAS_MARLINUI_HD44780, IS_TFTGLCD_PANEL)
     #error "LCD_PROGRESS_BAR only applies to HD44780 character LCD and TFTGLCD_PANEL_(SPI|I2C)."
-  #elif HAS_MARLINUI_U8GLIB
+  #elif HAS_MARLINUI_U8GLIB || IS_DWIN_MARLINUI
     #error "LCD_PROGRESS_BAR does not apply to graphical displays."
   #elif ENABLED(FILAMENT_LCD_DISPLAY)
     #error "LCD_PROGRESS_BAR and FILAMENT_LCD_DISPLAY are not fully compatible. Comment out this line to use both."
@@ -1416,7 +1416,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 /**
  * Allow only extra axis codes that do not conflict with G-code parameter names
  */
-#if LINEAR_AXES >= 4
+#if HAS_I_AXIS
   #if AXIS4_NAME != 'A' && AXIS4_NAME != 'B' && AXIS4_NAME != 'C' && AXIS4_NAME != 'U' && AXIS4_NAME != 'V' && AXIS4_NAME != 'W'
     #error "AXIS4_NAME can only be one of 'A', 'B', 'C', 'U', 'V', or 'W'."
   #elif !defined(I_MIN_POS) || !defined(I_MAX_POS)
@@ -1427,7 +1427,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "I_ENABLE_ON is required for your I driver with LINEAR_AXES >= 4."
   #endif
 #endif
-#if LINEAR_AXES >= 5
+#if HAS_J_AXIS
   #if AXIS5_NAME == AXIS4_NAME
     #error "AXIS5_NAME must be unique."
   #elif AXIS5_NAME != 'A' && AXIS5_NAME != 'B' && AXIS5_NAME != 'C' && AXIS5_NAME != 'U' && AXIS5_NAME != 'V' && AXIS5_NAME != 'W'
@@ -1440,7 +1440,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "J_ENABLE_ON is required for your J driver with LINEAR_AXES >= 5."
   #endif
 #endif
-#if LINEAR_AXES >= 6
+#if HAS_K_AXIS
   #if AXIS6_NAME == AXIS5_NAME || AXIS6_NAME == AXIS4_NAME
     #error "AXIS6_NAME must be unique."
   #elif AXIS6_NAME != 'A' && AXIS6_NAME != 'B' && AXIS6_NAME != 'C' && AXIS6_NAME != 'U' && AXIS6_NAME != 'V' && AXIS6_NAME != 'W'
@@ -1995,8 +1995,12 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #endif
 #endif
 
-#if HAS_FAN0 && CONTROLLER_FAN_PIN == FAN_PIN
-  #error "You cannot set CONTROLLER_FAN_PIN equal to FAN_PIN."
+#if HAS_FAN0
+  #if CONTROLLER_FAN_PIN == FAN_PIN
+    #error "You cannot set CONTROLLER_FAN_PIN equal to FAN_PIN."
+  #elif ENABLED(FAN_SOFT_PWM_REQUIRED) && DISABLED(FAN_SOFT_PWM)
+    #error "FAN_SOFT_PWM is required. Enable it to continue."
+  #endif
 #endif
 
 #if ENABLED(USE_CONTROLLER_FAN)
@@ -2395,13 +2399,13 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #if _AXIS_PLUG_UNUSED_TEST(Z)
     #error "You must enable USE_ZMIN_PLUG or USE_ZMAX_PLUG."
   #endif
-  #if LINEAR_AXES >= 4 && _AXIS_PLUG_UNUSED_TEST(I)
+  #if HAS_I_AXIS && _AXIS_PLUG_UNUSED_TEST(I)
     #error "You must enable USE_IMIN_PLUG or USE_IMAX_PLUG."
   #endif
-  #if LINEAR_AXES >= 5 && _AXIS_PLUG_UNUSED_TEST(J)
+  #if HAS_J_AXIS && _AXIS_PLUG_UNUSED_TEST(J)
     #error "You must enable USE_JMIN_PLUG or USE_JMAX_PLUG."
   #endif
-  #if LINEAR_AXES >= 6 && _AXIS_PLUG_UNUSED_TEST(K)
+  #if HAS_K_AXIS && _AXIS_PLUG_UNUSED_TEST(K)
     #error "You must enable USE_KMIN_PLUG or USE_KMAX_PLUG."
   #endif
 
@@ -2415,17 +2419,17 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
       #error "Enable USE_YMIN_PLUG when homing Y to MIN."
     #elif Y_HOME_TO_MAX && DISABLED(USE_YMAX_PLUG)
       #error "Enable USE_YMAX_PLUG when homing Y to MAX."
-    #elif LINEAR_AXES >= 4 && I_HOME_TO_MIN && DISABLED(USE_IMIN_PLUG)
+    #elif HAS_I_AXIS && I_HOME_TO_MIN && DISABLED(USE_IMIN_PLUG)
       #error "Enable USE_IMIN_PLUG when homing I to MIN."
-    #elif LINEAR_AXES >= 4 && I_HOME_TO_MAX && DISABLED(USE_IMAX_PLUG)
+    #elif HAS_I_AXIS && I_HOME_TO_MAX && DISABLED(USE_IMAX_PLUG)
       #error "Enable USE_IMAX_PLUG when homing I to MAX."
-    #elif LINEAR_AXES >= 5 && J_HOME_TO_MIN && DISABLED(USE_JMIN_PLUG)
+    #elif HAS_J_AXIS && J_HOME_TO_MIN && DISABLED(USE_JMIN_PLUG)
       #error "Enable USE_JMIN_PLUG when homing J to MIN."
-    #elif LINEAR_AXES >= 5 && J_HOME_TO_MAX && DISABLED(USE_JMAX_PLUG)
+    #elif HAS_J_AXIS && J_HOME_TO_MAX && DISABLED(USE_JMAX_PLUG)
       #error "Enable USE_JMAX_PLUG when homing J to MAX."
-    #elif LINEAR_AXES >= 6 && K_HOME_TO_MIN && DISABLED(USE_KMIN_PLUG)
+    #elif HAS_K_AXIS && K_HOME_TO_MIN && DISABLED(USE_KMIN_PLUG)
       #error "Enable USE_KMIN_PLUG when homing K to MIN."
-    #elif LINEAR_AXES >= 6 && K_HOME_TO_MAX && DISABLED(USE_KMAX_PLUG)
+    #elif HAS_K_AXIS && K_HOME_TO_MAX && DISABLED(USE_KMAX_PLUG)
       #error "Enable USE_KMAX_PLUG when homing K to MAX."
     #endif
   #endif
@@ -2765,6 +2769,20 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #error "Please select only one of CHIRON_TFT_STANDARD or CHIRON_TFT_NEW."
 #endif
 
+#if ENABLED(ANYCUBIC_LCD_CHIRON)
+  #if !defined(BEEPER_PIN)
+    #error "ANYCUBIC_LCD_CHIRON requires BEEPER_PIN"
+  #elif DISABLED(SDSUPPORT)
+    #error "ANYCUBIC_LCD_CHIRON requires SDSUPPORT"
+  #elif TEMP_SENSOR_BED == 0
+    #error "ANYCUBIC_LCD_CHIRON requires heatbed (TEMP_SENSOR_BED)"
+  #elif NONE(AUTO_BED_LEVELING_BILINEAR, AUTO_BED_LEVELING_UBL, MESH_BED_LEVELING)
+    #error "ANYCUBIC_LCD_CHIRON requires one of: AUTO_BED_LEVELING_BILINEAR, AUTO_BED_LEVELING_UBL or MESH_BED_LEVELING"
+  #elif DISABLED(BABYSTEPPING)
+    #error "ANYCUBIC_LCD_CHIRON requires BABYSTEPPING"
+  #endif
+#endif
+
 #if EITHER(MKS_TS35_V2_0, BTT_TFT35_SPI_V1_0) && SD_CONNECTION_IS(LCD)
   #error "SDCARD_CONNECTION cannot be set to LCD for the enabled TFT. No available SD card reader."
 #endif
@@ -2936,11 +2954,11 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #error "TMC2208 or TMC2209 on E6 requires E6_HARDWARE_SERIAL or E6_SERIAL_(RX|TX)_PIN."
 #elif INVALID_TMC_UART(E7)
   #error "TMC2208 or TMC2209 on E7 requires E7_HARDWARE_SERIAL or E7_SERIAL_(RX|TX)_PIN."
-#elif LINEAR_AXES >= 4 && INVALID_TMC_UART(I)
+#elif HAS_I_AXIS && INVALID_TMC_UART(I)
   #error "TMC2208 or TMC2209 on I requires I_HARDWARE_SERIAL or I_SERIAL_(RX|TX)_PIN."
-#elif LINEAR_AXES >= 5 && INVALID_TMC_UART(J)
+#elif HAS_J_AXIS && INVALID_TMC_UART(J)
   #error "TMC2208 or TMC2209 on J requires J_HARDWARE_SERIAL or J_SERIAL_(RX|TX)_PIN."
-#elif LINEAR_AXES >= 6 && INVALID_TMC_UART(K)
+#elif HAS_K_AXIS && INVALID_TMC_UART(K)
   #error "TMC2208 or TMC2209 on K requires K_HARDWARE_SERIAL or K_SERIAL_(RX|TX)_PIN."
 #endif
 #undef INVALID_TMC_UART
@@ -3026,11 +3044,11 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   INVALID_TMC_MS(E6)
 #elif !TMC_MICROSTEP_IS_VALID(E7)
   INVALID_TMC_MS(E7)
-#elif LINEAR_AXES >= 4 && !TMC_MICROSTEP_IS_VALID(I)
+#elif HAS_I_AXIS && !TMC_MICROSTEP_IS_VALID(I)
   INVALID_TMC_MS(I)
-#elif LINEAR_AXES >= 5 && !TMC_MICROSTEP_IS_VALID(J)
+#elif HAS_J_AXIS && !TMC_MICROSTEP_IS_VALID(J)
   INVALID_TMC_MS(J)
-#elif LINEAR_AXES >= 6 && !TMC_MICROSTEP_IS_VALID(K)
+#elif HAS_K_AXIS && !TMC_MICROSTEP_IS_VALID(K)
   INVALID_TMC_MS(K)
 #endif
 #undef INVALID_TMC_MS
@@ -3052,13 +3070,13 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #define X_ENDSTOP_INVERTING !AXIS_DRIVER_TYPE(X,TMC2209)
   #define Y_ENDSTOP_INVERTING !AXIS_DRIVER_TYPE(Y,TMC2209)
   #define Z_ENDSTOP_INVERTING !AXIS_DRIVER_TYPE(Z,TMC2209)
-  #if LINEAR_AXES >= 4
+  #if HAS_I_AXIS
     #define I_ENDSTOP_INVERTING !AXIS_DRIVER_TYPE(I,TMC2209)
   #endif
-  #if LINEAR_AXES >= 5
+  #if HAS_J_AXIS
     #define J_ENDSTOP_INVERTING !AXIS_DRIVER_TYPE(J,TMC2209)
   #endif
-  #if LINEAR_AXES >= 6
+  #if HAS_K_AXIS
     #define K_ENDSTOP_INVERTING !AXIS_DRIVER_TYPE(K,TMC2209)
   #endif
 
@@ -3075,17 +3093,17 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
       #error "SENSORLESS_HOMING requires ENDSTOPPULLUP_ZMIN (or ENDSTOPPULLUPS) when homing to Z_MIN."
     #elif Z_SENSORLESS && Z_HOME_TO_MAX && DISABLED(ENDSTOPPULLUP_ZMAX)
       #error "SENSORLESS_HOMING requires ENDSTOPPULLUP_ZMAX (or ENDSTOPPULLUPS) when homing to Z_MAX."
-    #elif LINEAR_AXES >= 4 && I_SENSORLESS && I_HOME_TO_MIN && DISABLED(ENDSTOPPULLUP_IMIN)
+    #elif ALL(HAS_I_AXIS, I_SENSORLESS, I_HOME_TO_MIN) && DISABLED(ENDSTOPPULLUP_IMIN)
       #error "SENSORLESS_HOMING requires ENDSTOPPULLUP_IMIN (or ENDSTOPPULLUPS) when homing to I_MIN."
-    #elif LINEAR_AXES >= 4 && I_SENSORLESS && I_HOME_TO_MAX && DISABLED(ENDSTOPPULLUP_IMAX)
+    #elif ALL(HAS_I_AXIS, I_SENSORLESS, I_HOME_TO_MAX) && DISABLED(ENDSTOPPULLUP_IMAX)
       #error "SENSORLESS_HOMING requires ENDSTOPPULLUP_IMAX (or ENDSTOPPULLUPS) when homing to I_MAX."
-    #elif LINEAR_AXES >= 5 && J_SENSORLESS && J_HOME_TO_MIN && DISABLED(ENDSTOPPULLUP_JMIN)
+    #elif ALL(HAS_J_AXIS, J_SENSORLESS, J_HOME_TO_MIN) && DISABLED(ENDSTOPPULLUP_JMIN)
       #error "SENSORLESS_HOMING requires ENDSTOPPULLUP_JMIN (or ENDSTOPPULLUPS) when homing to J_MIN."
-    #elif LINEAR_AXES >= 5 && J_SENSORLESS && J_HOME_TO_MAX && DISABLED(ENDSTOPPULLUP_JMAX)
+    #elif ALL(HAS_J_AXIS, J_SENSORLESS, J_HOME_TO_MAX) && DISABLED(ENDSTOPPULLUP_JMAX)
       #error "SENSORLESS_HOMING requires ENDSTOPPULLUP_JMAX (or ENDSTOPPULLUPS) when homing to J_MAX."
-    #elif LINEAR_AXES >= 6 && K_SENSORLESS && K_HOME_TO_MIN && DISABLED(ENDSTOPPULLUP_KMIN)
+    #elif ALL(HAS_K_AXIS, K_SENSORLESS, K_HOME_TO_MIN) && DISABLED(ENDSTOPPULLUP_KMIN)
       #error "SENSORLESS_HOMING requires ENDSTOPPULLUP_KMIN (or ENDSTOPPULLUPS) when homing to K_MIN."
-    #elif LINEAR_AXES >= 6 && K_SENSORLESS && K_HOME_TO_MAX && DISABLED(ENDSTOPPULLUP_KMAX)
+    #elif ALL(HAS_K_AXIS, K_SENSORLESS, K_HOME_TO_MAX) && DISABLED(ENDSTOPPULLUP_KMAX)
       #error "SENSORLESS_HOMING requires ENDSTOPPULLUP_KMAX (or ENDSTOPPULLUPS) when homing to K_MAX."
     #endif
   #endif
@@ -3131,37 +3149,37 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
       #else
         #error "SENSORLESS_HOMING requires Z_MAX_ENDSTOP_INVERTING = false when homing TMC2209 to Z_MAX."
       #endif
-    #elif LINEAR_AXES >= 4 && I_SENSORLESS && I_HOME_TO_MIN && I_MIN_ENDSTOP_INVERTING != I_ENDSTOP_INVERTING
+    #elif ALL(HAS_I_AXIS, I_SENSORLESS, I_HOME_TO_MIN) && I_MIN_ENDSTOP_INVERTING != I_ENDSTOP_INVERTING
       #if I_ENDSTOP_INVERTING
         #error "SENSORLESS_HOMING requires I_MIN_ENDSTOP_INVERTING = true when homing to I_MIN."
       #else
         #error "SENSORLESS_HOMING requires I_MIN_ENDSTOP_INVERTING = false when homing TMC2209 to I_MIN."
       #endif
-    #elif LINEAR_AXES >= 4 && I_SENSORLESS && I_HOME_TO_MAX && I_MAX_ENDSTOP_INVERTING != I_ENDSTOP_INVERTING
+    #elif ALL(HAS_I_AXIS, I_SENSORLESS, I_HOME_TO_MAX) && I_MAX_ENDSTOP_INVERTING != I_ENDSTOP_INVERTING
       #if I_ENDSTOP_INVERTING
         #error "SENSORLESS_HOMING requires I_MAX_ENDSTOP_INVERTING = true when homing to I_MAX."
       #else
         #error "SENSORLESS_HOMING requires I_MAX_ENDSTOP_INVERTING = false when homing TMC2209 to I_MAX."
       #endif
-    #elif LINEAR_AXES >= 5 && J_SENSORLESS && J_HOME_TO_MIN && J_MIN_ENDSTOP_INVERTING != J_ENDSTOP_INVERTING
+    #elif ALL(HAS_J_AXIS, J_SENSORLESS, J_HOME_TO_MIN) && J_MIN_ENDSTOP_INVERTING != J_ENDSTOP_INVERTING
       #if J_ENDSTOP_INVERTING
         #error "SENSORLESS_HOMING requires J_MIN_ENDSTOP_INVERTING = true when homing to J_MIN."
       #else
         #error "SENSORLESS_HOMING requires J_MIN_ENDSTOP_INVERTING = false when homing TMC2209 to J_MIN."
       #endif
-    #elif LINEAR_AXES >= 5 && J_SENSORLESS && J_HOME_TO_MAX && J_MAX_ENDSTOP_INVERTING != J_ENDSTOP_INVERTING
+    #elif ALL(HAS_J_AXIS, J_SENSORLESS, J_HOME_TO_MAX) && J_MAX_ENDSTOP_INVERTING != J_ENDSTOP_INVERTING
       #if J_ENDSTOP_INVERTING
         #error "SENSORLESS_HOMING requires J_MAX_ENDSTOP_INVERTING = true when homing to J_MAX."
       #else
         #error "SENSORLESS_HOMING requires J_MAX_ENDSTOP_INVERTING = false when homing TMC2209 to J_MAX."
       #endif
-    #elif LINEAR_AXES >= 6 && K_SENSORLESS && K_HOME_TO_MIN && K_MIN_ENDSTOP_INVERTING != K_ENDSTOP_INVERTING
+    #elif ALL(HAS_K_AXIS, K_SENSORLESS, K_HOME_TO_MIN) && K_MIN_ENDSTOP_INVERTING != K_ENDSTOP_INVERTING
       #if K_ENDSTOP_INVERTING
         #error "SENSORLESS_HOMING requires K_MIN_ENDSTOP_INVERTING = true when homing to K_MIN."
       #else
         #error "SENSORLESS_HOMING requires K_MIN_ENDSTOP_INVERTING = false when homing TMC2209 to K_MIN."
       #endif
-    #elif LINEAR_AXES >= 6 && K_SENSORLESS && K_HOME_TO_MAX && K_MAX_ENDSTOP_INVERTING != K_ENDSTOP_INVERTING
+    #elif ALL(HAS_K_AXIS, K_SENSORLESS, K_HOME_TO_MAX) && K_MAX_ENDSTOP_INVERTING != K_ENDSTOP_INVERTING
       #if K_ENDSTOP_INVERTING
         #error "SENSORLESS_HOMING requires K_MAX_ENDSTOP_INVERTING = true when homing to K_MAX."
       #else
@@ -3285,7 +3303,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 /**
  * L64XX requirement
  */
-#if HAS_L64XX && LINEAR_AXES >= 4
+#if HAS_L64XX && HAS_I_AXIS
   #error "L64XX requires LINEAR_AXES 3. Homing with L64XX is not yet implemented for LINEAR_AXES > 3."
 #endif
 
@@ -3669,7 +3687,7 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
   #error "COOLANT_FLOOD requires COOLANT_FLOOD_PIN to be defined."
 #endif
 
-#if NONE(HAS_MARLINUI_U8GLIB, EXTENSIBLE_UI) && ENABLED(PRINT_PROGRESS_SHOW_DECIMALS)
+#if NONE(HAS_MARLINUI_U8GLIB, EXTENSIBLE_UI, IS_DWIN_MARLINUI) && ENABLED(PRINT_PROGRESS_SHOW_DECIMALS)
   #error "PRINT_PROGRESS_SHOW_DECIMALS currently requires a Graphical LCD."
 #endif
 
@@ -3765,17 +3783,17 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
 #if _BAD_DRIVER(Z)
   #error "Z_DRIVER_TYPE is not recognized."
 #endif
-#if LINEAR_AXES >= 4
+#if HAS_I_AXIS
   #if _BAD_DRIVER(I)
     #error "I_DRIVER_TYPE is not recognized."
   #endif
 #endif
-#if LINEAR_AXES >= 5
+#if HAS_J_AXIS
   #if _BAD_DRIVER(J)
     #error "J_DRIVER_TYPE is not recognized."
   #endif
 #endif
-#if LINEAR_AXES >= 6
+#if HAS_K_AXIS
   #if _BAD_DRIVER(K)
     #error "K_DRIVER_TYPE is not recognized."
   #endif

@@ -68,12 +68,10 @@ namespace Language_it {
   LSTR MSG_DEBUG_MENU                     = _UxGT("Menu di debug");
   LSTR MSG_PROGRESS_BAR_TEST              = _UxGT("Test barra avanzam.");
   LSTR MSG_AUTO_HOME                      = _UxGT("Auto Home");
+  LSTR MSG_AUTO_HOME_A                    = _UxGT("Home @");
   LSTR MSG_AUTO_HOME_X                    = _UxGT("Home X");
   LSTR MSG_AUTO_HOME_Y                    = _UxGT("Home Y");
   LSTR MSG_AUTO_HOME_Z                    = _UxGT("Home Z");
-  LSTR MSG_AUTO_HOME_I                    = _UxGT("Home ") LCD_STR_I;
-  LSTR MSG_AUTO_HOME_J                    = _UxGT("Home ") LCD_STR_J;
-  LSTR MSG_AUTO_HOME_K                    = _UxGT("Home ") LCD_STR_K;
   LSTR MSG_AUTO_Z_ALIGN                   = _UxGT("Allineam.automat. Z");
   LSTR MSG_ITERATION                      = _UxGT("Iterazione G34: %i");
   LSTR MSG_DECREASING_ACCURACY            = _UxGT("Precisione in calo!");
@@ -562,7 +560,7 @@ namespace Language_it {
   LSTR MSG_CASE_LIGHT_BRIGHTNESS          = _UxGT("Luminosità Luci");
   LSTR MSG_KILL_EXPECTED_PRINTER          = _UxGT("STAMPANTE ERRATA");
 
-  #if LCD_WIDTH >= 20
+  #if LCD_WIDTH >= 20 || HAS_DWIN_E3V2
     LSTR MSG_INFO_PRINT_COUNT             = _UxGT("Contat. stampa");
     LSTR MSG_INFO_COMPLETED_PRINTS        = _UxGT("Completati");
     LSTR MSG_INFO_PRINT_TIME              = _UxGT("Tempo totale");
