@@ -1516,11 +1516,6 @@ void EachMomentUpdate() {
     DWIN_DrawStatusMessage();
   }
 
-  if (ELAPSED(ms, next_status_update_ms)) {
-    next_status_update_ms = ms + 500;
-    DWIN_DrawStatusMessage();
-  }
-
   if (PENDING(ms, next_rts_update_ms)) return;
   next_rts_update_ms = ms + DWIN_SCROLL_UPDATE_INTERVAL;
 
