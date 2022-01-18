@@ -95,15 +95,13 @@ BlTouch
 https://sergey1560.github.io/fb4s_howto/mks_pwc/
 */
 #if ENABLED(MKS_PWC)
-    #undef SUICIDE_PIN
-    #undef SUICIDE_PIN_STATE
+    #undef PS_ON_PIN
     #undef KILL_PIN
     #undef KILL_PIN_STATE
 
-    #define SUICIDE_PIN                       PE5
-    #define SUICIDE_PIN_STATE                 LOW
     #define KILL_PIN                          PA2
     #define KILL_PIN_STATE                    HIGH
+    #define PS_ON_PIN                         PE5
 #endif
 
 #ifdef PRINTER_NAME_FB5
