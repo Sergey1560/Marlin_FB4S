@@ -133,7 +133,7 @@ uint8_t mks_wifi_input(uint8_t data){
 		packet_index=0;
 		memset((uint8_t*)mks_in_buffer,0,MKS_IN_BUFF_SIZE);
 	}else if(!packet_start_flag){
-		DEBUG("Byte not in packet %0X",data);
+		DEBUG("Byte not in packet %0X - [%c]",data,data);
 		return 1;
 	}
 
@@ -185,23 +185,6 @@ uint8_t mks_wifi_input(uint8_t data){
 		packet_start_flag=0;
 		packet_index=0;
 	}
-
-	/* Если в пакете G-Сode, отдаем payload дальше в обработчик марлина */
-	// if((packet_type == ESP_TYPE_GCODE) && 
-	//    (packet_index >= 4) && 
-	//    (packet_index < payload_size+5) 
-	//   ){
-
-	// 	if(!check_char_allowed(data)){
-	// 		ret_val=0;
-	// 	}else{
-	// 		ERROR("Char not allowed: %0X %c",data,data);
-	// 		packet_start_flag=0;
-	// 		packet_index=0;
-	// 		return 1;
-	// 	}
-		
-	// }
 
 	if(packet_start_flag){
 		packet_index++;
@@ -298,8 +281,6 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 		case ESP_TYPE_GCODE:
 				char gcode_cmd[50];
 				uint32_t cmd_index;
-				// packet->data[packet->dataLen] = 0;
-				// DEBUG("Gcode packet: %s",packet->data);
 				
 				cmd_index = 0;
 				memset(gcode_cmd,0,50);
@@ -312,10 +293,7 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 						cmd_index = 0;
 						memset(gcode_cmd,0,50);
 					}
-
 				}
-				
-				
 			break;
 		case ESP_TYPE_FILE_FIRST:
 				DEBUG("[FILE_FIRST]");
@@ -343,8 +321,6 @@ void mks_wifi_parse_packet(ESP_PROTOC_FRAME *packet){
 	}
 
 }
-
-
 
 uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
 	uint16_t packet_size=0;
@@ -381,10 +357,12 @@ void mks_wifi_send(uint8_t *packet, uint16_t size){
 
 	for( uint32_t i=0; i < (uint32_t)(size+1); i++){
 		while(MYSERIAL2.availableForWrite()==0){
-			safe_delay(10);				
+			safe_delay(10);
 		}
 		MYSERIAL2.write(packet[i]);
 	}
+
+	safe_delay(5);
 }
 #else
 void mks_wifi_out_add(uint8_t *data, uint32_t size){

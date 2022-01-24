@@ -1,10 +1,12 @@
 #ifndef SDIO_DRIVER_H
 #define SDIO_DRIVER_H
 
-#include "../../module/mks_wifi/mks_wifi.h"
-
-#ifdef MKS_WIFI
 #ifdef STM32F1
+
+#ifndef MAPLE_STM32F1
+#include "../../module/mks_wifi/mks_wifi.h"
+#endif
+
 
 // SD card description
 typedef struct {
@@ -155,8 +157,6 @@ uint8_t SD_Cmd(uint8_t cmd, uint32_t arg, uint16_t response_type, uint32_t *resp
 uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir);
 uint8_t SD_Init(void);
 //void SDIO_Config(void);
-
-#endif
 
 #endif
 #endif

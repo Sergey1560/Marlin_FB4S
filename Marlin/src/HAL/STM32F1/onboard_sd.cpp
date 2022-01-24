@@ -13,7 +13,7 @@
 
 #ifdef __STM32F1__
 
-#if DISABLED(MKS_WIFI)
+#if 0
 
 #include "../../inc/MarlinConfig.h"
 

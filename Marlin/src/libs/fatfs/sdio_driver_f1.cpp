@@ -1,6 +1,12 @@
-#include "sdio_driver_f1.h"
-#ifdef MKS_WIFI
+
+//#ifdef MKS_WIFI
 #ifdef STM32F1
+#ifdef MAPLE_STM32F1
+#include "../../module/mks_wifi/stm32f103xe.h"
+#endif
+
+#include "sdio_driver_f1.h"
+#include "../../libs/Segger/log.h"
 
 volatile SDCard_TypeDef SDCard;
 volatile SD_Status_TypeDef SDStatus;
@@ -297,5 +303,5 @@ void SD_parse_CSD(uint32_t* reg){
 	SDCard.Capacity=(tmp+1)*512;
 };
 
-#endif
+//#endif
 #endif

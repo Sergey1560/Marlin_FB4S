@@ -97,6 +97,7 @@
 // Choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
   #define MOTHERBOARD BOARD_MKS_ROBIN_NANO
+//  #define MOTHERBOARD BOARD_MKS_ROBIN_NANO_V1_3_F4
 #endif
 
 /**
