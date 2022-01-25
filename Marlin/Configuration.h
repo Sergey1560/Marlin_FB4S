@@ -1350,6 +1350,9 @@
 //Robin Nano v1.3 with 2x A4988 and 2 x TMC 2208/2209
 //#define FB_5_NANO_V1_3
 
+//Flying Bear Reborn 3.0
+//#define FB_5_REBORN_3_0
+
 #ifdef ALL_DRV_2208
 #define USR_E0_DIR true
 #define USR_X_DIR false
@@ -1381,6 +1384,14 @@
 #define USR_Y_DIR true
 #define USR_Z_DIR false
 #endif
+
+#ifdef FB_5_REBORN_3_0
+#define USR_E0_DIR false
+#define USR_X_DIR true
+#define USR_Y_DIR true
+#define USR_Z_DIR false
+#endif
+
 
 #ifdef FB_5_NANO_V1_3
 #define USR_E0_DIR false
