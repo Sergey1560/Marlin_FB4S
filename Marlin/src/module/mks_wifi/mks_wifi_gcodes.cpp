@@ -106,7 +106,10 @@ void mks_m27(void){
 
 void mks_m30(char *filename){
   
-  filename[0]='0';
+  if( (filename[0] == '1') && (filename[1]=':') ){ //Full path form Cura "1:/filename"
+    filename[0]='0';
+  }
+  
   DEBUG("M30: %s",filename);
   sd_delete_file(filename);
 

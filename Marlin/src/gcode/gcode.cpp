@@ -540,11 +540,12 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
               mks_m30(parser.string_arg);
             }else{
               M30();           
-            }
+            };
         #else
         M30(); 
         #endif
-
+        break;
+        
         #if HAS_MEDIA_SUBCALLS
           case 32: M32(); break;                                  // M32: Select file and start SD print
         #endif
@@ -603,9 +604,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         M105(); 
       }
       #else
-      M105(); 
+      M105();
       #endif
-      return;                                   // M105: Report Temperatures (and say "ok")
+      break;
+                                   // M105: Report Temperatures (and say "ok")
 
       #if HAS_FAN
         case 106: M106(); break;                                  // M106: Fan On
@@ -700,7 +702,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
               M115(); 
             }
             #else
-              M115(); 
+              M115();
             #endif
         break;                                    // M115: Report capabilities
       case 117: TERN_(HAS_STATUS_MESSAGE, M117()); break;                                    // M117: Set LCD message text, if possible
@@ -1084,9 +1086,9 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #endif
 
       #if ENABLED(MKS_WIFI)
-				case 991: if(port.index == MKS_WIFI_SERIAL_NUM){mks_m991();}; return;
-				case 992: if(port.index == MKS_WIFI_SERIAL_NUM){mks_m992();}; return;
-				case 994: if(port.index == MKS_WIFI_SERIAL_NUM){mks_m994();}; return;
+				case 991: if(port.index == MKS_WIFI_SERIAL_NUM){mks_m991();}; break;
+				case 992: if(port.index == MKS_WIFI_SERIAL_NUM){mks_m992();}; break;
+				case 994: if(port.index == MKS_WIFI_SERIAL_NUM){mks_m994();}; break;
       #endif
       
       #if ENABLED(MKS_WIFI)
@@ -1098,7 +1100,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
                     M997();
                     #endif
                   }; 
-                  return;
+                   break;
       #else
       #if ENABLED(PLATFORM_M997_SUPPORT)
         case 997: M997(); break;                                  // M997: Perform in-application firmware update
