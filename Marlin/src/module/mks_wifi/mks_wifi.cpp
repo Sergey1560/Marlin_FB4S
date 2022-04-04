@@ -357,12 +357,12 @@ void mks_wifi_send(uint8_t *packet, uint16_t size){
 
 	for( uint32_t i=0; i < (uint32_t)(size+1); i++){
 		while(MYSERIAL2.availableForWrite()==0){
-			safe_delay(10);
+			delay(10);
 		}
 		MYSERIAL2.write(packet[i]);
 	}
 
-	safe_delay(5);
+	delay(5);
 }
 #else
 void mks_wifi_out_add(uint8_t *data, uint32_t size){
