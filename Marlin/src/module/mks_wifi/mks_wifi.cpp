@@ -354,15 +354,33 @@ uint16_t mks_wifi_build_packet(uint8_t *packet, ESP_PROTOC_FRAME *esp_frame){
 
 
 void mks_wifi_send(uint8_t *packet, uint16_t size){
+	static uint32_t error_flag=0;
+	uint32_t timeout;
 
+	/* 
+	Если уже был выход по превышению ожидания и место
+	очереди так и не освободилось, сразу выход.
+	*/
+
+	if(error_flag == 1){
+		if(MYSERIAL2.availableForWrite()==0){
+			return;
+		}else{
+			error_flag = 0;
+		}
+	}
+	
 	for( uint32_t i=0; i < (uint32_t)(size+1); i++){
+		timeout = 0xaffffff;
 		while(MYSERIAL2.availableForWrite()==0){
-			safe_delay(10);
+			--timeout;
+			if(!timeout){
+				error_flag=1;
+				return;
+			};
 		}
 		MYSERIAL2.write(packet[i]);
 	}
-
-	safe_delay(5);
 }
 #else
 void mks_wifi_out_add(uint8_t *data, uint32_t size){
