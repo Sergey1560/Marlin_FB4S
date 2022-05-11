@@ -104,7 +104,6 @@ namespace Language_en {
   LSTR MSG_HOME_OFFSET_J                  = _UxGT("Home Offset ") STR_J;
   LSTR MSG_HOME_OFFSET_K                  = _UxGT("Home Offset ") STR_K;
   LSTR MSG_HOME_OFFSETS_APPLIED           = _UxGT("Offsets Applied");
-  LSTR MSG_SET_ORIGIN                     = _UxGT("Set Origin");
   LSTR MSG_TRAMMING_WIZARD                = _UxGT("Tramming Wizard");
   LSTR MSG_SELECT_ORIGIN                  = _UxGT("Select Origin");
   LSTR MSG_LAST_VALUE_SP                  = _UxGT("Last value ");
@@ -151,6 +150,7 @@ namespace Language_en {
   LSTR MSG_BED_LEVELING                   = _UxGT("Bed Leveling");
   LSTR MSG_LEVEL_BED                      = _UxGT("Level Bed");
   LSTR MSG_BED_TRAMMING                   = _UxGT("Bed Tramming");
+  LSTR MSG_BED_TRAMMING_MANUAL            = _UxGT("Manual Tramming");
   LSTR MSG_BED_TRAMMING_RAISE             = _UxGT("Adjust bed until the probe triggers.");
   LSTR MSG_BED_TRAMMING_IN_RANGE          = _UxGT("Corners within tolerance. Bed trammed.");
   LSTR MSG_BED_TRAMMING_GOOD_POINTS       = _UxGT("Good Points: ");
@@ -402,6 +402,8 @@ namespace Language_en {
   LSTR MSG_ADVANCE_K_E                    = _UxGT("Advance K *");
   LSTR MSG_CONTRAST                       = _UxGT("LCD Contrast");
   LSTR MSG_BRIGHTNESS                     = _UxGT("LCD Brightness");
+  LSTR MSG_LCD_TIMEOUT_SEC                = _UxGT("LCD Timeout (s)");
+  LSTR MSG_BRIGHTNESS_OFF                 = _UxGT("Backlight Off");
   LSTR MSG_STORE_EEPROM                   = _UxGT("Store Settings");
   LSTR MSG_LOAD_EEPROM                    = _UxGT("Load Settings");
   LSTR MSG_RESTORE_DEFAULTS               = _UxGT("Restore Defaults");
@@ -428,6 +430,8 @@ namespace Language_en {
   LSTR MSG_BUTTON_RESET                   = _UxGT("Reset");
   LSTR MSG_BUTTON_IGNORE                  = _UxGT("Ignore");
   LSTR MSG_BUTTON_CANCEL                  = _UxGT("Cancel");
+  LSTR MSG_BUTTON_CONFIRM                 = _UxGT("Confirm");
+  LSTR MSG_BUTTON_CONTINUE                = _UxGT("Continue");
   LSTR MSG_BUTTON_DONE                    = _UxGT("Done");
   LSTR MSG_BUTTON_BACK                    = _UxGT("Back");
   LSTR MSG_BUTTON_PROCEED                 = _UxGT("Proceed");
@@ -437,6 +441,7 @@ namespace Language_en {
   LSTR MSG_BUTTON_PAUSE                   = _UxGT("Pause");
   LSTR MSG_BUTTON_RESUME                  = _UxGT("Resume");
   LSTR MSG_BUTTON_ADVANCED                = _UxGT("Advanced");
+  LSTR MSG_BUTTON_SAVE                    = _UxGT("Save");
   LSTR MSG_PAUSING                        = _UxGT("Pausing...");
   LSTR MSG_PAUSE_PRINT                    = _UxGT("Pause Print");
   LSTR MSG_ADVANCED_PAUSE                 = _UxGT("Advanced Pause");
@@ -456,6 +461,7 @@ namespace Language_en {
   LSTR MSG_PRINT_PAUSED                   = _UxGT("Print Paused");
   LSTR MSG_PRINTING                       = _UxGT("Printing...");
   LSTR MSG_STOPPING                       = _UxGT("Stopping...");
+  LSTR MSG_REMAINING_TIME                 = _UxGT("Remaining");
   LSTR MSG_PRINT_ABORTED                  = _UxGT("Print Aborted");
   LSTR MSG_PRINT_DONE                     = _UxGT("Print Done");
   LSTR MSG_NO_MOVE                        = _UxGT("No Move.");
@@ -538,6 +544,7 @@ namespace Language_en {
   LSTR MSG_HEATING_FAILED_LCD             = _UxGT("Heating Failed");
   LSTR MSG_ERR_REDUNDANT_TEMP             = _UxGT("Err: REDUNDANT TEMP");
   LSTR MSG_THERMAL_RUNAWAY                = _UxGT("THERMAL RUNAWAY");
+  LSTR MSG_TEMP_MALFUNCTION               = _UxGT("TEMP MALFUNCTION");
   LSTR MSG_THERMAL_RUNAWAY_BED            = _UxGT("BED THERMAL RUNAWAY");
   LSTR MSG_THERMAL_RUNAWAY_CHAMBER        = _UxGT("CHAMBER T. RUNAWAY");
   LSTR MSG_THERMAL_RUNAWAY_COOLER         = _UxGT("Cooler Runaway");
@@ -594,12 +601,11 @@ namespace Language_en {
 
   #if LCD_WIDTH >= 20 || HAS_DWIN_E3V2
     LSTR MSG_MEDIA_NOT_INSERTED           = _UxGT("No media inserted.");
-    LSTR MSG_REMAINING_TIME               = _UxGT("Remaining time");
     LSTR MSG_PLEASE_WAIT_REBOOT           = _UxGT("Please wait until reboot. ");
     LSTR MSG_PLEASE_PREHEAT               = _UxGT("Please preheat the hot end.");
     LSTR MSG_INFO_PRINT_COUNT_RESET       = _UxGT("Reset Print Count");
     LSTR MSG_INFO_PRINT_COUNT             = _UxGT("Print Count");
-    LSTR MSG_INFO_PRINT_TIME              = _UxGT("Total Print Time");
+    LSTR MSG_INFO_PRINT_TIME              = _UxGT("Print Time");
     LSTR MSG_INFO_PRINT_LONGEST           = _UxGT("Longest Job Time");
     LSTR MSG_INFO_PRINT_FILAMENT          = _UxGT("Extruded Total");
     LSTR MSG_COLORS_GET                   = _UxGT("Get Color");
@@ -608,6 +614,7 @@ namespace Language_en {
     LSTR MSG_COLORS_RED                   = _UxGT("Red");
     LSTR MSG_COLORS_GREEN                 = _UxGT("Green");
     LSTR MSG_COLORS_BLUE                  = _UxGT("Blue");
+    LSTR MSG_COLORS_WHITE                 = _UxGT("White");
     LSTR MSG_UI_LANGUAGE                  = _UxGT("UI Language");
     LSTR MSG_SOUND_ENABLE                 = _UxGT("Enable sound");
     LSTR MSG_LOCKSCREEN                   = _UxGT("Lock Screen");
@@ -615,7 +622,6 @@ namespace Language_en {
     LSTR MSG_MEDIA_NOT_INSERTED           = _UxGT("No Media");
     LSTR MSG_PLEASE_PREHEAT               = _UxGT("Please Preheat");
     LSTR MSG_INFO_PRINT_COUNT             = _UxGT("Prints");
-    LSTR MSG_REMAINING_TIME               = _UxGT("Remaining");
     LSTR MSG_INFO_PRINT_TIME              = _UxGT("Total");
     LSTR MSG_INFO_PRINT_LONGEST           = _UxGT("Longest");
     LSTR MSG_INFO_PRINT_FILAMENT          = _UxGT("Extruded");

@@ -317,6 +317,9 @@ class Stepper {
         #ifndef PWM_MOTOR_CURRENT
           #define PWM_MOTOR_CURRENT DEFAULT_PWM_MOTOR_CURRENT
         #endif
+        #ifndef MOTOR_CURRENT_PWM_FREQUENCY
+          #define MOTOR_CURRENT_PWM_FREQUENCY 31400
+        #endif
         #define MOTOR_CURRENT_COUNT LINEAR_AXES
       #elif HAS_MOTOR_CURRENT_SPI
         static constexpr uint32_t digipot_count[] = DIGIPOT_MOTOR_CURRENT;
@@ -333,7 +336,7 @@ class Stepper {
       static constexpr uint8_t last_moved_extruder = 0;
     #endif
 
-    #if HAS_FREEZE_PIN
+    #if ENABLED(FREEZE_FEATURE)
       static bool frozen;                   // Set this flag to instantly freeze motion
     #endif
 

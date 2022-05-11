@@ -186,18 +186,22 @@ enum ADCSensorState : char {
   #define unscalePID_d(d) ( float(d) * PID_dT )
 #endif
 
-#if ENABLED(G26_MESH_VALIDATION) && EITHER(HAS_LCD_MENU, EXTENSIBLE_UI)
+#if ENABLED(G26_MESH_VALIDATION) && EITHER(HAS_MARLINUI_MENU, EXTENSIBLE_UI)
   #define G26_CLICK_CAN_CANCEL 1
 #endif
 
 // A temperature sensor
 typedef struct TempInfo {
-  uint16_t acc;
-  int16_t raw;
+private:
+  raw_adc_t acc;
+  raw_adc_t raw;
+public:
   celsius_float_t celsius;
   inline void reset() { acc = 0; }
-  inline void sample(const uint16_t s) { acc += s; }
+  inline void sample(const raw_adc_t s) { acc += s; }
   inline void update() { raw = acc; }
+  void setraw(const raw_adc_t r) { raw = r; }
+  raw_adc_t getraw() { return raw; }
 } temp_info_t;
 
 #if HAS_TEMP_REDUNDANT
@@ -231,9 +235,6 @@ struct PIDHeaterInfo : public HeaterInfo {
     typedef heater_info_t bed_info_t;
   #endif
 #endif
-#if HAS_TEMP_PROBE
-  typedef temp_info_t probe_info_t;
-#endif
 #if HAS_HEATED_CHAMBER
   #if ENABLED(PIDTEMPCHAMBER)
     typedef struct PIDHeaterInfo<PID_t> chamber_info_t;
@@ -243,11 +244,14 @@ struct PIDHeaterInfo : public HeaterInfo {
 #elif HAS_TEMP_CHAMBER
   typedef temp_info_t chamber_info_t;
 #endif
-#if HAS_TEMP_BOARD
-  typedef temp_info_t board_info_t;
+#if HAS_TEMP_PROBE
+  typedef temp_info_t probe_info_t;
 #endif
 #if EITHER(HAS_COOLER, HAS_TEMP_COOLER)
   typedef heater_info_t cooler_info_t;
+#endif
+#if HAS_TEMP_BOARD
+  typedef temp_info_t board_info_t;
 #endif
 
 // Heater watch handling
@@ -287,9 +291,7 @@ struct HeaterWatch {
 #endif
 
 // Temperature sensor read value ranges
-typedef struct { int16_t raw_min, raw_max; } raw_range_t;
-typedef struct { celsius_t mintemp, maxtemp; } celsius_range_t;
-typedef struct { int16_t raw_min, raw_max; celsius_t mintemp, maxtemp; } temp_range_t;
+typedef struct { raw_adc_t raw_min, raw_max; celsius_t mintemp, maxtemp; } temp_range_t;
 
 #define THERMISTOR_ABS_ZERO_C           -273.15f  // bbbbrrrrr cold !
 #define THERMISTOR_RESISTANCE_NOMINAL_C 25.0f     // mmmmm comfortable
@@ -318,11 +320,11 @@ typedef struct { int16_t raw_min, raw_max; celsius_t mintemp, maxtemp; } temp_ra
     #if TEMP_SENSOR_BED_IS_CUSTOM
       CTI_BED,
     #endif
-    #if TEMP_SENSOR_PROBE_IS_CUSTOM
-      CTI_PROBE,
-    #endif
     #if TEMP_SENSOR_CHAMBER_IS_CUSTOM
       CTI_CHAMBER,
+    #endif
+    #if TEMP_SENSOR_PROBE_IS_CUSTOM
+      CTI_PROBE,
     #endif
     #if TEMP_SENSOR_COOLER_IS_CUSTOM
       CTI_COOLER,
@@ -400,10 +402,18 @@ class Temperature {
       static uint8_t soft_pwm_controller_speed;
     #endif
 
+    #if BOTH(HAS_MARLINUI_MENU, PREVENT_COLD_EXTRUSION) && E_MANUAL > 0
+      static bool allow_cold_extrude_override;
+      static void set_menu_cold_override(const bool allow) { allow_cold_extrude_override = allow; }
+    #else
+      static constexpr bool allow_cold_extrude_override = false;
+      static void set_menu_cold_override(const bool) {}
+    #endif
+
     #if ENABLED(PREVENT_COLD_EXTRUSION)
       static bool allow_cold_extrude;
       static celsius_t extrude_min_temp;
-      static bool tooCold(const celsius_t temp) { return allow_cold_extrude ? false : temp < extrude_min_temp - (TEMP_WINDOW); }
+      static bool tooCold(const celsius_t temp) { return !allow_cold_extrude && !allow_cold_extrude_override && temp < extrude_min_temp - (TEMP_WINDOW); }
       static bool tooColdToExtrude(const uint8_t E_NAME)       { return tooCold(wholeDegHotend(HOTEND_INDEX)); }
       static bool targetTooColdToExtrude(const uint8_t E_NAME) { return tooCold(degTargetHotend(HOTEND_INDEX)); }
     #else
@@ -492,7 +502,7 @@ class Temperature {
         static bed_watch_t watch_bed;
       #endif
       IF_DISABLED(PIDTEMPBED, static millis_t next_bed_check_ms);
-      static int16_t mintemp_raw_BED, maxtemp_raw_BED;
+      static raw_adc_t mintemp_raw_BED, maxtemp_raw_BED;
     #endif
 
     #if HAS_HEATED_CHAMBER
@@ -500,7 +510,7 @@ class Temperature {
         static chamber_watch_t watch_chamber;
       #endif
       TERN(PIDTEMPCHAMBER,,static millis_t next_chamber_check_ms);
-      static int16_t mintemp_raw_CHAMBER, maxtemp_raw_CHAMBER;
+      static raw_adc_t mintemp_raw_CHAMBER, maxtemp_raw_CHAMBER;
     #endif
 
     #if HAS_COOLER
@@ -508,11 +518,11 @@ class Temperature {
         static cooler_watch_t watch_cooler;
       #endif
       static millis_t next_cooler_check_ms, cooler_fan_flush_ms;
-      static int16_t mintemp_raw_COOLER, maxtemp_raw_COOLER;
+      static raw_adc_t mintemp_raw_COOLER, maxtemp_raw_COOLER;
     #endif
 
     #if HAS_TEMP_BOARD && ENABLED(THERMAL_PROTECTION_BOARD)
-      static int16_t mintemp_raw_BOARD, maxtemp_raw_BOARD;
+      static raw_adc_t mintemp_raw_BOARD, maxtemp_raw_BOARD;
     #endif
 
     #if MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED > 1
@@ -566,7 +576,7 @@ class Temperature {
       static user_thermistor_t user_thermistor[USER_THERMISTORS];
       static void M305_report(const uint8_t t_index, const bool forReplay=true);
       static void reset_user_thermistors();
-      static celsius_float_t user_thermistor_to_deg_c(const uint8_t t_index, const int16_t raw);
+      static celsius_float_t user_thermistor_to_deg_c(const uint8_t t_index, const raw_adc_t raw);
       static bool set_pull_up_res(int8_t t_index, float value) {
         //if (!WITHIN(t_index, 0, USER_THERMISTORS - 1)) return false;
         if (!WITHIN(value, 1, 1000000)) return false;
@@ -594,25 +604,25 @@ class Temperature {
     #endif
 
     #if HAS_HOTEND
-      static celsius_float_t analog_to_celsius_hotend(const int16_t raw, const uint8_t e);
+      static celsius_float_t analog_to_celsius_hotend(const raw_adc_t raw, const uint8_t e);
     #endif
     #if HAS_HEATED_BED
-      static celsius_float_t analog_to_celsius_bed(const int16_t raw);
-    #endif
-    #if HAS_TEMP_PROBE
-      static celsius_float_t analog_to_celsius_probe(const int16_t raw);
+      static celsius_float_t analog_to_celsius_bed(const raw_adc_t raw);
     #endif
     #if HAS_TEMP_CHAMBER
-      static celsius_float_t analog_to_celsius_chamber(const int16_t raw);
+      static celsius_float_t analog_to_celsius_chamber(const raw_adc_t raw);
+    #endif
+    #if HAS_TEMP_PROBE
+      static celsius_float_t analog_to_celsius_probe(const raw_adc_t raw);
     #endif
     #if HAS_TEMP_COOLER
-      static celsius_float_t analog_to_celsius_cooler(const int16_t raw);
+      static celsius_float_t analog_to_celsius_cooler(const raw_adc_t raw);
     #endif
     #if HAS_TEMP_BOARD
-      static celsius_float_t analog_to_celsius_board(const int16_t raw);
+      static celsius_float_t analog_to_celsius_board(const raw_adc_t raw);
     #endif
     #if HAS_TEMP_REDUNDANT
-      static celsius_float_t analog_to_celsius_redundant(const int16_t raw);
+      static celsius_float_t analog_to_celsius_redundant(const raw_adc_t raw);
     #endif
 
     #if HAS_FAN
@@ -675,7 +685,7 @@ class Temperature {
     /**
      * Call periodically to manage heaters
      */
-    static void manage_heater() _O2; // Added _O2 to work around a compiler error
+    static void manage_heater() __O2; // __O2 added to work around a compiler error
 
     /**
      * Preheating hotends
@@ -707,8 +717,8 @@ class Temperature {
     }
 
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      static int16_t rawHotendTemp(const uint8_t E_NAME) {
-        return TERN0(HAS_HOTEND, temp_hotend[HOTEND_INDEX].raw);
+      static raw_adc_t rawHotendTemp(const uint8_t E_NAME) {
+        return TERN0(HAS_HOTEND, temp_hotend[HOTEND_INDEX].getraw());
       }
     #endif
 
@@ -770,7 +780,7 @@ class Temperature {
     #if HAS_HEATED_BED
 
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        static int16_t rawBedTemp()    { return temp_bed.raw; }
+        static raw_adc_t rawBedTemp()  { return temp_bed.getraw(); }
       #endif
       static celsius_float_t degBed()  { return temp_bed.celsius; }
       static celsius_t wholeDegBed()   { return static_cast<celsius_t>(degBed() + 0.5f); }
@@ -801,7 +811,7 @@ class Temperature {
 
     #if HAS_TEMP_PROBE
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        static int16_t rawProbeTemp()    { return temp_probe.raw; }
+        static raw_adc_t rawProbeTemp()  { return temp_probe.getraw(); }
       #endif
       static celsius_float_t degProbe()  { return temp_probe.celsius; }
       static celsius_t wholeDegProbe()   { return static_cast<celsius_t>(degProbe() + 0.5f); }
@@ -812,7 +822,7 @@ class Temperature {
 
     #if HAS_TEMP_CHAMBER
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        static int16_t rawChamberTemp()      { return temp_chamber.raw; }
+        static raw_adc_t rawChamberTemp()    { return temp_chamber.getraw(); }
       #endif
       static celsius_float_t degChamber()    { return temp_chamber.celsius; }
       static celsius_t wholeDegChamber()     { return static_cast<celsius_t>(degChamber() + 0.5f); }
@@ -835,7 +845,7 @@ class Temperature {
 
     #if HAS_TEMP_COOLER
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        static int16_t rawCoolerTemp()     { return temp_cooler.raw; }
+        static raw_adc_t rawCoolerTemp()   { return temp_cooler.getraw(); }
       #endif
       static celsius_float_t degCooler()   { return temp_cooler.celsius; }
       static celsius_t wholeDegCooler()    { return static_cast<celsius_t>(temp_cooler.celsius + 0.5f); }
@@ -849,7 +859,7 @@ class Temperature {
 
     #if HAS_TEMP_BOARD
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        static int16_t rawBoardTemp()    { return temp_board.raw; }
+        static raw_adc_t rawBoardTemp()  { return temp_board.getraw(); }
       #endif
       static celsius_float_t degBoard()  { return temp_board.celsius; }
       static celsius_t wholeDegBoard()   { return static_cast<celsius_t>(temp_board.celsius + 0.5f); }
@@ -857,8 +867,7 @@ class Temperature {
 
     #if HAS_TEMP_REDUNDANT
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        static int16_t rawRedundantTemp()         { return temp_redundant.raw; }
-        static int16_t rawRedundanTargetTemp()    { return (*temp_redundant.target).raw; }
+        static raw_adc_t rawRedundantTemp()       { return temp_redundant.getraw(); }
       #endif
       static celsius_float_t degRedundant()       { return temp_redundant.celsius; }
       static celsius_float_t degRedundantTarget() { return (*temp_redundant.target).celsius; }
@@ -960,12 +969,12 @@ class Temperature {
     #endif
 
     #if HAS_HOTEND && HAS_STATUS_MESSAGE
-      static void set_heating_message(const uint8_t e);
+      static void set_heating_message(const uint8_t e, const bool isM104=false);
     #else
-      static void set_heating_message(const uint8_t) {}
+      static void set_heating_message(const uint8_t, const bool=false) {}
     #endif
 
-    #if HAS_LCD_MENU && HAS_TEMPERATURE
+    #if HAS_MARLINUI_MENU && HAS_TEMPERATURE
       static void lcd_preheat(const uint8_t e, const int8_t indh, const int8_t indb);
     #endif
 
@@ -991,10 +1000,15 @@ class Temperature {
       #else
         #define READ_MAX_TC(N) read_max_tc()
       #endif
-      static int16_t read_max_tc(TERN_(HAS_MULTI_MAX_TC, const uint8_t hindex=0));
+      static raw_adc_t read_max_tc(TERN_(HAS_MULTI_MAX_TC, const uint8_t hindex=0));
     #endif
 
-    static void update_autofans();
+    #if HAS_AUTO_FAN
+      #if ENABLED(POWER_OFF_WAIT_FOR_COOLDOWN)
+        static bool autofans_on;
+      #endif
+      static void update_autofans();
+    #endif
 
     #if HAS_HOTEND
       static float get_pid_output_hotend(const uint8_t e);
@@ -1036,12 +1050,18 @@ class Temperature {
         return (RunawayIndex)_MAX(heater_id, 0);
       }
 
-      enum TRState : char { TRInactive, TRFirstHeating, TRStable, TRRunaway };
+      enum TRState : char { TRInactive, TRFirstHeating, TRStable, TRRunaway
+        OPTARG(THERMAL_PROTECTION_VARIANCE_MONITOR, TRMalfunction)
+      };
 
       typedef struct {
         millis_t timer = 0;
         TRState state = TRInactive;
         float running_temp;
+        #if ENABLED(THERMAL_PROTECTION_VARIANCE_MONITOR)
+          millis_t variance_timer = 0;
+          celsius_float_t last_temp = 0.0, variance = 0.0;
+        #endif
         void run(const_celsius_float_t current, const_celsius_float_t target, const heater_id_t heater_id, const uint16_t period_seconds, const celsius_t hysteresis_degc);
       } tr_state_machine_t;
 

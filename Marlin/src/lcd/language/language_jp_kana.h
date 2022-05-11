@@ -61,7 +61,6 @@ namespace Language_jp_kana {
   LSTR MSG_LEVEL_BED_DONE                 = _UxGT("レベリングカンリョウ");              // "Leveling Done!"
   LSTR MSG_SET_HOME_OFFSETS               = _UxGT("キジュンオフセットセッテイ");         // "Set home offsets"
   LSTR MSG_HOME_OFFSETS_APPLIED           = _UxGT("オフセットガテキヨウサレマシタ");       // "Offsets applied"
-  LSTR MSG_SET_ORIGIN                     = _UxGT("キジュンセット");                 // "Set origin"
   #if HAS_PREHEAT
     LSTR MSG_PREHEAT_1                    = PREHEAT_1_LABEL _UxGT(" ヨネツ");       // "Preheat " PREHEAT_1_LABEL
     LSTR MSG_PREHEAT_1_H                  = PREHEAT_1_LABEL _UxGT(" ヨネツ ~");       // "Preheat " PREHEAT_1_LABEL
@@ -137,7 +136,6 @@ namespace Language_jp_kana {
   LSTR MSG_VMIN                           = _UxGT("サイショウオクリソクド");           // "Vmin"
   LSTR MSG_VTRAV_MIN                      = _UxGT("サイショウイドウソクド");           // "VTrav min"
   LSTR MSG_ACCELERATION                   = _UxGT("カソクド mm/s") SUPERSCRIPT_TWO;               // "Accel"
-  LSTR MSG_AMAX                           = _UxGT("サイダイカソクド ");              // "Amax "
   LSTR MSG_A_RETRACT                      = _UxGT("ヒキコミカソクド");               // "A-retract"
   LSTR MSG_A_TRAVEL                       = _UxGT("イドウカソクド");                // "A-travel"
   LSTR MSG_TEMPERATURE                    = _UxGT("オンド");                      // "Temperature"

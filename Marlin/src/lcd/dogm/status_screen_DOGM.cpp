@@ -49,6 +49,10 @@
   #include "../../module/planner.h"
 #endif
 
+#if HAS_LEVELING
+  #include "../../module/planner.h"
+#endif
+
 #if HAS_CUTTER
   #include "../../feature/spindle_laser.h"
 #endif
@@ -57,7 +61,7 @@
   #include "../../feature/cooler.h"
 #endif
 
-#if ENABLED(I2C_AMMETER)
+#if DO_DRAW_AMMETER
   #include "../../feature/ammeter.h"
 #endif
 
@@ -602,7 +606,13 @@ void MarlinUI::draw_status_screen() {
 
   #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS)
     #if ANIM_BED
-      #define BED_BITMAP(S) ((S) ? status_bed_on_bmp : status_bed_bmp)
+      #if BOTH(HAS_LEVELING, STATUS_ALT_BED_BITMAP)
+        #define BED_BITMAP(S) ((S) \
+          ? (planner.leveling_active ? status_bed_leveled_on_bmp : status_bed_on_bmp) \
+          : (planner.leveling_active ? status_bed_leveled_bmp : status_bed_bmp))
+      #else
+        #define BED_BITMAP(S) ((S) ? status_bed_on_bmp : status_bed_bmp)
+      #endif
     #else
       #define BED_BITMAP(S) status_bed_bmp
     #endif
@@ -781,7 +791,7 @@ void MarlinUI::draw_status_screen() {
           lcd_put_u8str(estimation_x_pos, EXTRAS_BASELINE, estimation_string);
         }
         else if (elapsed_string[0]) {
-          lcd_put_u8str_P(PROGRESS_BAR_X, EXTRAS_BASELINE, E_LBL);
+          lcd_put_u8str(PROGRESS_BAR_X, EXTRAS_BASELINE, F("E:"));
           lcd_put_u8str(elapsed_x_pos, EXTRAS_BASELINE, elapsed_string);
         }
 

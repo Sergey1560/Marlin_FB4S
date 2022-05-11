@@ -55,6 +55,7 @@ namespace Language_zh_CN {
   LSTR MSG_DISABLE_STEPPERS               = _UxGT("关闭步进电机");     // "Disable steppers"
   LSTR MSG_DEBUG_MENU                     = _UxGT("调试菜单");     // "Debug Menu"
   LSTR MSG_PROGRESS_BAR_TEST              = _UxGT("进度条测试");     // "Progress Bar Test"
+  LSTR MSG_HOMING                         = _UxGT("回原点");
   LSTR MSG_AUTO_HOME                      = _UxGT("自动回原点");     // "Auto home"
   LSTR MSG_AUTO_HOME_X                    = _UxGT("回X原位");     // "Home X"
   LSTR MSG_AUTO_HOME_Y                    = _UxGT("回Y原位");     // "Home Y"
@@ -67,7 +68,6 @@ namespace Language_zh_CN {
   LSTR MSG_Z_FADE_HEIGHT                  = _UxGT("淡出高度");     // "Fade Height"
   LSTR MSG_SET_HOME_OFFSETS               = _UxGT("设置原点偏移");     // "Set home offsets"
   LSTR MSG_HOME_OFFSETS_APPLIED           = _UxGT("偏移已启用");     // "Offsets applied"
-  LSTR MSG_SET_ORIGIN                     = _UxGT("设置原点");     // "Set origin"
   #if HAS_PREHEAT
     LSTR MSG_PREHEAT_1                    = _UxGT("预热 ") PREHEAT_1_LABEL;     // "Preheat PREHEAT_2_LABEL"
     LSTR MSG_PREHEAT_1_H                  = _UxGT("预热 ") PREHEAT_1_LABEL " ~";     // "Preheat PREHEAT_2_LABEL"
@@ -93,8 +93,8 @@ namespace Language_zh_CN {
   LSTR MSG_SPINDLE_MENU                   = _UxGT("主轴控制");
   LSTR MSG_SPINDLE_POWER                  = _UxGT("主轴电源");
   LSTR MSG_SPINDLE_REVERSE                = _UxGT("主轴反转");
-  LSTR MSG_SWITCH_PS_ON                   = _UxGT("电源打开");     // "Switch power on"
-  LSTR MSG_SWITCH_PS_OFF                  = _UxGT("电源关闭");     // "Switch power off"
+  LSTR MSG_SWITCH_PS_ON                   = _UxGT("开启电源");     // "Switch power on"
+  LSTR MSG_SWITCH_PS_OFF                  = _UxGT("关闭电源");     // "Switch power off"
   LSTR MSG_EXTRUDE                        = _UxGT("挤出");     // "Extrude"
   LSTR MSG_RETRACT                        = _UxGT("回抽");     // "Retract"
   LSTR MSG_MOVE_AXIS                      = _UxGT("移动轴");     // "Move axis"

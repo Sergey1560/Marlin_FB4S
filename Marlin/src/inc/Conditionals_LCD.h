@@ -41,13 +41,13 @@
  *
  *  DOGLCD                  : Run a Graphical LCD through U8GLib (with MarlinUI)
  *  IS_ULTIPANEL            : Define LCD_PINS_D5/6/7 for direct-connected "Ultipanel" LCDs
- *  IS_ULTRA_LCD            : Ultra LCD, not necessarily Ultipanel.
+ *  HAS_WIRED_LCD           : Ultra LCD, not necessarily Ultipanel.
  *  IS_RRD_SC               : Common RRD Smart Controller digital interface pins
  *  IS_RRD_FG_SC            : Common RRD Full Graphical Smart Controller digital interface pins
  *  IS_U8GLIB_ST7920        : Most common DOGM display SPI interface, supporting a "lightweight" display mode.
  *  U8GLIB_SH1106           : SH1106 OLED with I2C interface via U8GLib
  *  IS_U8GLIB_SSD1306       : SSD1306 OLED with I2C interface via U8GLib (U8GLIB_SSD1306)
- *  U8GLIB_SSD1309          : SSD1309 OLED with I2C interface via U8GLib (HAS_U8GLIB_I2C_OLED, IS_ULTRA_LCD, DOGLCD)
+ *  U8GLIB_SSD1309          : SSD1309 OLED with I2C interface via U8GLib (HAS_U8GLIB_I2C_OLED, HAS_WIRED_LCD, DOGLCD)
  *  IS_U8GLIB_ST7565_64128N : ST7565 128x64 LCD with SPI interface via U8GLib
  *  IS_U8GLIB_LM6059_AF     : LM6059 with Hardware SPI via U8GLib
  */
@@ -78,8 +78,8 @@
 
   // This helps to implement HAS_ADC_BUTTONS menus
   #define REVERSE_MENU_DIRECTION
-  #define ENCODER_PULSES_PER_STEP 1
-  #define ENCODER_STEPS_PER_MENU_ITEM 1
+  #define STD_ENCODER_PULSES_PER_STEP 1
+  #define STD_ENCODER_STEPS_PER_MENU_ITEM 1
   #define ENCODER_FEEDRATE_DEADZONE 2
 
 #elif ENABLED(ZONESTAR_12864LCD)
@@ -97,13 +97,12 @@
 
 #elif ENABLED(RADDS_DISPLAY)
   #define IS_ULTIPANEL 1
-  #define ENCODER_PULSES_PER_STEP 2
+  #define STD_ENCODER_PULSES_PER_STEP 2
 
 #elif ANY(miniVIKI, VIKI2, WYH_L12864, ELB_FULL_GRAPHIC_CONTROLLER, AZSMZ_12864)
 
-  #define IS_DOGM_12864 1
-
   #define DOGLCD
+  #define IS_DOGM_12864 1
   #define IS_ULTIPANEL 1
 
   #if ENABLED(miniVIKI)
@@ -158,20 +157,8 @@
   #define IS_RRD_SC 1
   #define U8GLIB_SH1106
 
-  #define LED_CONTROL_MENU
-  #define NEOPIXEL_LED
-  #undef NEOPIXEL_TYPE
-  #define NEOPIXEL_TYPE       NEO_RGB
-  #if NEOPIXEL_PIXELS < 3
-    #undef NEOPIXELS_PIXELS
-    #define NEOPIXEL_PIXELS     3
-  #endif
   #ifndef NEOPIXEL_BRIGHTNESS
     #define NEOPIXEL_BRIGHTNESS 127
-  #endif
-
-  #if ENABLED(PSU_CONTROL)
-    #define LED_BACKLIGHT_TIMEOUT 10000
   #endif
 
 #elif ANY(FYSETC_MINI_12864_X_X, FYSETC_MINI_12864_1_2, FYSETC_MINI_12864_2_0, FYSETC_MINI_12864_2_1, FYSETC_GENERIC_12864_1_1)
@@ -180,22 +167,9 @@
   #define DOGLCD
   #define IS_ULTIPANEL 1
   #define LED_COLORS_REDUCE_GREEN
-  #if ENABLED(PSU_CONTROL) && EITHER(FYSETC_MINI_12864_2_0, FYSETC_MINI_12864_2_1)
-    #define LED_BACKLIGHT_TIMEOUT 10000
-  #endif
 
   // Require LED backlighting enabled
-  #if EITHER(FYSETC_MINI_12864_1_2, FYSETC_MINI_12864_2_0)
-    #define RGB_LED
-  #elif ENABLED(FYSETC_MINI_12864_2_1)
-    #define LED_CONTROL_MENU
-    #define NEOPIXEL_LED
-    #undef NEOPIXEL_TYPE
-    #define NEOPIXEL_TYPE       NEO_RGB
-    #if NEOPIXEL_PIXELS < 3
-      #undef NEOPIXELS_PIXELS
-      #define NEOPIXEL_PIXELS     3
-    #endif
+  #if ENABLED(FYSETC_MINI_12864_2_1)
     #ifndef NEOPIXEL_BRIGHTNESS
       #define NEOPIXEL_BRIGHTNESS 127
     #endif
@@ -207,8 +181,8 @@
   #define IS_ULTIPANEL 1
   #define U8GLIB_SSD1309
   #define LCD_RESET_PIN LCD_PINS_D6 //  This controller need a reset pin
-  #define ENCODER_PULSES_PER_STEP 4
-  #define ENCODER_STEPS_PER_MENU_ITEM 1
+  #define STD_ENCODER_PULSES_PER_STEP 4
+  #define STD_ENCODER_STEPS_PER_MENU_ITEM 1
   #ifndef PCA9632
     #define PCA9632
   #endif
@@ -237,7 +211,7 @@
   #define LCD_HEIGHT                  10    // Character lines
   #define LCD_CONTRAST_MIN            127
   #define LCD_CONTRAST_MAX            255
-  #define DEFAULT_LCD_CONTRAST        250
+  #define LCD_CONTRAST_DEFAULT        250
   #define CONVERT_TO_EXT_ASCII        // Use extended 128-255 symbols from ASCII table.
                                       // At this time present conversion only for cyrillic - bg, ru and uk languages.
                                       // First 7 ASCII symbols in panel font must be replaced with Marlin's special symbols.
@@ -305,14 +279,14 @@
   #define PCA9632_BUZZER
   #define PCA9632_BUZZER_DATA { 0x09, 0x02 }
 
-  #define ENCODER_PULSES_PER_STEP     1 // Overlord uses buttons
-  #define ENCODER_STEPS_PER_MENU_ITEM 1
+  #define STD_ENCODER_PULSES_PER_STEP     1 // Overlord uses buttons
+  #define STD_ENCODER_STEPS_PER_MENU_ITEM 1
 #endif
 
 // 128x64 I2C OLED LCDs - SSD1306/SSD1309/SH1106
 #if ANY(U8GLIB_SSD1306, U8GLIB_SSD1309, U8GLIB_SH1106)
   #define HAS_U8GLIB_I2C_OLED 1
-  #define IS_ULTRA_LCD 1
+  #define HAS_WIRED_LCD 1
   #define DOGLCD
 #endif
 
@@ -468,7 +442,7 @@
 #endif
 
 #if EITHER(IS_ULTIPANEL, ULTRA_LCD)
-  #define IS_ULTRA_LCD 1
+  #define HAS_WIRED_LCD 1
 #endif
 
 #if EITHER(IS_ULTIPANEL, REPRAPWORLD_KEYPAD)
@@ -498,29 +472,36 @@
 #endif
 
 // Aliases for LCD features
-#if EITHER(DWIN_CREALITY_LCD, DWIN_CREALITY_LCD_ENHANCED)
+#if EITHER(DWIN_CREALITY_LCD, DWIN_LCD_PROUI)
   #define HAS_DWIN_E3V2_BASIC 1
 #endif
 #if EITHER(HAS_DWIN_E3V2_BASIC, DWIN_CREALITY_LCD_JYERSUI)
   #define HAS_DWIN_E3V2 1
+#endif
+#if ENABLED(DWIN_LCD_PROUI)
+  #define DO_LIST_BIN_FILES 1
 #endif
 
 // E3V2 extras
 #if HAS_DWIN_E3V2 || IS_DWIN_MARLINUI
   #define SERIAL_CATCHALL 0
   #ifndef LCD_SERIAL_PORT
-    #if MB(BTT_SKR_MINI_E3_V1_0, BTT_SKR_MINI_E3_V1_2, BTT_SKR_MINI_E3_V2_0, BTT_SKR_E3_TURBO)
+    #if MB(BTT_SKR_MINI_E3_V1_0, BTT_SKR_MINI_E3_V1_2, BTT_SKR_MINI_E3_V2_0, BTT_SKR_MINI_E3_V3_0, BTT_SKR_E3_TURBO)
       #define LCD_SERIAL_PORT 1
+    #elif MB(CREALITY_V24S1_301)
+      #define LCD_SERIAL_PORT 2 // Creality Ender3S1 board
     #else
       #define LCD_SERIAL_PORT 3 // Creality 4.x board
     #endif
   #endif
   #define HAS_LCD_BRIGHTNESS 1
   #define LCD_BRIGHTNESS_MAX 250
+  #if ENABLED(DWIN_LCD_PROUI)
+    #define LCD_BRIGHTNESS_DEFAULT 127
+  #endif
 #endif
 
-#if IS_ULTRA_LCD
-  #define HAS_WIRED_LCD 1
+#if HAS_WIRED_LCD
   #if ENABLED(DOGLCD)
     #define HAS_MARLINUI_U8GLIB 1
   #elif IS_TFTGLCD_PANEL
@@ -533,16 +514,28 @@
   #endif
 #endif
 
-#if ANY(HAS_WIRED_LCD, EXTENSIBLE_UI, DWIN_CREALITY_LCD_JYERSUI)
+#if ANY(HAS_WIRED_LCD, EXTENSIBLE_UI, DWIN_LCD_PROUI, DWIN_CREALITY_LCD_JYERSUI)
   #define HAS_DISPLAY 1
 #endif
 
-#if ANY(HAS_DISPLAY, HAS_DWIN_E3V2, GLOBAL_STATUS_MESSAGE)
+#if HAS_WIRED_LCD && !HAS_GRAPHICAL_TFT && !IS_DWIN_MARLINUI
+  #define HAS_LCDPRINT 1
+#endif
+
+#if ANY(HAS_DISPLAY, HAS_DWIN_E3V2)
   #define HAS_STATUS_MESSAGE 1
 #endif
 
 #if IS_ULTIPANEL && DISABLED(NO_LCD_MENUS)
-  #define HAS_LCD_MENU 1
+  #define HAS_MARLINUI_MENU 1
+#endif
+
+#if ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI, HAS_DWIN_E3V2)
+  #define HAS_MANUAL_MOVE_MENU 1
+#endif
+
+#if ANY(HAS_MARLINUI_U8GLIB, EXTENSIBLE_UI, HAS_MARLINUI_HD44780, IS_TFTGLCD_PANEL, IS_DWIN_MARLINUI, DWIN_CREALITY_LCD_JYERSUI)
+  #define CAN_SHOW_REMAINING_TIME 1
 #endif
 
 #if ANY(HAS_MARLINUI_U8GLIB, EXTENSIBLE_UI, HAS_MARLINUI_HD44780, IS_TFTGLCD_PANEL, IS_DWIN_MARLINUI, DWIN_CREALITY_LCD_JYERSUI)
@@ -758,6 +751,7 @@
 #endif
 
 // Helper macros for extruder and hotend arrays
+#define EXTRUDER_LOOP() for (int8_t e = 0; e < EXTRUDERS; e++)
 #define HOTEND_LOOP() for (int8_t e = 0; e < HOTENDS; e++)
 #define ARRAY_BY_EXTRUDERS(V...) ARRAY_N(EXTRUDERS, V)
 #define ARRAY_BY_EXTRUDERS1(v1) ARRAY_N_1(EXTRUDERS, v1)
@@ -834,7 +828,7 @@
 /**
  * Set a flag for any type of bed probe, including the paper-test
  */
-#if ANY(HAS_Z_SERVO_PROBE, FIX_MOUNTED_PROBE, NOZZLE_AS_PROBE, TOUCH_MI_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, SOLENOID_PROBE, SENSORLESS_PROBING, RACK_AND_PINION_PROBE)
+#if ANY(HAS_Z_SERVO_PROBE, FIX_MOUNTED_PROBE, NOZZLE_AS_PROBE, TOUCH_MI_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, SOLENOID_PROBE, SENSORLESS_PROBING, RACK_AND_PINION_PROBE, MAGLEV4)
   #define HAS_BED_PROBE 1
 #endif
 
@@ -999,7 +993,11 @@
   #undef USE_PROBE_FOR_Z_HOMING
 #endif
 
-#if Z_HOME_TO_MAX
+#if ENABLED(BELTPRINTER) && !defined(HOME_Y_BEFORE_X)
+  #define HOME_Y_BEFORE_X
+#endif
+
+#if Z_HOME_TO_MAX && DISABLED(Z_SAFE_HOMING)
   #define HOME_Z_FIRST // If homing away from BED do Z first
 #endif
 

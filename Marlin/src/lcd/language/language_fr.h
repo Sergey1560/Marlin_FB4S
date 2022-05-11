@@ -76,7 +76,6 @@ namespace Language_fr {
   LSTR MSG_HOME_OFFSET_J                  = _UxGT("Décal. origine ") STR_J;
   LSTR MSG_HOME_OFFSET_K                  = _UxGT("Décal. origine ") STR_K;
   LSTR MSG_HOME_OFFSETS_APPLIED           = _UxGT("Décalages appliqués");
-  LSTR MSG_SET_ORIGIN                     = _UxGT("Régler origine");
   LSTR MSG_TRAMMING_WIZARD                = _UxGT("Assistant Molettes");
   LSTR MSG_SELECT_ORIGIN                  = _UxGT("Molette du lit"); // Not a selection of the origin
   LSTR MSG_LAST_VALUE_SP                  = _UxGT("Ecart origine ");
@@ -111,7 +110,7 @@ namespace Language_fr {
   LSTR MSG_LEVEL_BED                      = _UxGT("Niveau du lit");
   LSTR MSG_BED_TRAMMING                   = _UxGT("Niveau des coins");
   LSTR MSG_BED_TRAMMING_RAISE             = _UxGT("Relever le coin jusqu'à la sonde");
-  LSTR MSG_BED_TRAMMING_IN_RANGE          = _UxGT("Coins dans la tolérance. Niveau lit ");
+  LSTR MSG_BED_TRAMMING_IN_RANGE          = _UxGT("Coins dans la tolérance. Niveau lit.");
   LSTR MSG_NEXT_CORNER                    = _UxGT("Coin suivant");
   LSTR MSG_MESH_EDITOR                    = _UxGT("Modif. maille"); // 13 car. max
   LSTR MSG_EDIT_MESH                      = _UxGT("Modifier grille");
@@ -335,6 +334,8 @@ namespace Language_fr {
   LSTR MSG_ADVANCE_K_E                    = _UxGT("Avance K *");
   LSTR MSG_BRIGHTNESS                     = _UxGT("Luminosité LCD");
   LSTR MSG_CONTRAST                       = _UxGT("Contraste LCD");
+  LSTR MSG_LCD_TIMEOUT_SEC                = _UxGT("Veille LCD (s)");
+  LSTR MSG_BRIGHTNESS_OFF                 = _UxGT("Éteindre l'écran LCD");
   LSTR MSG_STORE_EEPROM                   = _UxGT("Enregistrer config.");
   LSTR MSG_LOAD_EEPROM                    = _UxGT("Charger config.");
   LSTR MSG_RESTORE_DEFAULTS               = _UxGT("Restaurer défauts");

@@ -244,6 +244,7 @@ typedef struct block_t {
 
   #if ENABLED(POWER_LOSS_RECOVERY)
     uint32_t sdpos;
+    xyze_pos_t start_position;
   #endif
 
   #if ENABLED(LASER_POWER_INLINE)
@@ -252,7 +253,7 @@ typedef struct block_t {
 
 } block_t;
 
-#if ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX, LCD_SHOW_E_TOTAL)
+#if ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX, LCD_SHOW_E_TOTAL, POWER_LOSS_RECOVERY)
   #define HAS_POSITION_FLOAT 1
 #endif
 
@@ -590,7 +591,7 @@ class Planner {
        */
       static float fade_scaling_factor_for_z(const_float_t rz) {
         static float z_fade_factor = 1;
-        if (!z_fade_height) return 1;
+        if (!z_fade_height || rz <= 0) return 1;
         if (rz >= z_fade_height) return 0;
         if (last_fade_z != rz) {
           last_fade_z = rz;
@@ -927,8 +928,8 @@ class Planner {
     #if HAS_LINEAR_E_JERK
       FORCE_INLINE static void recalculate_max_e_jerk() {
         const float prop = junction_deviation_mm * SQRT(0.5) / (1.0f - SQRT(0.5));
-        LOOP_L_N(i, EXTRUDERS)
-          max_e_jerk[E_INDEX_N(i)] = SQRT(prop * settings.max_acceleration_mm_per_s2[E_INDEX_N(i)]);
+        EXTRUDER_LOOP()
+          max_e_jerk[E_INDEX_N(e)] = SQRT(prop * settings.max_acceleration_mm_per_s2[E_INDEX_N(e)]);
       }
     #endif
 
@@ -1019,7 +1020,7 @@ class Planner {
         return limit_value;
       }
 
-    #endif // !CLASSIC_JERK
+    #endif // HAS_JUNCTION_DEVIATION
 };
 
 #define PLANNER_XY_FEEDRATE() _MIN(planner.settings.max_feedrate_mm_s[X_AXIS], planner.settings.max_feedrate_mm_s[Y_AXIS])
