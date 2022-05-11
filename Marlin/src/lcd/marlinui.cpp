@@ -1438,6 +1438,7 @@ void MarlinUI::init() {
     #if SERVICE_INTERVAL_3 > 0
       static PGMSTR(service3, "> " SERVICE_NAME_3 "!");
     #endif
+
     FSTR_P msg;
     if (printingIsPaused())
       msg = GET_TEXT_F(MSG_PRINT_PAUSED);

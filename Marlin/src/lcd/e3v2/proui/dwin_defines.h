@@ -22,14 +22,41 @@
 #pragma once
 
 /**
- * DWIN general defines and data structs
- * Author: Miguel A. Risco-Castillo
- * Version: 3.9.1
- * Date: 2021/11/21
+ * DWIN general defines and data structs for PRO UI
+ * Author: Miguel A. Risco-Castillo (MRISCOC)
+ * Version: 3.11.2
+ * Date: 2022/02/28
  */
 
-#include "../../../core/types.h"
+//#define DEBUG_DWIN 1
+//#define NEED_HEX_PRINT 1
+
+#include "../../../inc/MarlinConfigPre.h"
+#include <stddef.h>
+
+#if DISABLED(INDIVIDUAL_AXIS_HOMING_SUBMENU)
+  #error "INDIVIDUAL_AXIS_HOMING_SUBMENU is required with ProUI."
+#endif
+#if DISABLED(LCD_SET_PROGRESS_MANUALLY)
+  #error "LCD_SET_PROGRESS_MANUALLY is required with ProUI."
+#endif
+#if DISABLED(STATUS_MESSAGE_SCROLLING)
+  #error "STATUS_MESSAGE_SCROLLING is required with ProUI."
+#endif
+#if DISABLED(BAUD_RATE_GCODE)
+  #error "BAUD_RATE_GCODE is required with ProUI."
+#endif
+#if DISABLED(SOUND_MENU_ITEM)
+  #error "SOUND_MENU_ITEM is required with ProUI."
+#endif
+#if DISABLED(PRINTCOUNTER)
+  #error "PRINTCOUNTER is required with ProUI."
+#endif
+
 #include "../common/dwin_color.h"
+#if ENABLED(LED_CONTROL_MENU)
+  #include "../../../feature/leds/leds.h"
+#endif
 
 #define Def_Background_Color  RGB( 1, 12,  8)
 #define Def_Cursor_color      RGB(20, 49, 31)
@@ -49,12 +76,19 @@
 #define Def_Barfill_Color     BarFill_Color
 #define Def_Indicator_Color   Color_White
 #define Def_Coordinate_Color  Color_White
+#define Def_Button_Color      RGB( 0, 23, 16)
 
 #define HAS_ESDIAG 1
-#define DEFAULT_LCD_BRIGHTNESS 127
+
+#if ENABLED(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+  #define Def_Leds_Color      LEDColorWhite()
+#endif
+#if ENABLED(CASELIGHT_USES_BRIGHTNESS)
+  #define Def_CaseLight_Brightness 255
+#endif
 
 typedef struct {
-// Color settings
+  // Color settings
   uint16_t Background_Color = Def_Background_Color;
   uint16_t Cursor_color     = Def_Cursor_color;
   uint16_t TitleBg_color    = Def_TitleBg_color;
@@ -73,18 +107,33 @@ typedef struct {
   uint16_t Barfill_Color    = Def_Barfill_Color;
   uint16_t Indicator_Color  = Def_Indicator_Color;
   uint16_t Coordinate_Color = Def_Coordinate_Color;
-//
-  #if defined(PREHEAT_1_TEMP_HOTEND) && HAS_HOTEND
+  // Temperatures
+  #if HAS_HOTEND && defined(PREHEAT_1_TEMP_HOTEND)
     int16_t HotendPidT = PREHEAT_1_TEMP_HOTEND;
   #endif
-  #if defined(PREHEAT_1_TEMP_BED) && HAS_HEATED_BED
+  #if HAS_HEATED_BED && defined(PREHEAT_1_TEMP_BED)
     int16_t BedPidT = PREHEAT_1_TEMP_BED;
   #endif
-  #if ANY(HAS_HOTEND, HAS_HEATED_BED)
+  #if HAS_HOTEND || HAS_HEATED_BED
     int16_t PidCycles = 10;
   #endif
   #if ENABLED(PREVENT_COLD_EXTRUSION)
     int16_t ExtMinT = EXTRUDE_MINTEMP;
+  #endif
+  #if BOTH(HAS_HEATED_BED, PREHEAT_BEFORE_LEVELING)
+    int16_t BedLevT = LEVELING_BED_TEMP;
+  #endif
+  #if ENABLED(BAUD_RATE_GCODE)
+    bool Baud115K = false;
+  #endif
+  bool FullManualTramming = false;
+  // Led
+  #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+    LEDColor Led_Color = Def_Leds_Color;
+  #endif
+  // Case Light
+  #if ENABLED(CASELIGHT_USES_BRIGHTNESS)
+    uint8_t CaseLight_Brightness = Def_CaseLight_Brightness;
   #endif
 } HMI_data_t;
 

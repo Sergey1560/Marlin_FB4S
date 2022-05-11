@@ -1485,63 +1485,6 @@ void EachMomentUpdate() {
 #endif // POWER_LOSS_RECOVERY
 
 
-#if ENABLED(POWER_LOSS_RECOVERY)
-  void Popup_PowerLossRecovery() {
-    DWINUI::ClearMenuArea();
-    Draw_Popup_Bkgd();
-    if (HMI_IsChinese()) {
-      DWIN_Frame_AreaCopy(1, 160, 338, 235, 354, 98, 115);
-      DWIN_Frame_AreaCopy(1, 103, 321, 271, 335, 52, 167);
-      DWINUI::Draw_Icon(ICON_Cancel_C,    26, 280);
-      DWINUI::Draw_Icon(ICON_Continue_C, 146, 280);
-    }
-    else {
-      DWINUI::Draw_CenteredString(HMI_data.PopupTxt_Color, 70, GET_TEXT_F(MSG_OUTAGE_RECOVERY));
-      DWINUI::Draw_CenteredString(HMI_data.PopupTxt_Color, 147, F("It looks like the last"));
-      DWINUI::Draw_CenteredString(HMI_data.PopupTxt_Color, 167, F("file was interrupted."));
-      DWINUI::Draw_Icon(ICON_Cancel_E,    26, 280);
-      DWINUI::Draw_Icon(ICON_Continue_E, 146, 280);
-    }
-    SdFile *dir = nullptr;
-    const char * const filename = card.diveToFile(true, dir, recovery.info.sd_filename);
-    card.selectFileByName(filename);
-    DWINUI::Draw_CenteredString(HMI_data.PopupTxt_Color, 207, card.longest_filename());
-    Draw_Select_Highlight(HMI_flag.select_flag);
-    DWIN_UpdateLCD();
-  }
-
-  void Goto_PowerLossRecovery() {
-    recovery.dwin_flag = false;
-    LCD_MESSAGE_F(GET_TEXT_F(MSG_CONTINUE_PRINT_JOB));
-    HMI_flag.select_flag = false;
-    Popup_PowerLossRecovery();
-    last_checkkey = MainMenu;
-    checkkey = PwrlossRec;
-  }
-
-  void HMI_PowerlossRecovery() {
-    EncoderState encoder_diffState = get_encoder_state();
-    if (encoder_diffState == ENCODER_DIFF_NO) return;
-    if (encoder_diffState == ENCODER_DIFF_ENTER) {
-      if (HMI_flag.select_flag) {
-        queue.inject(F("M1000C"));
-        select_page.reset();
-        Goto_Main_Menu();
-      }
-      else {
-        select_print.set(PRINT_SETUP);
-        queue.inject(F("M1000"));
-        sdprint = true;
-        Goto_PrintProcess();
-      }
-    }
-    else
-      Draw_Select_Highlight(encoder_diffState != ENCODER_DIFF_CW);
-    DWIN_UpdateLCD();
-  }
-#endif // POWER_LOSS_RECOVERY
-
-
 void DWIN_HandleScreen() {
   switch (checkkey) {
     case MainMenu:        HMI_MainMenu(); break;
@@ -1995,12 +1938,6 @@ void AutoLev() { queue.inject(F("G28XYO\nG28Z\nG29")); }  // Force to get the cu
 void AutoHome() { queue.inject_P(G28_STR); }
 void HomeX() { queue.inject(F("G28X")); }
 void HomeY() { queue.inject(F("G28Y")); }
-void HomeZ() { queue.inject(F("G28Z")); }
-
-void HomeX() { queue.inject(F("G28X")); }
-
-void HomeY() { queue.inject(F("G28Y")); }
-
 void HomeZ() { queue.inject(F("G28Z")); }
 
 void SetHome() {

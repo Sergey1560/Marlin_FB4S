@@ -71,12 +71,6 @@ void ProbeTempComp::reset() {
   TERN_(PTC_HOTEND, LOOP_L_N(i, PTC_HOTEND_COUNT) z_offsets_hotend[i] = z_offsets_hotend_default[i]);
 }
 
-void ProbeTempComp::reset() {
-  TERN_(PTC_PROBE, LOOP_L_N(i, PTC_PROBE_COUNT) z_offsets_probe[i] = z_offsets_probe_default[i]);
-  TERN_(PTC_BED, LOOP_L_N(i, PTC_BED_COUNT) z_offsets_bed[i] = z_offsets_bed_default[i]);
-  TERN_(PTC_HOTEND, LOOP_L_N(i, PTC_HOTEND_COUNT) z_offsets_hotend[i] = z_offsets_hotend_default[i]);
-}
-
 void ProbeTempComp::clear_offsets(const TempSensorID tsi) {
   LOOP_L_N(i, cali_info[tsi].measurements)
     sensor_z_offsets[tsi][i] = 0;

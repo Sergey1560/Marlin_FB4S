@@ -118,8 +118,6 @@ extern MSerialT serial_stream_3;
 #define HAL_ADC_VREF           5.0
 #define HAL_ADC_RESOLUTION    10
 
-void HAL_reboot();
-
 /* ---------------- Delay in cycles */
 
 #define DELAY_CYCLES(x) Kernel::delayCycles(x)

@@ -22,16 +22,18 @@
 #pragma once
 
 /**
- * DWIN Print Stats page
- * Author: Miguel A. Risco-Castillo
- * Version: 1.0
- * Date: 2021/11/21
+ * Print Stats page for PRO UI
+ * Author: Miguel A. Risco-Castillo (MRISCOC)
+ * Version: 1.3.0
+ * Date: 2022/02/24
  */
 
 class PrintStatsClass {
 public:
-  void Draw();
+  static void Draw();
   static void Reset();
 };
 
 extern PrintStatsClass PrintStats;
+
+void Goto_PrintStats();

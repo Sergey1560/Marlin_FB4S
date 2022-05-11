@@ -25,8 +25,6 @@
  * NeoPixel support
  */
 
-#define MAX_NEOPIXELS 127
-
 #ifndef _NEOPIXEL_INCLUDE_
   #error "Always include 'leds.h' and not 'neopixel.h' directly."
 #endif

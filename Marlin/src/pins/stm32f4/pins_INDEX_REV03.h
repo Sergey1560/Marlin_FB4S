@@ -45,9 +45,6 @@
 // I2C MCP3426 (16-Bit, 240SPS, dual-channel ADC)
 #define HAS_MCP3426_ADC
 
-// I2C MCP3426 (16-Bit, 240SPS, dual-channel ADC)
-#define HAS_MCP3426_ADC
-
 //
 // Servos
 //

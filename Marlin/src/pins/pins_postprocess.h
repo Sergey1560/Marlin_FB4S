@@ -546,6 +546,7 @@
   #undef K_MAX_PIN
 #endif
 
+// Filament Sensor first pin alias
 #if HAS_FILAMENT_SENSOR
   #define FIL_RUNOUT1_PIN FIL_RUNOUT_PIN  // Filament Sensor first pin alias
 #else

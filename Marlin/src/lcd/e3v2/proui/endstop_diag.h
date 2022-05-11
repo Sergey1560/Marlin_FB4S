@@ -22,10 +22,10 @@
 #pragma once
 
 /**
- * DWIN End Stops diagnostic page
- * Author: Miguel A. Risco-Castillo
- * Version: 1.0
- * Date: 2021/11/06
+ * DWIN End Stops diagnostic page for PRO UI
+ * Author: Miguel A. Risco-Castillo (MRISCOC)
+ * Version: 1.2.3
+ * Date: 2022/02/24
  */
 
 class ESDiagClass {

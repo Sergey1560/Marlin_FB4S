@@ -93,7 +93,7 @@ void DGUSScreenHandlerMKS::DGUSLCD_SendFanToDisplay(DGUS_VP_Variable &var) {
 
 void DGUSScreenHandlerMKS::DGUSLCD_SendBabyStepToDisplay(DGUS_VP_Variable &var) {
   float value = current_position.z;
-  DEBUG_ECHOLNPGM(" >> ", value, 6);
+  DEBUG_ECHOLNPAIR_F(" >> ", value, 6);
   value *= cpow(10, 2);
   dgusdisplay.WriteVariable(VP_SD_Print_Baby, (uint16_t)value);
 }
