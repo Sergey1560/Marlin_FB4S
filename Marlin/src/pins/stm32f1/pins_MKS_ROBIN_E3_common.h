@@ -40,9 +40,9 @@
 //
 #if EITHER(NO_EEPROM_SELECTED, FLASH_EEPROM_EMULATION)
   #define FLASH_EEPROM_EMULATION
-  #define EEPROM_PAGE_SIZE     (0x800U)           // 2KB
+  #define EEPROM_PAGE_SIZE     (0x800U)           // 2K
   #define EEPROM_START_ADDRESS (0x8000000UL + (STM32_FLASH_SIZE) * 1024UL - (EEPROM_PAGE_SIZE) * 2UL)
-  #define MARLIN_EEPROM_SIZE    EEPROM_PAGE_SIZE  // 2KB
+  #define MARLIN_EEPROM_SIZE    EEPROM_PAGE_SIZE  // 2K
 #endif
 
 //
@@ -197,9 +197,10 @@
     #define DOGLCD_MOSI              EXP2_05_PIN
 
   #elif ENABLED(FYSETC_MINI_12864_2_1)
+
+    #define LCD_PINS_DC              EXP1_07_PIN
     #define DOGLCD_CS                EXP1_08_PIN
-    #define DOGLCD_A0                EXP1_07_PIN
-    #define LCD_PINS_DC                DOGLCD_A0
+    #define DOGLCD_A0                LCD_PINS_DC
     #define LCD_BACKLIGHT_PIN               -1
     #define LCD_RESET_PIN            EXP1_06_PIN
     #define NEOPIXEL_PIN             EXP1_05_PIN
@@ -207,7 +208,7 @@
     #define DOGLCD_SCK               EXP2_09_PIN
     #define FORCE_SOFT_SPI
     #define SOFTWARE_SPI
-    //#define LCD_SCREEN_ROT_180
+    //#define LCD_SCREEN_ROTATE              180  // 0, 90, 180, 270
 
   #else
 

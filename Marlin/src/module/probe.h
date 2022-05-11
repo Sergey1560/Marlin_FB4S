@@ -45,6 +45,14 @@
   #define PROBE_TRIGGERED() (READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING)
 #endif
 
+#ifdef Z_AFTER_HOMING
+   #define Z_POST_CLEARANCE Z_AFTER_HOMING
+#elif defined(Z_HOMING_HEIGHT)
+   #define Z_POST_CLEARANCE Z_HOMING_HEIGHT
+#else
+   #define Z_POST_CLEARANCE 10
+#endif
+
 #if ENABLED(PREHEAT_BEFORE_LEVELING)
   #ifndef LEVELING_NOZZLE_TEMP
     #define LEVELING_NOZZLE_TEMP 0
@@ -180,6 +188,15 @@ public:
       }
     #endif
 
+    /**
+     * The nozzle is only able to move within the physical bounds of the machine.
+     * If the PROBE has an OFFSET Marlin may need to apply additional limits so
+     * the probe can be prevented from going to unreachable points.
+     *
+     * e.g., If the PROBE is to the LEFT of the NOZZLE, it will be limited in how
+     * close it can get the RIGHT edge of the bed (unless the nozzle is able move
+     * far enough past the right edge).
+     */
     static constexpr float _min_x(const xy_pos_t &probe_offset_xy=offset_xy) {
       return TERN(IS_KINEMATIC,
         (X_CENTER) - probe_radius(probe_offset_xy),

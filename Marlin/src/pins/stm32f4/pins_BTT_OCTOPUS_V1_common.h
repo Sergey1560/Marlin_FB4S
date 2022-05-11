@@ -28,7 +28,7 @@
 
 // Onboard I2C EEPROM
 #define I2C_EEPROM
-#define MARLIN_EEPROM_SIZE                0x8000  // 32KB (24C32A)
+#define MARLIN_EEPROM_SIZE                0x1000  // 4KB (AT24C32)
 #define I2C_SCL_PIN                         PB8
 #define I2C_SDA_PIN                         PB9
 
@@ -61,11 +61,7 @@
 // Z Probe (when not Z_MIN_PIN)
 //
 #ifndef Z_MIN_PROBE_PIN
-  #if ENABLED(BLTOUCH)
-    #define Z_MIN_PROBE_PIN                 PB7
-  #else
-    #define Z_MIN_PROBE_PIN                 PC5   // Probe (Proximity switch) port
-  #endif
+  #define Z_MIN_PROBE_PIN                   PB7
 #endif
 
 //

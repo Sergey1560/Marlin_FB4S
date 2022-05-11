@@ -64,7 +64,6 @@ namespace Language_el {
   LSTR MSG_LEVEL_BED_DONE                 = _UxGT("Τέλος επιπεδοποίησης!");
   LSTR MSG_SET_HOME_OFFSETS               = _UxGT("Ορισμός μετατοπίσεων");
   LSTR MSG_HOME_OFFSETS_APPLIED           = _UxGT("Εφαρμογή μετατοπίσεων");
-  LSTR MSG_SET_ORIGIN                     = _UxGT("Ορισμός προέλευσης");
   #if HAS_PREHEAT
     LSTR MSG_PREHEAT_1                    = _UxGT("Προθέρμανση ") PREHEAT_1_LABEL;
     LSTR MSG_PREHEAT_1_H                  = _UxGT("Προθέρμανση ") PREHEAT_1_LABEL " ~";
@@ -202,6 +201,7 @@ namespace Language_el {
   LSTR MSG_HEATING_FAILED_LCD             = _UxGT("Αποτυχία θέρμανσης");
   LSTR MSG_ERR_REDUNDANT_TEMP             = _UxGT("ΠΛΕΟΝΑΖΟΥΣΑ ΘΕΡΜΟΤΗΤΑ");
   LSTR MSG_THERMAL_RUNAWAY                = _UxGT("ΘΕΡΜΙΚΗ ΔΙΑΦΥΓΗ");
+  LSTR MSG_TEMP_MALFUNCTION               = _UxGT("ΘΕΡΜΙΚΗ ΔΥΣΛΕΙΤΟΥΡΓΙΑ");
   LSTR MSG_ERR_MAXTEMP                    = _UxGT("ΠΕΡΙΤΤΗ ΘΕΡΜΟΚΡΑΣΙΑ");
   LSTR MSG_ERR_MINTEMP                    = _UxGT("ΑΝΕΠΑΡΚΗΣ ΘΕΡΜΟΚΡΑΣΙΑ");
   LSTR MSG_HALTED                         = _UxGT("Εκτυπωτής διεκόπη");

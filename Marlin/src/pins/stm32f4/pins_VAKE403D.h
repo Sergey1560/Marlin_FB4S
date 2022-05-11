@@ -32,7 +32,7 @@
 #define BOARD_INFO_NAME      "STM32F4 VAkE"
 
 //#define I2C_EEPROM
-#define MARLIN_EEPROM_SIZE                0x1000  // 4KB
+#define MARLIN_EEPROM_SIZE                0x1000  // 4K
 
 //
 // Servos
@@ -150,8 +150,10 @@
 //
 // Průša i3 MK2 Multi Material Multiplexer Support
 //
-//#define E_MUX0_PIN                        PG3
-//#define E_MUX1_PIN                        PG4
+#if HAS_PRUSA_MMU1
+  //#define E_MUX0_PIN                      PG3
+  //#define E_MUX1_PIN                      PG4
+#endif
 
 #define LED_PIN                             PB14  // Alive
 #define PS_ON_PIN                           PE0

@@ -352,7 +352,7 @@ void Endstops::init() {
 
 } // Endstops::init
 
-// Called at ~1KHz from Temperature ISR: Poll endstop state if required
+// Called at ~1kHz from Temperature ISR: Poll endstop state if required
 void Endstops::poll() {
 
   TERN_(PINS_DEBUGGING, run_monitor()); // Report changes in endstop status
@@ -403,7 +403,7 @@ void Endstops::not_homing() {
 void Endstops::resync() {
   if (!abort_enabled()) return;     // If endstops/probes are disabled the loop below can hang
 
-  // Wait for Temperature ISR to run at least once (runs at 1KHz)
+  // Wait for Temperature ISR to run at least once (runs at 1kHz)
   TERN(ENDSTOP_INTERRUPTS_FEATURE, update(), safe_delay(2));
   while (TERN0(ENDSTOP_NOISE_THRESHOLD, endstop_poll_count)) safe_delay(1);
 }
@@ -494,7 +494,7 @@ static void print_es_state(const bool is_hit, FSTR_P const flabel=nullptr) {
 
 #pragma GCC diagnostic pop
 
-void _O2 Endstops::report_states() {
+void __O2 Endstops::report_states() {
   TERN_(BLTOUCH, bltouch._set_SW_mode());
   SERIAL_ECHOLNPGM(STR_M119_REPORT);
   #define ES_REPORT(S) print_es_state(READ(S##_PIN) != S##_ENDSTOP_INVERTING, F(STR_##S))
@@ -558,7 +558,7 @@ void _O2 Endstops::report_states() {
   #if HAS_J_MAX
     ES_REPORT(J_MAX);
   #endif
-    #if HAS_K_MIN
+  #if HAS_K_MIN
     ES_REPORT(K_MIN);
   #endif
   #if HAS_K_MAX
@@ -593,9 +593,6 @@ void _O2 Endstops::report_states() {
 
 } // Endstops::report_states
 
-// The following routines are called from an ISR context. It could be the temperature ISR, the
-// endstop ISR or the Stepper ISR.
-
 #if HAS_DELTA_SENSORLESS_PROBING
   #define __ENDSTOP(AXIS, ...) AXIS ##_MAX
   #define _ENDSTOP_PIN(AXIS, ...) AXIS ##_MAX_PIN
@@ -607,17 +604,22 @@ void _O2 Endstops::report_states() {
 #endif
 #define _ENDSTOP(AXIS, MINMAX) __ENDSTOP(AXIS, MINMAX)
 
-// Check endstops - Could be called from Temperature ISR!
+/**
+ * Called from interrupt context by the Endstop ISR or Stepper ISR!
+ * Read endstops to get their current states, register hits for all
+ * axes moving in the direction of their endstops, and abort moves.
+ */
 void Endstops::update() {
 
-  #if !ENDSTOP_NOISE_THRESHOLD
-    if (!abort_enabled()) return;
+  #if !ENDSTOP_NOISE_THRESHOLD      // If not debouncing...
+    if (!abort_enabled()) return;   // ...and not enabled, exit.
   #endif
 
+  // Macros to update / copy the live_state
   #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT_TO(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX)))
   #define COPY_LIVE_STATE(SRC_BIT, DST_BIT) SET_BIT_TO(live_state, DST_BIT, TEST(live_state, SRC_BIT))
 
-  #if ENABLED(G38_PROBE_TARGET) && NONE(CORE_IS_XY, CORE_IS_XZ, MARKFORGED_XY, MARKFORGED_XY)
+  #if ENABLED(G38_PROBE_TARGET) && NONE(CORE_IS_XY, CORE_IS_XZ, MARKFORGED_XY, MARKFORGED_YX)
     #define HAS_G38_PROBE 1
     // For G38 moves check the probe's pin for ALL movement
     if (G38_move) UPDATE_ENDSTOP_BIT(Z, TERN(USES_Z_MIN_PROBE_PIN, MIN_PROBE, MIN));
@@ -628,7 +630,7 @@ void Endstops::update() {
   #define X_MAX_TEST() TERN1(DUAL_X_CARRIAGE, TERN0(X_HOME_TO_MAX, stepper.last_moved_extruder == 0) || TERN0(X2_HOME_TO_MAX, stepper.last_moved_extruder != 0))
 
   // Use HEAD for core axes, AXIS for others
-  #if ANY(CORE_IS_XY, CORE_IS_XZ, MARKFORGED_XY, MARKFORGED_XY)
+  #if ANY(CORE_IS_XY, CORE_IS_XZ, MARKFORGED_XY, MARKFORGED_YX)
     #define X_AXIS_HEAD X_HEAD
   #else
     #define X_AXIS_HEAD X_AXIS
@@ -1107,6 +1109,7 @@ void Endstops::update() {
 
 #if ENABLED(SPI_ENDSTOPS)
 
+  // Called from idle() to read Trinamic stall states
   bool Endstops::tmc_spi_homing_check() {
     bool hit = false;
     #if X_SPI_SENSORLESS
@@ -1345,7 +1348,7 @@ void Endstops::update() {
         ES_REPORT_CHANGE(K_MAX);
       #endif
       SERIAL_ECHOLNPGM("\n");
-      set_pwm_duty(pin_t(LED_PIN), local_LED_status);
+      hal.set_pwm_duty(pin_t(LED_PIN), local_LED_status);
       local_LED_status ^= 255;
       old_live_state_local = live_state_local;
     }

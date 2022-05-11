@@ -26,7 +26,7 @@
 
 #include "../../inc/MarlinConfigPre.h"
 
-#if HAS_LCD_MENU
+#if HAS_MARLINUI_MENU
 
 #include "menu_item.h"
 
@@ -145,9 +145,9 @@ void menu_advanced_settings();
       EDIT_ITEM(uint8, MSG_TOOL_MIGRATION_END, &migration.last, 0, EXTRUDERS - 1);
 
       // Migrate to a chosen extruder
-      LOOP_L_N(s, EXTRUDERS) {
-        if (s != active_extruder) {
-          ACTION_ITEM_N_P(s, msg_migrate, []{
+      EXTRUDER_LOOP() {
+        if (e != active_extruder) {
+          ACTION_ITEM_N_P(e, msg_migrate, []{
             char cmd[12];
             sprintf_P(cmd, PSTR("M217 T%i"), int(MenuItemBase::itemIndex));
             queue.inject(cmd);
@@ -538,9 +538,17 @@ void menu_configuration() {
   #if HAS_LCD_BRIGHTNESS
     EDIT_ITEM_FAST(uint8, MSG_BRIGHTNESS, &ui.brightness, LCD_BRIGHTNESS_MIN, LCD_BRIGHTNESS_MAX, ui.refresh_brightness, true);
   #endif
-  #if HAS_LCD_CONTRAST
+  #if HAS_LCD_CONTRAST && LCD_CONTRAST_MIN < LCD_CONTRAST_MAX
     EDIT_ITEM_FAST(uint8, MSG_CONTRAST, &ui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, ui.refresh_contrast, true);
   #endif
+
+  //
+  // Set display backlight / sleep timeout
+  //
+  #if LCD_BACKLIGHT_TIMEOUT && LCD_BKL_TIMEOUT_MIN < LCD_BKL_TIMEOUT_MAX
+    EDIT_ITEM(uint16_4, MSG_LCD_TIMEOUT_SEC, &ui.lcd_backlight_timeout, LCD_BKL_TIMEOUT_MIN, LCD_BKL_TIMEOUT_MAX, ui.refresh_backlight_timeout);
+  #endif
+
   #if ENABLED(FWRETRACT)
     SUBMENU(MSG_RETRACT, menu_config_retract);
   #endif
@@ -577,4 +585,4 @@ void menu_configuration() {
   END_MENU();
 }
 
-#endif // HAS_LCD_MENU
+#endif // HAS_MARLINUI_MENU
