@@ -44,7 +44,7 @@
 //#define SRAM_EEPROM_EMULATION                   // Use BackSRAM-based EEPROM emulation
 //#define FLASH_EEPROM_EMULATION                  // Use Flash-based EEPROM emulation
 #define I2C_EEPROM                                // Need use jumpers set i2c for EEPROM
-#define MARLIN_EEPROM_SIZE                0x1000  // 4KB
+#define MARLIN_EEPROM_SIZE                0x1000  // 4K
 #define I2C_SCL_PIN                         PB8   // I2C_SCL and CAN_RX
 #define I2C_SDA_PIN                         PB9   // I2C_SDA and CAN_TX
 
@@ -352,9 +352,9 @@
 
   #elif ENABLED(FYSETC_MINI_12864_2_1)
 
+    #define LCD_PINS_DC              EXP1_07_PIN
     #define DOGLCD_CS                EXP1_08_PIN
-    #define DOGLCD_A0                EXP1_07_PIN
-    #define LCD_PINS_DC                DOGLCD_A0
+    #define DOGLCD_A0                LCD_PINS_DC
     #define LCD_BACKLIGHT_PIN               -1
     #define LCD_RESET_PIN            EXP1_06_PIN
     #define NEOPIXEL_PIN             EXP1_05_PIN
@@ -363,7 +363,7 @@
     #if SD_CONNECTION_IS(ONBOARD)
       #define FORCE_SOFT_SPI
     #endif
-    //#define LCD_SCREEN_ROT_180
+    //#define LCD_SCREEN_ROTATE              180  // 0, 90, 180, 270
 
   #else
 
