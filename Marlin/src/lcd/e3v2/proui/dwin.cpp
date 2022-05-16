@@ -1729,6 +1729,7 @@ void DWIN_CopySettingsFrom(const char * const buff) {
     // Apply Led Color
     leds.set_color(HMI_data.Led_Color);
   #endif
+
 }
 
 // Initialize or re-initialize the LCD
