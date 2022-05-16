@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2021 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2022 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -22,15 +22,17 @@
 #pragma once
 
 /**
- * Creality v2.4.S1 (STM32F103RE / STM32F103RC) v101 as found in the Ender 7
+ * Creality V24S1_301F4 (STM32F401RC) board pin assignments as found on Ender 3 S1.
  */
 
-#define BOARD_INFO_NAME      "Creality v2.4.S1 V101"
-#define DEFAULT_MACHINE_NAME "Creality3D"
+#ifndef BOARD_INFO_NAME
+  #define BOARD_INFO_NAME "Creality V24S1-301F4"
+#endif
+#ifndef DEFAULT_MACHINE_NAME
+  #define DEFAULT_MACHINE_NAME "Ender-3 S1 F4"
+#endif
 
-//
-// Heaters
-//
-#define HEATER_BED_PIN                      PA15  // HOT BED
+#define DISABLE_DEBUG false // DISABLE_(DEBUG|JTAG) is not supported for STM32F4.
+#define ALLOW_STM32F4
 
-#include "pins_CREALITY_V4.h"
+#include "../stm32f1/pins_CREALITY_V24S1_301.h"
