@@ -21,7 +21,7 @@
  */
 
 /**
- * gcode.cpp - Temporary container for all gcode handlers
+ * gcode.cpp - Temporary container for all G-code handlers
  *             Most will migrate to classes, by feature.
  */
 
@@ -73,8 +73,11 @@ GcodeSuite gcode;
 
 // Inactivity shutdown
 millis_t GcodeSuite::previous_move_ms = 0,
-         GcodeSuite::max_inactive_time = 0,
-         GcodeSuite::stepper_inactive_time = SEC_TO_MS(DEFAULT_STEPPER_DEACTIVE_TIME);
+         GcodeSuite::max_inactive_time = 0;
+
+#if HAS_DISABLE_INACTIVE_AXIS
+  millis_t GcodeSuite::stepper_inactive_time = SEC_TO_MS(DEFAULT_STEPPER_DEACTIVE_TIME);
+#endif
 
 // Relative motion mode for each logical axis
 static constexpr xyze_bool_t ar_init = AXIS_RELATIVE_MODES;
@@ -785,6 +788,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       #if HAS_USER_THERMISTORS
         case 305: M305(); break;                                  // M305: Set user thermistor parameters
+      #endif
+
+      #if ENABLED(MPCTEMP)
+        case 306: M306(); break;                                  // M306: MPC autotune
       #endif
 
       #if ENABLED(REPETIER_GCODE_M360)

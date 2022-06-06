@@ -180,6 +180,31 @@ void _delay_ms(int delay_ms) { delay(delay_ms); }
 int MarlinHAL::freeMemory() { return ESP.getFreeHeap(); }
 
 // ------------------------
+// Watchdog Timer
+// ------------------------
+
+#if ENABLED(USE_WATCHDOG)
+
+  #define WDT_TIMEOUT_US TERN(WATCHDOG_DURATION_8S, 8000000, 4000000) // 4 or 8 second timeout
+
+  extern "C" {
+    esp_err_t esp_task_wdt_reset();
+  }
+
+  void watchdogSetup() {
+    // do whatever. don't remove this function.
+  }
+
+  void MarlinHAL::watchdog_init() {
+    // TODO
+  }
+
+  // Reset watchdog.
+  void MarlinHAL::watchdog_refresh() { esp_task_wdt_reset(); }
+
+#endif
+
+// ------------------------
 // ADC
 // ------------------------
 
@@ -209,19 +234,19 @@ void MarlinHAL::adc_init() {
   adc1_config_width(ADC_WIDTH_12Bit);
 
   // Configure channels only if used as (re-)configuring a pin for ADC that is used elsewhere might have adverse effects
-  TERN_(HAS_TEMP_ADC_0, adc1_set_attenuation(get_channel(TEMP_0_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_1, adc1_set_attenuation(get_channel(TEMP_1_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_2, adc1_set_attenuation(get_channel(TEMP_2_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_3, adc1_set_attenuation(get_channel(TEMP_3_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_4, adc1_set_attenuation(get_channel(TEMP_4_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_5, adc1_set_attenuation(get_channel(TEMP_5_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_6, adc2_set_attenuation(get_channel(TEMP_6_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_7, adc3_set_attenuation(get_channel(TEMP_7_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_HEATED_BED, adc1_set_attenuation(get_channel(TEMP_BED_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_CHAMBER, adc1_set_attenuation(get_channel(TEMP_CHAMBER_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_PROBE, adc1_set_attenuation(get_channel(TEMP_PROBE_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_COOLER, adc1_set_attenuation(get_channel(TEMP_COOLER_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_BOARD, adc1_set_attenuation(get_channel(TEMP_BOARD_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_0,        adc1_set_attenuation(get_channel(TEMP_0_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_1,        adc1_set_attenuation(get_channel(TEMP_1_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_2,        adc1_set_attenuation(get_channel(TEMP_2_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_3,        adc1_set_attenuation(get_channel(TEMP_3_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_4,        adc1_set_attenuation(get_channel(TEMP_4_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_5,        adc1_set_attenuation(get_channel(TEMP_5_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_6,        adc2_set_attenuation(get_channel(TEMP_6_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_7,        adc3_set_attenuation(get_channel(TEMP_7_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_HEATED_BED,        adc1_set_attenuation(get_channel(TEMP_BED_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_CHAMBER,      adc1_set_attenuation(get_channel(TEMP_CHAMBER_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_PROBE,        adc1_set_attenuation(get_channel(TEMP_PROBE_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_COOLER,       adc1_set_attenuation(get_channel(TEMP_COOLER_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_BOARD,        adc1_set_attenuation(get_channel(TEMP_BOARD_PIN), ADC_ATTEN_11db));
   TERN_(FILAMENT_WIDTH_SENSOR, adc1_set_attenuation(get_channel(FILWIDTH_PIN), ADC_ATTEN_11db));
 
   // Note that adc2 is shared with the WiFi module, which has higher priority, so the conversion may fail.

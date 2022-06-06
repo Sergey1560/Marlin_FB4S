@@ -371,7 +371,7 @@
 #elif defined(FILAMENT_CHANGE_LOAD_LENGTH)
   #error "FILAMENT_CHANGE_LOAD_LENGTH is now FILAMENT_CHANGE_FAST_LOAD_LENGTH."
 #elif defined(LEVEL_CORNERS_INSET)
-  #error "LEVEL_CORNERS_INSET is now LEVEL_CORNERS_INSET_LFRB."
+  #error "LEVEL_CORNERS_INSET is now BED_TRAMMING_INSET_LFRB."
 #elif defined(BEZIER_JERK_CONTROL)
   #error "BEZIER_JERK_CONTROL is now S_CURVE_ACCELERATION."
 #elif HAS_JUNCTION_DEVIATION && defined(JUNCTION_DEVIATION_FACTOR)
@@ -390,6 +390,8 @@
   #error "ENDSTOP_NOISE_FILTER is now ENDSTOP_NOISE_THRESHOLD [2-7]."
 #elif defined(RETRACT_ZLIFT)
   #error "RETRACT_ZLIFT is now RETRACT_ZRAISE."
+#elif defined(TOOLCHANGE_FS_INIT_BEFORE_SWAP)
+  #error "TOOLCHANGE_FS_INIT_BEFORE_SWAP is now TOOLCHANGE_FS_SLOW_FIRST_PRIME."
 #elif defined(TOOLCHANGE_PARK_ZLIFT) || defined(TOOLCHANGE_UNPARK_ZLIFT)
   #error "TOOLCHANGE_PARK_ZLIFT and TOOLCHANGE_UNPARK_ZLIFT are now TOOLCHANGE_ZRAISE."
 #elif defined(SINGLENOZZLE_TOOLCHANGE_ZRAISE)
@@ -522,11 +524,11 @@
 #elif defined(Z_QUAD_ENDSTOPS_ADJUSTMENT2) || defined(Z_QUAD_ENDSTOPS_ADJUSTMENT3) || defined(Z_QUAD_ENDSTOPS_ADJUSTMENT4)
   #error "Z_QUAD_ENDSTOPS_ADJUSTMENT[234] is now Z[234]_ENDSTOP_ADJUSTMENT."
 #elif defined(Z_DUAL_STEPPER_DRIVERS)
-  #error "Z_DUAL_STEPPER_DRIVERS is now NUM_Z_STEPPER_DRIVERS with a value of 2."
+  #error "Z_DUAL_STEPPER_DRIVERS is no longer needed and should be removed."
 #elif defined(Z_TRIPLE_STEPPER_DRIVERS)
-  #error "Z_TRIPLE_STEPPER_DRIVERS is now NUM_Z_STEPPER_DRIVERS with a value of 3."
+  #error "Z_TRIPLE_STEPPER_DRIVERS is no longer needed and should be removed."
 #elif defined(Z_QUAD_STEPPER_DRIVERS)
-  #error "Z_QUAD_STEPPER_DRIVERS is now NUM_Z_STEPPER_DRIVERS with a value of 4."
+  #error "Z_QUAD_STEPPER_DRIVERS is no longer needed and should be removed."
 #elif defined(Z_DUAL_ENDSTOPS) || defined(Z_TRIPLE_ENDSTOPS) || defined(Z_QUAD_ENDSTOPS)
   #error "Z_(DUAL|TRIPLE|QUAD)_ENDSTOPS is now Z_MULTI_ENDSTOPS."
 #elif defined(DUGS_UI_MOVE_DIS_OPTION)
@@ -617,6 +619,18 @@
   #error "Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS is now just Z_STEPPER_ALIGN_STEPPER_XY."
 #elif defined(DWIN_CREALITY_LCD_ENHANCED)
   #error "DWIN_CREALITY_LCD_ENHANCED is now DWIN_LCD_PROUI."
+#elif defined(X_DUAL_STEPPER_DRIVERS)
+  #error "X_DUAL_STEPPER_DRIVERS is no longer needed and should be removed."
+#elif defined(Y_DUAL_STEPPER_DRIVERS)
+  #error "Y_DUAL_STEPPER_DRIVERS is no longer needed and should be removed."
+#elif defined(NUM_Z_STEPPER_DRIVERS)
+  #error "NUM_Z_STEPPER_DRIVERS is no longer needed and should be removed."
+#elif defined(LEVEL_BED_CORNERS)
+  #error "LEVEL_BED_CORNERS is now LCD_BED_TRAMMING."
+#elif defined(LEVEL_CORNERS_INSET_LFRB) || defined(LEVEL_CORNERS_HEIGHT) || defined(LEVEL_CORNERS_Z_HOP) || defined(LEVEL_CORNERS_USE_PROBE) || defined(LEVEL_CORNERS_PROBE_TOLERANCE) || defined(LEVEL_CORNERS_VERIFY_RAISED) || defined(LEVEL_CORNERS_AUDIO_FEEDBACK)
+  #error "LEVEL_CORNERS_* settings have been renamed BED_TRAMMING_*."
+#elif defined(LEVEL_CENTER_TOO)
+  #error "LEVEL_CENTER_TOO is now BED_TRAMMING_INCLUDE_CENTER."
 #endif
 
 constexpr float arm[] = AXIS_RELATIVE_MODES;
@@ -733,27 +747,21 @@ static_assert(COUNT(arm) == LOGICAL_AXES, "AXIS_RELATIVE_MODES must contain " _L
  * Multiple Stepper Drivers Per Axis
  */
 #define GOOD_AXIS_PINS(A) (HAS_##A##_ENABLE && HAS_##A##_STEP && HAS_##A##_DIR)
-#if ENABLED(X_DUAL_STEPPER_DRIVERS)
-  #if ENABLED(DUAL_X_CARRIAGE)
-    #error "DUAL_X_CARRIAGE is not compatible with X_DUAL_STEPPER_DRIVERS."
-  #elif !GOOD_AXIS_PINS(X)
-    #error "X_DUAL_STEPPER_DRIVERS requires X2 pins to be defined."
-  #endif
+#if HAS_X2_STEPPER && !GOOD_AXIS_PINS(X)
+  #error "If X2_DRIVER_TYPE is defined, then X2 ENABLE/STEP/DIR pins are also needed."
 #endif
 
-#if ENABLED(Y_DUAL_STEPPER_DRIVERS) && !GOOD_AXIS_PINS(Y)
-  #error "Y_DUAL_STEPPER_DRIVERS requires Y2 pins to be defined."
+#if HAS_DUAL_Y_STEPPERS && !GOOD_AXIS_PINS(Y)
+  #error "If Y2_DRIVER_TYPE is defined, then Y2 ENABLE/STEP/DIR pins are also needed."
 #endif
 
 #if HAS_Z_AXIS
-  #if !WITHIN(NUM_Z_STEPPER_DRIVERS, 1, 4)
-    #error "NUM_Z_STEPPER_DRIVERS must be an integer from 1 to 4."
-  #elif NUM_Z_STEPPER_DRIVERS == 2 && !GOOD_AXIS_PINS(Z2)
-    #error "If NUM_Z_STEPPER_DRIVERS is 2, you must define stepper pins for Z2."
-  #elif NUM_Z_STEPPER_DRIVERS == 3 && !(GOOD_AXIS_PINS(Z2) && GOOD_AXIS_PINS(Z3))
-    #error "If NUM_Z_STEPPER_DRIVERS is 3, you must define stepper pins for Z2 and Z3."
-  #elif NUM_Z_STEPPER_DRIVERS == 4 && !(GOOD_AXIS_PINS(Z2) && GOOD_AXIS_PINS(Z3) && GOOD_AXIS_PINS(Z4))
-    #error "If NUM_Z_STEPPER_DRIVERS is 4, you must define stepper pins for Z2, Z3, and Z4."
+  #if NUM_Z_STEPPERS >= 2 && !GOOD_AXIS_PINS(Z2)
+    #error "If Z2_DRIVER_TYPE is defined, then Z2 ENABLE/STEP/DIR pins are also needed."
+  #elif NUM_Z_STEPPERS >= 3 && !GOOD_AXIS_PINS(Z3)
+    #error "If Z3_DRIVER_TYPE is defined, then Z3 ENABLE/STEP/DIR pins are also needed."
+  #elif NUM_Z_STEPPERS >= 4 && !GOOD_AXIS_PINS(Z4)
+    #error "If Z4_DRIVER_TYPE is defined, then Z4 ENABLE/STEP/DIR pins are also needed."
   #endif
 #endif
 
@@ -1400,6 +1408,26 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 #endif
 
 /**
+ * Extruder temperature control algorithm - There can be only one!
+ */
+#if BOTH(PIDTEMP, MPCTEMP)
+  #error "Only enable PIDTEMP or MPCTEMP, but not both."
+#endif
+
+#if ENABLED(MPC_INCLUDE_FAN)
+  #if FAN_COUNT < 1
+    #error "MPC_INCLUDE_FAN requires at least one fan."
+  #endif
+  #if FAN_COUNT < HOTENDS
+    #if COUNT_ENABLED(MPC_FAN_0_ALL_HOTENDS, MPC_FAN_0_ACTIVE_HOTEND) > 1
+      #error "Enable either MPC_FAN_0_ALL_HOTENDS or MPC_FAN_0_ACTIVE_HOTEND, not both."
+    #elif NONE(MPC_FAN_0_ALL_HOTENDS, MPC_FAN_0_ACTIVE_HOTEND)
+      #error "MPC_INCLUDE_FAN requires MPC_FAN_0_ALL_HOTENDS or MPC_FAN_0_ACTIVE_HOTEND for one fan with multiple hotends."
+    #endif
+  #endif
+#endif
+
+/**
  * Bed Heating Options - PID vs Limit Switching
  */
 #if BOTH(PIDTEMPBED, BED_LIMIT_SWITCHING)
@@ -1743,14 +1771,14 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 
 #endif
 
-#if ENABLED(LEVEL_BED_CORNERS)
-  #ifndef LEVEL_CORNERS_INSET_LFRB
-    #error "LEVEL_BED_CORNERS requires LEVEL_CORNERS_INSET_LFRB values."
-  #elif ENABLED(LEVEL_CORNERS_USE_PROBE)
+#if ENABLED(LCD_BED_TRAMMING)
+  #ifndef BED_TRAMMING_INSET_LFRB
+    #error "LCD_BED_TRAMMING requires BED_TRAMMING_INSET_LFRB values."
+  #elif ENABLED(BED_TRAMMING_USE_PROBE)
     #if !HAS_BED_PROBE
-      #error "LEVEL_CORNERS_USE_PROBE requires a real probe."
+      #error "BED_TRAMMING_USE_PROBE requires a real probe."
     #elif ENABLED(SENSORLESS_PROBING)
-      #error "LEVEL_CORNERS_USE_PROBE is incompatible with SENSORLESS_PROBING."
+      #error "BED_TRAMMING_USE_PROBE is incompatible with SENSORLESS_PROBING."
     #endif
   #endif
 #endif
@@ -2509,10 +2537,10 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "Z_MULTI_ENDSTOPS is not compatible with DELTA."
   #elif !Z2_USE_ENDSTOP
     #error "Z2_USE_ENDSTOP must be set with Z_MULTI_ENDSTOPS."
-  #elif !Z3_USE_ENDSTOP && NUM_Z_STEPPER_DRIVERS >= 3
-    #error "Z3_USE_ENDSTOP must be set with Z_MULTI_ENDSTOPS and NUM_Z_STEPPER_DRIVERS >= 3."
-  #elif !Z4_USE_ENDSTOP && NUM_Z_STEPPER_DRIVERS >= 4
-    #error "Z4_USE_ENDSTOP must be set with Z_MULTI_ENDSTOPS and NUM_Z_STEPPER_DRIVERS >= 4."
+  #elif !Z3_USE_ENDSTOP && NUM_Z_STEPPERS >= 3
+    #error "Z3_USE_ENDSTOP must be set with Z_MULTI_ENDSTOPS and Z3_DRIVER_TYPE."
+  #elif !Z4_USE_ENDSTOP && NUM_Z_STEPPERS >= 4
+    #error "Z4_USE_ENDSTOP must be set with Z_MULTI_ENDSTOPS and Z4_DRIVER_TYPE."
   #endif
 #endif
 
@@ -2832,24 +2860,24 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 #if ENABLED(DWIN_CREALITY_LCD)
   #if DISABLED(SDSUPPORT)
     #error "DWIN_CREALITY_LCD requires SDSUPPORT to be enabled."
-  #elif ENABLED(PID_EDIT_MENU)
-    #error "DWIN_CREALITY_LCD does not support PID_EDIT_MENU."
-  #elif ENABLED(PID_AUTOTUNE_MENU)
-    #error "DWIN_CREALITY_LCD does not support PID_AUTOTUNE_MENU."
-  #elif ENABLED(LEVEL_BED_CORNERS)
-    #error "DWIN_CREALITY_LCD does not support LEVEL_BED_CORNERS."
+  #elif EITHER(PID_EDIT_MENU, PID_AUTOTUNE_MENU)
+    #error "DWIN_CREALITY_LCD does not support PID_EDIT_MENU or PID_AUTOTUNE_MENU."
+  #elif EITHER(MPC_EDIT_MENU, MPC_AUTOTUNE_MENU)
+    #error "DWIN_CREALITY_LCD does not support MPC_EDIT_MENU or MPC_AUTOTUNE_MENU."
+  #elif ENABLED(LCD_BED_TRAMMING)
+    #error "DWIN_CREALITY_LCD does not support LCD_BED_TRAMMING."
   #elif BOTH(LCD_BED_LEVELING, PROBE_MANUALLY)
     #error "DWIN_CREALITY_LCD does not support LCD_BED_LEVELING with PROBE_MANUALLY."
   #endif
 #elif ENABLED(DWIN_LCD_PROUI)
   #if DISABLED(SDSUPPORT)
     #error "DWIN_LCD_PROUI requires SDSUPPORT to be enabled."
-  #elif ENABLED(PID_EDIT_MENU)
-    #error "DWIN_LCD_PROUI does not support PID_EDIT_MENU."
-  #elif ENABLED(PID_AUTOTUNE_MENU)
-    #error "DWIN_LCD_PROUI does not support PID_AUTOTUNE_MENU."
-  #elif ENABLED(LEVEL_BED_CORNERS)
-    #error "DWIN_LCD_PROUI does not support LEVEL_BED_CORNERS."
+  #elif EITHER(PID_EDIT_MENU, PID_AUTOTUNE_MENU)
+    #error "DWIN_LCD_PROUI does not support PID_EDIT_MENU or PID_AUTOTUNE_MENU."
+  #elif EITHER(MPC_EDIT_MENU, MPC_AUTOTUNE_MENU)
+    #error "DWIN_LCD_PROUI does not support MPC_EDIT_MENU or MPC_AUTOTUNE_MENU."
+  #elif ENABLED(LCD_BED_TRAMMING)
+    #error "DWIN_LCD_PROUI does not support LCD_BED_TRAMMING."
   #elif BOTH(LCD_BED_LEVELING, PROBE_MANUALLY)
     #error "DWIN_LCD_PROUI does not support LCD_BED_LEVELING with PROBE_MANUALLY."
   #endif
@@ -2860,6 +2888,17 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "LCD_BACKLIGHT_TIMEOUT requires an LCD with encoder or keypad."
   #elif !PIN_EXISTS(LCD_BACKLIGHT)
     #error "LCD_BACKLIGHT_TIMEOUT requires LCD_BACKLIGHT_PIN."
+  #endif
+#endif
+
+/**
+ * Display Sleep is not supported by these common displays
+ */
+#if HAS_DISPLAY_SLEEP
+  #if ANY(IS_U8GLIB_LM6059_AF, IS_U8GLIB_ST7565_64128, REPRAPWORLD_GRAPHICAL_LCD, FYSETC_MINI, ENDER2_STOCKDISPLAY, MINIPANEL)
+    #error "DISPLAY_SLEEP_MINUTES is not supported by your display."
+  #elif !WITHIN(DISPLAY_SLEEP_MINUTES, 0, 255)
+    #error "DISPLAY_SLEEP_MINUTES must be between 0 and 255."
   #endif
 #endif
 
@@ -2908,6 +2947,8 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "The ANYCUBIC LCD requires LCD_SERIAL_PORT to be defined."
   #elif ENABLED(MALYAN_LCD)
     #error "MALYAN_LCD requires LCD_SERIAL_PORT to be defined."
+  #elif ENABLED(NEXTION_LCD)
+    #error "NEXTION_LCD requires LCD_SERIAL_PORT to be defined."
   #endif
 #endif
 
@@ -3469,14 +3510,14 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
 #endif
 
 #if ENABLED(Z_STEPPER_AUTO_ALIGN)
-  #if NUM_Z_STEPPER_DRIVERS <= 1
-    #error "Z_STEPPER_AUTO_ALIGN requires NUM_Z_STEPPER_DRIVERS greater than 1."
+  #if NUM_Z_STEPPERS <= 1
+    #error "Z_STEPPER_AUTO_ALIGN requires more than one Z stepper."
   #elif !HAS_BED_PROBE
     #error "Z_STEPPER_AUTO_ALIGN requires a Z-bed probe."
   #elif HAS_Z_STEPPER_ALIGN_STEPPER_XY
     static_assert(WITHIN(Z_STEPPER_ALIGN_AMP, 0.5, 2.0), "Z_STEPPER_ALIGN_AMP must be between 0.5 and 2.0.");
-    #if NUM_Z_STEPPER_DRIVERS < 3
-      #error "Z_STEPPER_ALIGN_STEPPER_XY requires NUM_Z_STEPPER_DRIVERS to be 3 or 4."
+    #if NUM_Z_STEPPERS < 3
+      #error "Z_STEPPER_ALIGN_STEPPER_XY requires 3 or 4 Z steppers."
     #endif
   #endif
 #endif
@@ -3645,6 +3686,7 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
       #error "Enabled an inline laser feature without inline laser power being enabled."
     #endif
   #endif
+
   #define _PIN_CONFLICT(P) (PIN_EXISTS(P) && P##_PIN == SPINDLE_LASER_PWM_PIN)
   #if BOTH(SPINDLE_FEATURE, LASER_FEATURE)
     #error "Enable only one of SPINDLE_FEATURE or LASER_FEATURE."
@@ -3712,6 +3754,11 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
     #endif
   #endif
   #undef _PIN_CONFLICT
+
+  #ifdef LASER_SAFETY_TIMEOUT_MS
+    static_assert(LASER_SAFETY_TIMEOUT_MS < (DEFAULT_STEPPER_DEACTIVE_TIME) * 1000UL, "LASER_SAFETY_TIMEOUT_MS must be less than DEFAULT_STEPPER_DEACTIVE_TIME (" STRINGIFY(DEFAULT_STEPPER_DEACTIVE_TIME) " seconds)");
+  #endif
+
 #endif
 
 #if ENABLED(COOLANT_MIST) && !PIN_EXISTS(COOLANT_MIST)
@@ -3884,8 +3931,8 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
     #error "DGUS_LCD_UI_RELOADED requires a bed probe."
   #elif !HAS_MESH
     #error "DGUS_LCD_UI_RELOADED requires mesh leveling."
-  #elif DISABLED(LEVEL_BED_CORNERS)
-    #error "DGUS_LCD_UI_RELOADED requires LEVEL_BED_CORNERS."
+  #elif DISABLED(LCD_BED_TRAMMING)
+    #error "DGUS_LCD_UI_RELOADED requires LCD_BED_TRAMMING."
   #elif DISABLED(BABYSTEP_ALWAYS_AVAILABLE)
     #error "DGUS_LCD_UI_RELOADED requires BABYSTEP_ALWAYS_AVAILABLE."
   #elif DISABLED(BABYSTEP_ZPROBE_OFFSET)
