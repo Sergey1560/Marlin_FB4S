@@ -47,7 +47,7 @@
 #include "pins_MKS_ROBIN_NANO_common.h"
 
 #if HAS_TFT_LVGL_UI
-  #define BUF_SIZE_KB                       12
+  #define BUF_SIZE_KB                       10
 #endif
 
 #if HAS_TFT_LVGL_UI && FAN1_PIN != PB0 && HEATER_1_PIN != PB0
