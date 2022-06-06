@@ -121,6 +121,26 @@
   #define MIN_BED_TEMP  0
 #endif
 
+/**
+ * Custom menu items with jyersLCD
+ */
+#if ENABLED(CUSTOM_MENU_CONFIG)
+  #ifdef CONFIG_MENU_ITEM_5_DESC
+    #define CUSTOM_MENU_COUNT 5
+  #elif defined(CONFIG_MENU_ITEM_4_DESC)
+    #define CUSTOM_MENU_COUNT 4
+  #elif defined(CONFIG_MENU_ITEM_3_DESC)
+    #define CUSTOM_MENU_COUNT 3
+  #elif defined(CONFIG_MENU_ITEM_2_DESC)
+    #define CUSTOM_MENU_COUNT 2
+  #elif defined(CONFIG_MENU_ITEM_1_DESC)
+    #define CUSTOM_MENU_COUNT 1
+  #endif
+  #if CUSTOM_MENU_COUNT
+    #define HAS_CUSTOM_MENU 1
+  #endif
+#endif
+
 constexpr uint16_t TROWS = 6, MROWS = TROWS - 1,
                    TITLE_HEIGHT = 30,
                    MLINE = 53,
@@ -1078,7 +1098,8 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
       #define PREPARE_PREHEAT (PREPARE_ZOFFSET + ENABLED(HAS_PREHEAT))
       #define PREPARE_COOLDOWN (PREPARE_PREHEAT + EITHER(HAS_HOTEND, HAS_HEATED_BED))
       #define PREPARE_CHANGEFIL (PREPARE_COOLDOWN + ENABLED(ADVANCED_PAUSE_FEATURE))
-      #define PREPARE_TOTAL PREPARE_CHANGEFIL
+      #define PREPARE_CUSTOM_MENU (PREPARE_CHANGEFIL + ENABLED(HAS_CUSTOM_MENU))
+      #define PREPARE_TOTAL PREPARE_CUSTOM_MENU
 
       switch (item) {
         case PREPARE_BACK:
@@ -1150,6 +1171,18 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               Draw_Menu_Item(row, ICON_Cool, F("Cooldown"));
             else
               thermalManager.cooldown();
+            break;
+        #endif
+
+        #if HAS_CUSTOM_MENU
+          case PREPARE_CUSTOM_MENU:
+            #ifndef CUSTOM_MENU_CONFIG_TITLE
+              #define CUSTOM_MENU_CONFIG_TITLE "Custom Commands"
+            #endif
+            if (draw)
+              Draw_Menu_Item(row, ICON_Version, F(CUSTOM_MENU_CONFIG_TITLE));
+            else
+              Draw_Menu(MenuCustom);
             break;
         #endif
 
@@ -1749,6 +1782,126 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         }
         break;
     #endif // FILAMENT_LOAD_UNLOAD_GCODES
+
+    #if HAS_CUSTOM_MENU
+
+      case MenuCustom:
+
+        #define CUSTOM_MENU_BACK 0
+        #define CUSTOM_MENU_1 1
+        #define CUSTOM_MENU_2 2
+        #define CUSTOM_MENU_3 3
+        #define CUSTOM_MENU_4 4
+        #define CUSTOM_MENU_5 5
+        #define CUSTOM_MENU_TOTAL CUSTOM_MENU_COUNT
+
+        switch (item) {
+          case CUSTOM_MENU_BACK:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, F("Back"));
+            else
+              Draw_Menu(Prepare, PREPARE_CUSTOM_MENU);
+            break;
+
+          #if CUSTOM_MENU_COUNT >= 1
+            case CUSTOM_MENU_1:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Info, F(CONFIG_MENU_ITEM_1_DESC));
+              else {
+                Popup_Handler(Custom);
+                //queue.inject(F(CONFIG_MENU_ITEM_1_GCODE)); // Old code
+                gcode.process_subcommands_now(F(CONFIG_MENU_ITEM_1_GCODE));
+                planner.synchronize();
+                Redraw_Menu();
+                #if ENABLED(CUSTOM_MENU_CONFIG_SCRIPT_AUDIBLE_FEEDBACK)
+                  AudioFeedback();
+                #endif
+                #ifdef CUSTOM_MENU_CONFIG_SCRIPT_RETURN
+                  queue.inject(F(CUSTOM_MENU_CONFIG_SCRIPT_DONE));
+                #endif
+              }
+              break;
+          #endif
+
+          #if CUSTOM_MENU_COUNT >= 2
+            case CUSTOM_MENU_2:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Info, F(CONFIG_MENU_ITEM_2_DESC));
+              else {
+                Popup_Handler(Custom);
+                gcode.process_subcommands_now(F(CONFIG_MENU_ITEM_2_GCODE));
+                planner.synchronize();
+                Redraw_Menu();
+                #if ENABLED(CUSTOM_MENU_CONFIG_SCRIPT_AUDIBLE_FEEDBACK)
+                  AudioFeedback();
+                #endif
+                #ifdef CUSTOM_MENU_CONFIG_SCRIPT_RETURN
+                  queue.inject(F(CUSTOM_MENU_CONFIG_SCRIPT_DONE));
+                #endif
+              }
+              break;
+          #endif
+
+          #if CUSTOM_MENU_COUNT >= 3
+            case CUSTOM_MENU_3:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Info, F(CONFIG_MENU_ITEM_3_DESC));
+              else {
+                Popup_Handler(Custom);
+                gcode.process_subcommands_now(F(CONFIG_MENU_ITEM_3_GCODE));
+                planner.synchronize();
+                Redraw_Menu();
+                #if ENABLED(CUSTOM_MENU_CONFIG_SCRIPT_AUDIBLE_FEEDBACK)
+                  AudioFeedback();
+                #endif
+                #ifdef CUSTOM_MENU_CONFIG_SCRIPT_RETURN
+                  queue.inject(F(CUSTOM_MENU_CONFIG_SCRIPT_DONE));
+                #endif
+              }
+              break;
+          #endif
+
+          #if CUSTOM_MENU_COUNT >= 4
+            case CUSTOM_MENU_4:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Info, F(CONFIG_MENU_ITEM_4_DESC));
+              else {
+                Popup_Handler(Custom);
+                gcode.process_subcommands_now(F(CONFIG_MENU_ITEM_4_GCODE));
+                planner.synchronize();
+                Redraw_Menu();
+                #if ENABLED(CUSTOM_MENU_CONFIG_SCRIPT_AUDIBLE_FEEDBACK)
+                  AudioFeedback();
+                #endif
+                #ifdef CUSTOM_MENU_CONFIG_SCRIPT_RETURN
+                  queue.inject(F(CUSTOM_MENU_CONFIG_SCRIPT_DONE));
+                #endif
+              }
+              break;
+          #endif
+
+          #if CUSTOM_MENU_COUNT >= 5
+            case CUSTOM_MENU_5:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Info, F(CONFIG_MENU_ITEM_5_DESC));
+              else {
+                Popup_Handler(Custom);
+                gcode.process_subcommands_now(F(CONFIG_MENU_ITEM_5_GCODE));
+                planner.synchronize();
+                Redraw_Menu();
+                #if ENABLED(CUSTOM_MENU_CONFIG_SCRIPT_AUDIBLE_FEEDBACK)
+                  AudioFeedback();
+                #endif
+                #ifdef CUSTOM_MENU_CONFIG_SCRIPT_RETURN
+                  queue.inject(F(CUSTOM_MENU_CONFIG_SCRIPT_DONE));
+                #endif
+              }
+              break;
+          #endif // Custom Menu
+        }
+        break;
+
+    #endif // HAS_CUSTOM_MENU
 
     case Control:
 
@@ -2585,11 +2738,11 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
           case ADVANCED_BEEPER:
             if (draw) {
               Draw_Menu_Item(row, ICON_Version, F("LCD Beeper"));
-              Draw_Checkbox(row, ui.buzzer_enabled);
+              Draw_Checkbox(row, ui.sound_on);
             }
             else {
-              ui.buzzer_enabled = !ui.buzzer_enabled;
-              Draw_Checkbox(row, ui.buzzer_enabled);
+              ui.sound_on = !ui.sound_on;
+              Draw_Checkbox(row, ui.sound_on);
             }
             break;
         #endif
@@ -2882,7 +3035,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
                   mesh_conf.goto_mesh_value = true;
                   mesh_conf.mesh_x = mesh_conf.mesh_y = 0;
                   Popup_Handler(MoveWait);
-                  mesh_conf.manual_move();;
+                  mesh_conf.manual_move();
                   Draw_Menu(UBLMesh);
                 #endif
               #elif HAS_BED_PROBE
@@ -2944,7 +3097,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             break;
           case LEVELING_VIEW:
             if (draw)
-              Draw_Menu_Item(row, ICON_Mesh, GET_TEXT(MSG_MESH_VIEW), nullptr, true);
+              Draw_Menu_Item(row, ICON_Mesh, GET_TEXT_F(MSG_MESH_VIEW), nullptr, true);
             else {
               #if ENABLED(AUTO_BED_LEVELING_UBL)
                 if (bedlevel.storage_slot < 0) {
@@ -3017,7 +3170,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             break;
           case LEVELING_VIEW_MESH:
             if (draw)
-              Draw_Menu_Item(row, ICON_PrintSize, GET_TEXT(MSG_MESH_VIEW), nullptr, true);
+              Draw_Menu_Item(row, ICON_PrintSize, GET_TEXT_F(MSG_MESH_VIEW), nullptr, true);
             else
               Draw_Menu(MeshViewer);
             break;
@@ -3688,6 +3841,14 @@ FSTR_P CrealityDWINClass::Get_Menu_Title(uint8_t menu) {
     #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
       case ChangeFilament:  return F("Change Filament");
     #endif
+    #if HAS_CUSTOM_MENU
+      case MenuCustom:
+        #ifdef CUSTOM_MENU_CONFIG_TITLE
+          return F(CUSTOM_MENU_CONFIG_TITLE);
+        #else
+          return F("Custom Commands");
+        #endif
+    #endif
     case Control:           return F("Control");
     case TempMenu:          return F("Temperature");
     #if HAS_HOTEND || HAS_HEATED_BED
@@ -3752,6 +3913,9 @@ uint8_t CrealityDWINClass::Get_Menu_Size(uint8_t menu) {
     #endif
     #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
       case ChangeFilament:  return CHANGEFIL_TOTAL;
+    #endif
+    #if HAS_CUSTOM_MENU
+      case MenuCustom:      return CUSTOM_MENU_TOTAL;
     #endif
     case Control:           return CONTROL_TOTAL;
     case TempMenu:          return TEMP_TOTAL;
@@ -3831,6 +3995,7 @@ void CrealityDWINClass::Popup_Handler(PopupID popupid, bool option/*=false*/) {
     case Runout:        Draw_Popup(F("Filament Runout"), F(""), F(""), Wait, ICON_BLTouch); break;
     case PIDWait:       Draw_Popup(F("PID Autotune"), F("in process"), F("Please wait until done."), Wait, ICON_BLTouch); break;
     case Resuming:      Draw_Popup(F("Resuming Print"), F("Please wait until done."), F(""), Wait, ICON_BLTouch); break;
+    case Custom:        Draw_Popup(F("Running Custom GCode"), F("Please wait until done."), F(""), Wait, ICON_BLTouch); break;
     default: break;
   }
 }
@@ -4115,14 +4280,14 @@ void CrealityDWINClass::Print_Screen_Control() {
               card.startOrResumeFilePrinting();
               TERN_(POWER_LOSS_RECOVERY, recovery.prepare());
             #else
-              char cmnd[20];
+              char cmd[20];
               #if HAS_HEATED_BED
-                cmnd[sprintf_P(cmnd, PSTR("M140 S%i"), pausebed)] = '\0';
-                gcode.process_subcommands_now(cmnd);
+                sprintf_P(cmd, PSTR("M140 S%i"), pausebed);
+                gcode.process_subcommands_now(cmd);
               #endif
               #if HAS_EXTRUDERS
-                cmnd[sprintf_P(cmnd, PSTR("M109 S%i"), pausetemp)] = '\0';
-                gcode.process_subcommands_now(cmnd);
+                sprintf_P(cmd, PSTR("M109 S%i"), pausetemp);
+                gcode.process_subcommands_now(cmd);
               #endif
               TERN_(HAS_FAN, thermalManager.fan_speed[0] = pausefan);
               planner.synchronize();
@@ -4600,7 +4765,7 @@ void CrealityDWINClass::Screen_Update() {
 }
 
 void CrealityDWINClass::AudioFeedback(const bool success/*=true*/) {
-  if (ui.buzzer_enabled)
+  if (ui.sound_on)
     DONE_BUZZ(success);
   else
     Update_Status(success ? "Success" : "Failed");
@@ -4644,7 +4809,7 @@ void CrealityDWINClass::Reset_Settings() {
   eeprom_settings.coordinates_split_line = 0;
   TERN_(AUTO_BED_LEVELING_UBL, mesh_conf.tilt_grid = eeprom_settings.tilt_grid_size + 1);
   corner_pos = eeprom_settings.corner_pos / 10.0f;
-  TERN_(SOUND_MENU_ITEM, ui.buzzer_enabled = true);
+  TERN_(SOUND_MENU_ITEM, ui.sound_on = ENABLED(SOUND_ON_DEFAULT));
   Redraw_Screen();
 }
 

@@ -347,9 +347,9 @@ typedef struct SettingsDataStruct {
   // Z_STEPPER_AUTO_ALIGN, HAS_Z_STEPPER_ALIGN_STEPPER_XY
   //
   #if ENABLED(Z_STEPPER_AUTO_ALIGN)
-    xy_pos_t z_stepper_align_xy[NUM_Z_STEPPER_DRIVERS];             // M422 S X Y
+    xy_pos_t z_stepper_align_xy[NUM_Z_STEPPERS];             // M422 S X Y
     #if HAS_Z_STEPPER_ALIGN_STEPPER_XY
-      xy_pos_t z_stepper_align_stepper_xy[NUM_Z_STEPPER_DRIVERS];   // M422 W X Y
+      xy_pos_t z_stepper_align_stepper_xy[NUM_Z_STEPPERS];   // M422 W X Y
     #endif
   #endif
 
@@ -402,7 +402,9 @@ typedef struct SettingsDataStruct {
   // Display Sleep
   //
   #if LCD_BACKLIGHT_TIMEOUT
-    uint16_t lcd_backlight_timeout;                     // (G-code needed)
+    uint16_t lcd_backlight_timeout;                     // M255 S
+  #elif HAS_DISPLAY_SLEEP
+    uint8_t sleep_timeout_minutes;                      // M255 S
   #endif
 
   //
@@ -531,7 +533,7 @@ typedef struct SettingsDataStruct {
   // Buzzer enable/disable
   //
   #if ENABLED(SOUND_MENU_ITEM)
-    bool buzzer_enabled;
+    bool sound_on;
   #endif
 
   //
@@ -553,6 +555,13 @@ typedef struct SettingsDataStruct {
 
   #if HAS_MULTI_LANGUAGE
     uint8_t ui_language;                                // M414 S
+  #endif
+
+  //
+  // Model predictive control
+  //
+  #if ENABLED(MPCTEMP)
+    MPC_t mpc_constants[HOTENDS];                       // M306
   #endif
 
 } SettingsData;
@@ -624,6 +633,8 @@ void MarlinSettings::postprocess() {
 
   #if LCD_BACKLIGHT_TIMEOUT
     ui.refresh_backlight_timeout();
+  #elif HAS_DISPLAY_SLEEP
+    ui.refresh_screen_timeout();
   #endif
 }
 
@@ -998,13 +1009,13 @@ void MarlinSettings::postprocess() {
       EEPROM_WRITE(TERN(Y_DUAL_ENDSTOPS, endstops.y2_endstop_adj, dummyf));   // 1 float
       EEPROM_WRITE(TERN(Z_MULTI_ENDSTOPS, endstops.z2_endstop_adj, dummyf));  // 1 float
 
-      #if ENABLED(Z_MULTI_ENDSTOPS) && NUM_Z_STEPPER_DRIVERS >= 3
+      #if ENABLED(Z_MULTI_ENDSTOPS) && NUM_Z_STEPPERS >= 3
         EEPROM_WRITE(endstops.z3_endstop_adj);   // 1 float
       #else
         EEPROM_WRITE(dummyf);
       #endif
 
-      #if ENABLED(Z_MULTI_ENDSTOPS) && NUM_Z_STEPPER_DRIVERS >= 4
+      #if ENABLED(Z_MULTI_ENDSTOPS) && NUM_Z_STEPPERS >= 4
         EEPROM_WRITE(endstops.z4_endstop_adj);   // 1 float
       #else
         EEPROM_WRITE(dummyf);
@@ -1139,6 +1150,8 @@ void MarlinSettings::postprocess() {
     //
     #if LCD_BACKLIGHT_TIMEOUT
       EEPROM_WRITE(ui.lcd_backlight_timeout);
+    #elif HAS_DISPLAY_SLEEP
+      EEPROM_WRITE(ui.sleep_timeout_minutes);
     #endif
 
     //
@@ -1537,7 +1550,7 @@ void MarlinSettings::postprocess() {
     // Buzzer enable/disable
     //
     #if ENABLED(SOUND_MENU_ITEM)
-      EEPROM_WRITE(ui.buzzer_enabled);
+      EEPROM_WRITE(ui.sound_on);
     #endif
 
     //
@@ -1562,6 +1575,14 @@ void MarlinSettings::postprocess() {
     //
     #if HAS_MULTI_LANGUAGE
       EEPROM_WRITE(ui.language);
+    #endif
+
+    //
+    // Model predictive control
+    //
+    #if ENABLED(MPCTEMP)
+      HOTEND_LOOP()
+        EEPROM_WRITE(thermalManager.temp_hotend[e].constants);
     #endif
 
     //
@@ -1922,12 +1943,12 @@ void MarlinSettings::postprocess() {
         EEPROM_READ(TERN(Y_DUAL_ENDSTOPS, endstops.y2_endstop_adj, dummyf));  // 1 float
         EEPROM_READ(TERN(Z_MULTI_ENDSTOPS, endstops.z2_endstop_adj, dummyf)); // 1 float
 
-        #if ENABLED(Z_MULTI_ENDSTOPS) && NUM_Z_STEPPER_DRIVERS >= 3
+        #if ENABLED(Z_MULTI_ENDSTOPS) && NUM_Z_STEPPERS >= 3
           EEPROM_READ(endstops.z3_endstop_adj); // 1 float
         #else
           EEPROM_READ(dummyf);
         #endif
-        #if ENABLED(Z_MULTI_ENDSTOPS) && NUM_Z_STEPPER_DRIVERS >= 4
+        #if ENABLED(Z_MULTI_ENDSTOPS) && NUM_Z_STEPPERS >= 4
           EEPROM_READ(endstops.z4_endstop_adj); // 1 float
         #else
           EEPROM_READ(dummyf);
@@ -2062,6 +2083,8 @@ void MarlinSettings::postprocess() {
       //
       #if LCD_BACKLIGHT_TIMEOUT
         EEPROM_READ(ui.lcd_backlight_timeout);
+      #elif HAS_DISPLAY_SLEEP
+        EEPROM_READ(ui.sleep_timeout_minutes);
       #endif
 
       //
@@ -2479,8 +2502,8 @@ void MarlinSettings::postprocess() {
       // Buzzer enable/disable
       //
       #if ENABLED(SOUND_MENU_ITEM)
-        _FIELD_TEST(buzzer_enabled);
-        EEPROM_READ(ui.buzzer_enabled);
+        _FIELD_TEST(sound_on);
+        EEPROM_READ(ui.sound_on);
       #endif
 
       //
@@ -2511,6 +2534,16 @@ void MarlinSettings::postprocess() {
         EEPROM_READ(ui_language);
         if (ui_language >= NUM_LANGUAGES) ui_language = 0;
         ui.set_language(ui_language);
+      }
+      #endif
+
+      //
+      // Model predictive control
+      //
+      #if ENABLED(MPCTEMP)
+      {
+        HOTEND_LOOP()
+          EEPROM_READ(thermalManager.temp_hotend[e].constants);
       }
       #endif
 
@@ -2858,7 +2891,9 @@ void MarlinSettings::reset() {
   //
   // Buzzer enable/disable
   //
-  TERN_(SOUND_MENU_ITEM, ui.buzzer_enabled = true);
+  #if ENABLED(SOUND_MENU_ITEM)
+    ui.sound_on = ENABLED(SOUND_ON_DEFAULT);
+  #endif
 
   //
   // Magnetic Parking Extruder
@@ -2955,13 +2990,13 @@ void MarlinSettings::reset() {
       #define Z2_ENDSTOP_ADJUSTMENT 0
     #endif
     endstops.z2_endstop_adj = Z2_ENDSTOP_ADJUSTMENT;
-    #if NUM_Z_STEPPER_DRIVERS >= 3
+    #if NUM_Z_STEPPERS >= 3
       #ifndef Z3_ENDSTOP_ADJUSTMENT
         #define Z3_ENDSTOP_ADJUSTMENT 0
       #endif
       endstops.z3_endstop_adj = Z3_ENDSTOP_ADJUSTMENT;
     #endif
-    #if NUM_Z_STEPPER_DRIVERS >= 4
+    #if NUM_Z_STEPPERS >= 4
       #ifndef Z4_ENDSTOP_ADJUSTMENT
         #define Z4_ENDSTOP_ADJUSTMENT 0
       #endif
@@ -3101,6 +3136,8 @@ void MarlinSettings::reset() {
   //
   #if LCD_BACKLIGHT_TIMEOUT
     ui.lcd_backlight_timeout = LCD_BACKLIGHT_TIMEOUT;
+  #elif HAS_DISPLAY_SLEEP
+    ui.sleep_timeout_minutes = DISPLAY_SLEEP_MINUTES;
   #endif
 
   //
@@ -3217,6 +3254,40 @@ void MarlinSettings::reset() {
   // Ender-3 V2 with ProUI
   //
   TERN_(DWIN_LCD_PROUI, DWIN_SetDataDefaults());
+
+  //
+  // Model predictive control
+  //
+  #if ENABLED(MPCTEMP)
+    constexpr float _mpc_heater_power[] = MPC_HEATER_POWER;
+    constexpr float _mpc_block_heat_capacity[] = MPC_BLOCK_HEAT_CAPACITY;
+    constexpr float _mpc_sensor_responsiveness[] = MPC_SENSOR_RESPONSIVENESS;
+    constexpr float _mpc_ambient_xfer_coeff[] = MPC_AMBIENT_XFER_COEFF;
+    #if ENABLED(MPC_INCLUDE_FAN)
+      constexpr float _mpc_ambient_xfer_coeff_fan255[] = MPC_AMBIENT_XFER_COEFF_FAN255;
+    #endif
+    constexpr float _filament_heat_capacity_permm[] = FILAMENT_HEAT_CAPACITY_PERMM;
+
+    static_assert(COUNT(_mpc_heater_power) == HOTENDS, "MPC_HEATER_POWER must have HOTENDS items.");
+    static_assert(COUNT(_mpc_block_heat_capacity) == HOTENDS, "MPC_BLOCK_HEAT_CAPACITY must have HOTENDS items.");
+    static_assert(COUNT(_mpc_sensor_responsiveness) == HOTENDS, "MPC_SENSOR_RESPONSIVENESS must have HOTENDS items.");
+    static_assert(COUNT(_mpc_ambient_xfer_coeff) == HOTENDS, "MPC_AMBIENT_XFER_COEFF must have HOTENDS items.");
+    #if ENABLED(MPC_INCLUDE_FAN)
+      static_assert(COUNT(_mpc_ambient_xfer_coeff_fan255) == HOTENDS, "MPC_AMBIENT_XFER_COEFF_FAN255 must have HOTENDS items.");
+    #endif
+    static_assert(COUNT(_filament_heat_capacity_permm) == HOTENDS, "FILAMENT_HEAT_CAPACITY_PERMM must have HOTENDS items.");
+
+    HOTEND_LOOP() {
+      thermalManager.temp_hotend[e].constants.heater_power = _mpc_heater_power[e];
+      thermalManager.temp_hotend[e].constants.block_heat_capacity = _mpc_block_heat_capacity[e];
+      thermalManager.temp_hotend[e].constants.sensor_responsiveness = _mpc_sensor_responsiveness[e];
+      thermalManager.temp_hotend[e].constants.ambient_xfer_coeff_fan0 = _mpc_ambient_xfer_coeff[e];
+      #if ENABLED(MPC_INCLUDE_FAN)
+        thermalManager.temp_hotend[e].constants.fan255_adjustment = _mpc_ambient_xfer_coeff_fan255[e] - _mpc_ambient_xfer_coeff[e];
+      #endif
+      thermalManager.temp_hotend[e].constants.filament_heat_capacity_permm = _filament_heat_capacity_permm[e];
+    }
+  #endif
 
   postprocess();
 
@@ -3407,6 +3478,11 @@ void MarlinSettings::reset() {
     TERN_(HAS_LCD_CONTRAST, gcode.M250_report(forReplay));
 
     //
+    // Display Sleep
+    //
+    TERN_(HAS_GCODE_M255, gcode.M255_report(forReplay));
+
+    //
     // LCD Brightness
     //
     TERN_(HAS_LCD_BRIGHTNESS, gcode.M256_report(forReplay));
@@ -3504,6 +3580,11 @@ void MarlinSettings::reset() {
     #endif
 
     TERN_(HAS_MULTI_LANGUAGE, gcode.M414_report(forReplay));
+
+    //
+    // Model predictive control
+    //
+    TERN_(MPCTEMP, gcode.M306_report(forReplay));
   }
 
 #endif // !DISABLE_M503

@@ -181,13 +181,13 @@ void draw_heater_status(uint16_t x, uint16_t y, const int8_t Heater) {
 
   tft.add_image(8, 28, image, Color);
 
-  tft_string.set((uint8_t *)i16tostr3rj(currentTemperature));
+  tft_string.set(i16tostr3rj(currentTemperature));
   tft_string.add(LCD_STR_DEGREE);
   tft_string.trim();
   tft.add_text(tft_string.center(80) + 2, 82, Color, tft_string);
 
   if (targetTemperature >= 0) {
-    tft_string.set((uint8_t *)i16tostr3rj(targetTemperature));
+    tft_string.set(i16tostr3rj(targetTemperature));
     tft_string.add(LCD_STR_DEGREE);
     tft_string.trim();
     tft.add_text(tft_string.center(80) + 2, 8, Color, tft_string);
@@ -211,7 +211,7 @@ void draw_fan_status(uint16_t x, uint16_t y, const bool blink) {
 
   tft.add_image(8, 20, image, COLOR_FAN);
 
-  tft_string.set((uint8_t *)ui8tostr4pctrj(thermalManager.fan_speed[0]));
+  tft_string.set(ui8tostr4pctrj(thermalManager.fan_speed[0]));
   tft_string.trim();
   tft.add_text(tft_string.center(80) + 6, 82, COLOR_FAN, tft_string);
 }
@@ -352,14 +352,14 @@ void MarlinUI::draw_status_screen() {
 }
 
 // Low-level draw_edit_screen can be used to draw an edit screen from anyplace
-void MenuEditItemBase::draw_edit_screen(PGM_P const pstr, const char * const value/*=nullptr*/) {
+void MenuEditItemBase::draw_edit_screen(FSTR_P const fstr, const char * const value/*=nullptr*/) {
   ui.encoder_direction_normal();
   TERN_(TOUCH_SCREEN, touch.clear());
 
   uint16_t line = 1;
 
   menu_line(line++);
-  tft_string.set(pstr, itemIndex, itemString);
+  tft_string.set(fstr, itemIndex, itemStringC, itemStringF);
   tft_string.trim();
   tft.add_text(tft_string.center(TFT_WIDTH), MENU_TEXT_Y_OFFSET, COLOR_MENU_TEXT, tft_string);
 
@@ -421,7 +421,7 @@ void TFT::draw_edit_screen_buttons() {
 }
 
 // The Select Screen presents a prompt and two "buttons"
-void MenuItem_confirm::draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
+void MenuItem_confirm::draw_select_screen(FSTR_P const yes, FSTR_P const no, const bool yesno, FSTR_P const pref, const char * const string/*=nullptr*/, FSTR_P const suff/*=nullptr*/) {
   uint16_t line = 1;
 
   if (!string) line++;
@@ -583,7 +583,7 @@ MotionAxisState motionAxisState;
 static void quick_feedback() {
   #if HAS_CHIRP
     ui.chirp(); // Buzz and wait. Is the delay needed for buttons to settle?
-    #if BOTH(HAS_MARLINUI_MENU, USE_BEEPER)
+    #if BOTH(HAS_MARLINUI_MENU, HAS_BEEPER)
       for (int8_t i = 5; i--;) { buzzer.tick(); delay(2); }
     #elif HAS_MARLINUI_MENU
       delay(10);
@@ -593,7 +593,7 @@ static void quick_feedback() {
 
 #define CUR_STEP_VALUE_WIDTH 104
 static void drawCurStepValue() {
-  tft_string.set((uint8_t *)ftostr52sp(motionAxisState.currentStepSize));
+  tft_string.set(ftostr52sp(motionAxisState.currentStepSize));
   tft_string.add("mm");
   tft.canvas(motionAxisState.stepValuePos.x, motionAxisState.stepValuePos.y, CUR_STEP_VALUE_WIDTH, BTN_HEIGHT);
   tft.set_background(COLOR_BACKGROUND);
@@ -622,7 +622,7 @@ static void drawCurESelection() {
   tft.add_text(tft_string.width(), 0, E_BTN_COLOR, ui8tostr3rj(motionAxisState.e_selection));
 }
 
-static void drawMessage(const char *msg) {
+static void drawMessage(PGM_P const msg) {
   tft.canvas(X_MARGIN, TFT_HEIGHT - Y_MARGIN - 34, TFT_HEIGHT / 2, 34);
   tft.set_background(COLOR_BACKGROUND);
   tft.add_text(0, 0, COLOR_YELLOW, msg);
@@ -653,7 +653,7 @@ static void moveAxis(const AxisEnum axis, const int8_t direction) {
 
   #if ENABLED(PREVENT_COLD_EXTRUSION)
     if (axis == E_AXIS && thermalManager.tooColdToExtrude(motionAxisState.e_selection)) {
-      drawMessage("Too cold");
+      drawMessage(PSTR("Too cold"));
       return;
     }
   #endif
@@ -676,7 +676,7 @@ static void moveAxis(const AxisEnum axis, const int8_t direction) {
           probe.offset.z = new_offs;
         else
           TERN(BABYSTEP_HOTEND_Z_OFFSET, hotend_offset[active_extruder].z = new_offs, NOOP);
-        drawMessage(""); // clear the error
+        drawMessage(NUL_STR); // clear the error
         drawAxisValue(axis);
       }
       else {
@@ -694,7 +694,7 @@ static void moveAxis(const AxisEnum axis, const int8_t direction) {
         drawMessage(GET_TEXT(MSG_LCD_SOFT_ENDSTOPS));
       }
       else {
-        drawMessage(""); // clear the error
+        drawMessage(NUL_STR); // clear the error
       }
       drawAxisValue(axis);
     #endif

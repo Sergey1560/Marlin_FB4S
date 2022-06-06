@@ -35,6 +35,10 @@
   #warning "WARNING! Disable MARLIN_DEV_MODE for the final build!"
 #endif
 
+#if LINEAR_AXES_WARNING
+  #warning "Note: LINEAR_AXES is now based on the *_DRIVER_TYPE settings so you can remove LINEAR_AXES from Configuration.h."
+#endif
+
 // Safety Features
 #if DISABLED(USE_WATCHDOG)
   #warning "Safety Alert! Enable USE_WATCHDOG for the final build!"
@@ -66,6 +70,10 @@
 #endif
 
 #ifndef NO_AUTO_ASSIGN_WARNING
+
+  #if AUTO_ASSIGNED_LCD_SERIAL
+    #warning "Note: Auto-assigned LCD_SERIAL_PORT. (Define NO_AUTO_ASSIGN_WARNING to suppress this warning.)"
+  #endif
 
   #if AUTO_ASSIGNED_X2_STEPPER
     #warning "Note: Auto-assigned X2 STEP/DIR/ENABLE_PINs to unused En_STEP/DIR/ENABLE_PINs. (Define NO_AUTO_ASSIGN_WARNING to suppress this warning.)"

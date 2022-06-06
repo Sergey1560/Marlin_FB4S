@@ -30,7 +30,7 @@
 
 #include "spindle_laser_types.h"
 
-#if USE_BEEPER
+#if HAS_BEEPER
   #include "../libs/buzzer.h"
 #endif
 
@@ -91,7 +91,8 @@ public:
   #endif
 
   static bool isReady;                    // Ready to apply power setting from the UI to OCR
-  static uint8_t power;
+  static uint8_t power,
+                 last_power_applied;      // Basic power state tracking
 
   #if ENABLED(MARLIN_DEV_MODE)
     static cutter_frequency_t frequency;  // Set PWM frequency; range: 2K-50K
@@ -272,7 +273,7 @@ public:
        * If not set defaults to 80% power
        */
       static void test_fire_pulse() {
-        TERN_(USE_BEEPER, buzzer.tone(30, 3000));
+        TERN_(HAS_BEEPER, buzzer.tone(30, 3000));
         enable_forward();                  // Turn Laser on (Spindle speak but same funct)
         delay(testPulse);                  // Delay for time set by user in pulse ms menu screen.
         disable();                         // Turn laser off
