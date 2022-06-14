@@ -54,11 +54,11 @@
 //
 // Limit Switches
 //
-#define X_DIAG_PIN                          PA15
+#define X_DIAG_PIN                          PE7 
 #define Y_DIAG_PIN                          PD2
 #define Z_DIAG_PIN                          PC8
 #define E0_DIAG_PIN                         PC4
-#define E1_DIAG_PIN                         PE7
+#define E1_DIAG_PIN                         PA15
 
 #define X_STOP_PIN                    X_DIAG_PIN
 #define Y_STOP_PIN                    Y_DIAG_PIN
@@ -68,9 +68,9 @@
 //
 // Steppers
 //
-#define X_ENABLE_PIN                        PE4
-#define X_STEP_PIN                          PE3
-#define X_DIR_PIN                           PE2
+#define X_ENABLE_PIN                        PA3
+#define X_STEP_PIN                          PD15
+#define X_DIR_PIN                           PA1
 
 #define Y_ENABLE_PIN                        PE1
 #define Y_STEP_PIN                          PE0
@@ -84,16 +84,16 @@
 #define E0_STEP_PIN                         PD6
 #define E0_DIR_PIN                          PD3
 
-#define E1_ENABLE_PIN                       PA3
-#define E1_STEP_PIN                         PD15
-#define E1_DIR_PIN                          PA1
+#define E1_ENABLE_PIN                       PE4
+#define E1_STEP_PIN                         PE3
+#define E1_DIR_PIN                          PE2
 
 #if HAS_TMC_UART
   //
   // Software serial
   // No Hardware serial for steppers
   //
-  #define X_SERIAL_TX_PIN                   PD5
+  #define X_SERIAL_TX_PIN                   PD8
   #define X_SERIAL_RX_PIN        X_SERIAL_TX_PIN
 
   #define Y_SERIAL_TX_PIN                   PD7
@@ -105,7 +105,7 @@
   #define E0_SERIAL_TX_PIN                  PD9
   #define E0_SERIAL_RX_PIN      E0_SERIAL_TX_PIN
 
-  #define E1_SERIAL_TX_PIN                  PD8
+  #define E1_SERIAL_TX_PIN                  PD5
   #define E1_SERIAL_RX_PIN      E1_SERIAL_TX_PIN
 
   // Reduce baud rate to improve software serial reliability
