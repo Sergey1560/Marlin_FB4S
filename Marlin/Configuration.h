@@ -1401,7 +1401,7 @@
 #else
   #define USR_E0_DIR false
 #endif
-#define USR_X_DIR true
+#define USR_X_DIR false
 #define USR_Y_DIR true
 #define USR_Z_DIR false
 #endif

@@ -65,9 +65,9 @@
 //
 // Steppers
 //
-#define X_ENABLE_PIN                        PE4
-#define X_STEP_PIN                          PE3
-#define X_DIR_PIN                           PE2
+#define X_ENABLE_PIN                        PA3
+#define X_STEP_PIN                          PA6
+#define X_DIR_PIN                           PA1
 
 #define Y_ENABLE_PIN                        PE1
 #define Y_STEP_PIN                          PE0
@@ -81,9 +81,9 @@
 #define E0_STEP_PIN                         PD6
 #define E0_DIR_PIN                          PD3
 
-#define E1_ENABLE_PIN                       PA3
-#define E1_STEP_PIN                         PA6
-#define E1_DIR_PIN                          PA1
+#define E1_ENABLE_PIN                       PE4
+#define E1_STEP_PIN                         PE3
+#define E1_DIR_PIN                          PE2
 
 //
 // Temperature Sensors
