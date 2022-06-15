@@ -47,12 +47,22 @@
 #define PRINTER_NAME_FB5
 
 // Если нужен сменный драйвер в слоте второго экструдера как основной экструдер, нужно раскоментировать этот параметр
-#define EXT_EXTRUDER_DRIVER
+//#define EXT_EXTRUDER_DRIVER
 
-#ifdef EXT_EXTRUDER_DRIVER
+// repined e1 driver to Z axis
   #undef E1_ENABLE_PIN
   #undef E1_STEP_PIN
   #undef E1_DIR_PIN
+  #undef X_ENABLE_PIN
+  #undef X_STEP_PIN
+  #undef X_DIR_PIN
+
+  #define X_ENABLE_PIN                       PA3
+  #define X_STEP_PIN                         PA6
+  #define X_DIR_PIN                          PA1
+
+#ifdef EXT_EXTRUDER_DRIVER
+
   #undef E0_ENABLE_PIN
   #undef E0_STEP_PIN
   #undef E0_DIR_PIN

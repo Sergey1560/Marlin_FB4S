@@ -69,7 +69,7 @@
 // Steppers
 //
 #define X_ENABLE_PIN                        PA3
-#define X_STEP_PIN                          PD15
+#define X_STEP_PIN                          PA6
 #define X_DIR_PIN                           PA1
 
 #define Y_ENABLE_PIN                        PE1
