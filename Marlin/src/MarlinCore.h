@@ -27,8 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "libs/Segger/log.h"
-
 void stop();
 
 // Pass true to keep steppers from timing out

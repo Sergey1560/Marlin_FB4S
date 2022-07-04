@@ -200,8 +200,13 @@ static uint32_t clock_to_divider(uint32_t clk) {
 
 bool SDIO_Init() {
   HAL_StatusTypeDef sd_state = HAL_OK;
-  if (hsd.Instance == SDIO)
+
+  DEBUG("SDIO Init");
+
+  if (hsd.Instance == SDIO){
+    DEBUG("deinit sdio");
     HAL_SD_DeInit(&hsd);
+  }
 
   /* HAL SD initialization */
   hsd.Instance = SDIO;
@@ -211,13 +216,18 @@ bool SDIO_Init() {
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
   hsd.Init.ClockDiv = clock_to_divider(SDIO_CLOCK);
   sd_state = HAL_SD_Init(&hsd);
+  DEBUG("HAL_SD_init: %d", sd_state);
 
   #if PINS_EXIST(SDIO_D1, SDIO_D2, SDIO_D3)
     if (sd_state == HAL_OK) {
       sd_state = HAL_SD_ConfigWideBusOperation(&hsd, SDIO_BUS_WIDE_4B);
+      DEBUG("HAL_WIDEBUS: %d", sd_state);
+    }else{
+      DEBUG("HAL init: Failed");
     }
   #endif
 
+  DEBUG("Return value: %d",sd_state);
   return (sd_state == HAL_OK) ? true : false;
 }
 

@@ -437,19 +437,32 @@ void CardReader::printSelectedFilename() {
 }
 
 void CardReader::mount() {
+  DEBUG("Card mount call"); 
   flag.mounted = false;
-  if (root.isOpen()) root.close();
+  if (root.isOpen()) {
+    DEBUG("Root is open, closing"); 
+    root.close();
+    }
+
 
   if (!driver->init(SD_SPI_SPEED, SDSS)
     #if defined(LCD_SDSS) && (LCD_SDSS != SDSS)
       && !driver->init(SD_SPI_SPEED, LCD_SDSS)
     #endif
-  ) SERIAL_ECHO_MSG(STR_SD_INIT_FAIL);
-  else if (!volume.init(driver))
+  ) {
+    DEBUG("Driver init fail"); 
+    SERIAL_ECHO_MSG(STR_SD_INIT_FAIL);
+  }
+  else if (!volume.init(driver)){
+    DEBUG("Volume init fail"); 
     SERIAL_ERROR_MSG(STR_SD_VOL_INIT_FAIL);
-  else if (!root.openRoot(&volume))
+  }
+  else if (!root.openRoot(&volume)){
+   DEBUG("Root open failed"); 
     SERIAL_ERROR_MSG(STR_SD_OPENROOT_FAIL);
+  }
   else {
+    DEBUG("Card Ok"); 
     flag.mounted = true;
     SERIAL_ECHO_MSG(STR_SD_CARD_OK);
   }

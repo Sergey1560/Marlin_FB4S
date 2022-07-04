@@ -1270,6 +1270,7 @@ void setup() {
     SETUP_RUN(disableStepperDrivers());
   #endif
 
+  DEBUG("Hal init");
   SETUP_RUN(hal.init_board());
 
   SETUP_RUN(esp_wifi_init());
