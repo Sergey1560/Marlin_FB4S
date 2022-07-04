@@ -918,13 +918,13 @@ volatile bool Temperature::raw_temps_ready = false;
     MPC_t &constants = hotend.constants;
 
     // Move to center of bed, just above bed height and cool with max fan
+    gcode.home_all_axes(true);
     disable_all_heaters();
     #if HAS_FAN
       zero_fan_speeds();
       set_fan_speed(ANY(MPC_FAN_0_ALL_HOTENDS, MPC_FAN_0_ACTIVE_HOTEND) ? 0 : active_extruder, 255);
       planner.sync_fan_speeds(fan_speed);
     #endif
-    gcode.home_all_axes(true);
     const xyz_pos_t tuningpos = MPC_TUNING_POS;
     do_blocking_move_to(tuningpos);
 
@@ -1881,7 +1881,7 @@ void Temperature::manage_heater() {
         #endif
         #if ENABLED(CHAMBER_VENT)
           flag_chamber_excess_heat = false;
-          MOVE_SERVO(CHAMBER_VENT_SERVO_NR, 90);
+          servo[CHAMBER_VENT_SERVO_NR].move(90);
         #endif
       }
     #endif
@@ -1897,7 +1897,7 @@ void Temperature::manage_heater() {
           if (flag_chamber_excess_heat) {
             temp_chamber.soft_pwm_amount = 0;
             #if ENABLED(CHAMBER_VENT)
-              if (!flag_chamber_off) MOVE_SERVO(CHAMBER_VENT_SERVO_NR, temp_chamber.celsius <= temp_chamber.target ? 0 : 90);
+              if (!flag_chamber_off) servo[CHAMBER_VENT_SERVO_NR].move(temp_chamber.celsius <= temp_chamber.target ? 0 : 90);
             #endif
           }
           else {
@@ -1910,7 +1910,7 @@ void Temperature::manage_heater() {
               temp_chamber.soft_pwm_amount = temp_chamber.celsius < temp_chamber.target ? (MAX_CHAMBER_POWER) >> 1 : 0;
             #endif
             #if ENABLED(CHAMBER_VENT)
-              if (!flag_chamber_off) MOVE_SERVO(CHAMBER_VENT_SERVO_NR, 0);
+              if (!flag_chamber_off) servo[CHAMBER_VENT_SERVO_NR].move(0);
             #endif
           }
         }

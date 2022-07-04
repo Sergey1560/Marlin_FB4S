@@ -417,26 +417,26 @@ void MarlinUI::init() {
         };
 
         const uint8_t *p = (uint8_t*)string;
-        wchar_t ch;
+        lchar_t wc;
         if (wordwrap) {
           const uint8_t *wrd = nullptr;
           uint8_t c = 0;
           // find the end of the part
           for (;;) {
             if (!wrd) wrd = p;            // Get word start /before/ advancing
-            p = get_utf8_value_cb(p, cb_read_byte, &ch);
-            const bool eol = !ch;         // zero ends the string
+            p = get_utf8_value_cb(p, cb_read_byte, wc);
+            const bool eol = !wc;         // zero ends the string
             // End or a break between phrases?
-            if (eol || ch == ' ' || ch == '-' || ch == '+' || ch == '.') {
-              if (!c && ch == ' ') { if (wrd) wrd++; continue; } // collapse extra spaces
+            if (eol || wc == ' ' || wc == '-' || wc == '+' || wc == '.') {
+              if (!c && wc == ' ') { if (wrd) wrd++; continue; } // collapse extra spaces
               // Past the right and the word is not too long?
               if (col + c > LCD_WIDTH && col >= (LCD_WIDTH) / 4) _newline(); // should it wrap?
               c += !eol;                  // +1 so the space will be printed
               col += c;                   // advance col to new position
               while (c) {                 // character countdown
                 --c;                      // count down to zero
-                wrd = get_utf8_value_cb(wrd, cb_read_byte, &ch); // get characters again
-                lcd_put_wchar(ch);        // character to the LCD
+                wrd = get_utf8_value_cb(wrd, cb_read_byte, wc); // get characters again
+                lcd_put_lchar(wc);        // character to the LCD
               }
               if (eol) break;             // all done!
               wrd = nullptr;              // set up for next word
@@ -446,9 +446,9 @@ void MarlinUI::init() {
         }
         else {
           for (;;) {
-            p = get_utf8_value_cb(p, cb_read_byte, &ch);
-            if (!ch) break;
-            lcd_put_wchar(ch);
+            p = get_utf8_value_cb(p, cb_read_byte, wc);
+            if (!wc) break;
+            lcd_put_lchar(wc);
             col++;
             if (col >= LCD_WIDTH) _newline();
           }
@@ -489,13 +489,10 @@ void MarlinUI::init() {
         ui.manual_move.menu_scale = REPRAPWORLD_KEYPAD_MOVE_STEP;
         ui.encoderPosition = dir;
         switch (axis) {
-          case X_AXIS: { void lcd_move_x(); lcd_move_x(); } break;
-          #if HAS_Y_AXIS
-            case Y_AXIS: { void lcd_move_y(); lcd_move_y(); } break;
-          #endif
-          #if HAS_Z_AXIS
-            case Z_AXIS: { void lcd_move_z(); lcd_move_z(); } break;
-          #endif
+          case X_AXIS:
+          TERN_(HAS_Y_AXIS, case Y_AXIS:)
+          TERN_(HAS_Z_AXIS, case Z_AXIS:)
+            lcd_move_axis(axis);
           default: break;
         }
       }
@@ -766,6 +763,7 @@ void MarlinUI::init() {
 
     millis_t ManualMove::start_time = 0;
     float ManualMove::menu_scale = 1;
+    screenFunc_t ManualMove::screen_ptr;
     #if IS_KINEMATIC
       float ManualMove::offset = 0;
       xyze_pos_t ManualMove::all_axes_destination = { 0 };
@@ -775,6 +773,9 @@ void MarlinUI::init() {
       int8_t ManualMove::e_index = 0;
     #endif
     AxisEnum ManualMove::axis = NO_AXIS_ENUM;
+    #if ENABLED(MANUAL_E_MOVES_RELATIVE)
+      float ManualMove::e_origin = 0;
+    #endif
 
     /**
      * If a manual move has been posted and its time has arrived, and if the planner
@@ -791,9 +792,6 @@ void MarlinUI::init() {
      * For kinematic machines:
      *   - Set manual_move.offset to modify one axis and post the move.
      *     This is used to achieve more rapid stepping on kinematic machines.
-     *
-     * Currently used by the _lcd_move_xyz function in menu_motion.cpp
-     * and the ubl_map_move_to_xy function in menu_ubl.cpp.
      */
     void ManualMove::task() {
 
@@ -864,7 +862,7 @@ void MarlinUI::init() {
 
       void MarlinUI::external_encoder() {
         if (external_control && encoderDiff) {
-          bedlevel.encoder_diff += encoderDiff;  // Encoder for UBL G29 mesh editing
+          bedlevel.encoder_diff += encoderDiff; // Encoder for UBL G29 mesh editing
           encoderDiff = 0;                  // Hide encoder events from the screen handler
           refresh(LCDVIEW_REDRAW_NOW);      // ...but keep the refresh.
         }

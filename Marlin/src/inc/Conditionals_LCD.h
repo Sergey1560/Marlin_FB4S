@@ -513,7 +513,7 @@
   #define HAS_LCDPRINT 1
 #endif
 
-#if ANY(HAS_DISPLAY, HAS_DWIN_E3V2)
+#if HAS_DISPLAY || HAS_DWIN_E3V2
   #define HAS_STATUS_MESSAGE 1
 #endif
 
@@ -669,9 +669,9 @@
  * Number of Linear Axes (e.g., XYZIJKUVW)
  * All the logical axes except for the tool (E) axis
  */
-#ifdef LINEAR_AXES
-  #undef LINEAR_AXES
-  #define LINEAR_AXES_WARNING 1
+#ifdef NUM_AXES
+  #undef NUM_AXES
+  #define NUM_AXES_WARNING 1
 #endif
 
 #ifdef W_DRIVER_TYPE
@@ -1463,7 +1463,8 @@
 #elif ENABLED(TFT_RES_1024x600)
   #define TFT_WIDTH  1024
   #define TFT_HEIGHT 600
-  #define GRAPHICAL_TFT_UPSCALE 4
+  #define GRAPHICAL_TFT_UPSCALE 6
+  #define TFT_PIXEL_OFFSET_X 120
 #endif
 
 // FSMC/SPI TFT Panels using standard HAL/tft/tft_(fsmc|spi|ltdc).h
