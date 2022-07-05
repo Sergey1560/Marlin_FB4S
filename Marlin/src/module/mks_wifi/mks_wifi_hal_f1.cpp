@@ -91,7 +91,7 @@ void wd_reset(void){
    #ifdef MAPLE_STM32F1
    IWDG->KR = 0xAAAA;
    #else
-   HAL_watchdog_refresh();
+   hal.watchdog_refresh();
    #endif
 }
 

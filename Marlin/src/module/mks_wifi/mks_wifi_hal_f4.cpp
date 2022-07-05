@@ -51,7 +51,7 @@ void mks_wifi_empty_uart(void){
 }
 
 void wd_reset(void){
-   HAL_watchdog_refresh();
+   hal.watchdog_refresh();
 }
 
 void mks_wifi_hw_restore(void){
