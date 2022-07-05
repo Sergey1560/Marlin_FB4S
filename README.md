@@ -5,8 +5,8 @@
 В данном репозитории есть несколько веток:
 
 * [FB4S_WIFI](https://github.com/Sergey1560/Marlin_FB4S/tree/FB4S_WIFI) - эта, основная ветка. Эта ветка содержит дополнительный код для работы с модулем [MKS WIFI](https://github.com/makerbase-mks/MKS-WIFI), установленным в FB4S и FB5. Загрузка файлов через стандартный plugin в Cura. Классический интерфейс Color UI.
-* [vanilla_fb_2.0.x](https://github.com/Sergey1560/Marlin_FB4S/tree/vanilla_fb_2.0.x) - ветка на основе 2.0.x ветки Marlin. Никаких изменений в коде. Все изменения только в файлах конфигурации, под платы robin nano и принтеры Flying Bear. Классический интерфейс Color UI. WIFI модуль не работает.
-* [MKS_UI](https://github.com/Sergey1560/Marlin_FB4S/tree/MKS_UI) - ветка на основе 2.0.x ветки Marlin. В коде есть очень небольшое изменение размера буфера, для сборки на STM32F1. На STM32F4 никаких изменений в коде нет. Все изменения только в файлах конфигурации, под платы robin nano и принтеры Flying Bear. Интерфейс MKS UI. WIFI модуль работает.
+* [vanilla_fb_2.1.x](https://github.com/Sergey1560/Marlin_FB4S/tree/vanilla_fb_2.1.x) - ветка на основе 2.1.x ветки Marlin. Никаких изменений в коде. Все изменения только в файлах конфигурации, под платы robin nano и принтеры Flying Bear. Классический интерфейс Color UI. WIFI модуль не работает.
+* [MKS_UI](https://github.com/Sergey1560/Marlin_FB4S/tree/MKS_UI) - ветка на основе 2.1.x ветки Marlin. В коде есть очень небольшое изменение размера буфера, для сборки на STM32F1. На STM32F4 никаких изменений в коде нет. Все изменения только в файлах конфигурации, под платы robin nano и принтеры Flying Bear. Интерфейс MKS UI. WIFI модуль работает.
 
 Если у вас есть какие-то вопросы по настройке прошивки или по ее использованию, вы можете задать свой вопрос в [telegram группе](https://t.me/Ghostbustersss).
 
