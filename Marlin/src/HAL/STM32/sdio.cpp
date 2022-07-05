@@ -220,7 +220,38 @@ bool SDIO_Init() {
 
   #if PINS_EXIST(SDIO_D1, SDIO_D2, SDIO_D3)
     if (sd_state == HAL_OK) {
-      sd_state = HAL_SD_ConfigWideBusOperation(&hsd, SDIO_BUS_WIDE_4B);
+      //sd_state = HAL_SD_ConfigWideBusOperation(&hsd, SDIO_BUS_WIDE_4B);
+      //Fix 4b sdio
+      SDIO_InitTypeDef Init;
+      uint32_t errorstate;
+
+      /* Send CMD55 APP_CMD with argument as card's RCA.*/
+      errorstate = SDMMC_CmdAppCommand(hsd.Instance, (uint32_t)(hsd.SdCard.RelCardAdd << 16U));
+      if(errorstate != HAL_SD_ERROR_NONE)
+      {
+        return false;
+      }
+
+      /* Send ACMD6 APP_CMD with argument as 2 for wide bus mode */
+      errorstate = SDMMC_CmdBusWidth(hsd.Instance, 2U);
+      if(errorstate != HAL_SD_ERROR_NONE)
+      {
+        return false;
+      }
+
+      /* Configure the SDIO peripheral */
+      Init.ClockEdge           = hsd.Init.ClockEdge;
+      Init.ClockBypass         = hsd.Init.ClockBypass;
+      Init.ClockPowerSave      = hsd.Init.ClockPowerSave;
+      Init.BusWide             = SDIO_BUS_WIDE_4B;
+      Init.HardwareFlowControl = hsd.Init.HardwareFlowControl;
+      Init.ClockDiv            = hsd.Init.ClockDiv;
+      (void)SDIO_Init(hsd.Instance, Init);
+
+      /* Change State */
+      hsd.State = HAL_SD_STATE_READY;
+
+      //Fix 4b sdio
       DEBUG("HAL_WIDEBUS: %d", sd_state);
     }else{
       DEBUG("HAL init: Failed");
