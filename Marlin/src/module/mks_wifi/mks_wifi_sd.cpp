@@ -65,6 +65,11 @@ uint8_t mks_wifi_sd_init(void){
 void mks_wifi_sd_deinit(void){
    DEBUG("Unmount SD");
    f_mount(0, "", 1);
+   
+   mks_wifi_hw_deinit_sd();
+   wd_reset();
+   card.release();
+   
    DEBUG("Marlin mount");
    card.mount();
 };

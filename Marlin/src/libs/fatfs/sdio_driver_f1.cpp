@@ -163,6 +163,20 @@ uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 	return 0;	
 };
 
+
+void sd_reset(void){
+	(void)SD_Cmd(SD_CMD0,0x00,SDIO_RESP_NONE,(uint32_t*)response);  //NORESP
+	DMA2_Channel4->CCR = 0;
+	DMA2_Channel4->CMAR = 0;
+	DMA2_Channel4->CPAR = 0;
+	DMA2_Channel4->CNDTR = 0;
+	DMA2->IFCR = DMA_S4_CLEAR;
+
+	SDIO->CLKCR = 0;
+	SDIO->POWER = 0;
+	RCC->AHBENR &= ~RCC_AHBENR_SDIOEN;
+}
+
 uint8_t SD_Init(void) {
 	volatile uint32_t trials = 0x0000FFFF;
 	uint32_t tempreg;   //Для временного хранения регистров

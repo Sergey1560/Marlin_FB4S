@@ -156,6 +156,7 @@ uint32_t SD_get_block_count(void);
 uint8_t SD_Cmd(uint8_t cmd, uint32_t arg, uint16_t response_type, uint32_t *response);
 uint32_t SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir);
 uint8_t SD_Init(void);
+void sd_reset(void);
 //void SDIO_Config(void);
 
 #endif

@@ -1,6 +1,7 @@
 #include "mks_wifi_hal_f4.h"
 
 #ifdef STM32F4
+#include "../../libs/fatfs/sdio_driver_f4.h"
 volatile unsigned char *buff;
 volatile unsigned char buffer_ready;
 volatile unsigned char dma_stopped;
@@ -49,6 +50,10 @@ void mks_wifi_empty_uart(void){
         (void)USART1->DR;
     };
 }
+
+void mks_wifi_hw_deinit_sd(void){
+    sd_reset();
+};
 
 void wd_reset(void){
    hal.watchdog_refresh();

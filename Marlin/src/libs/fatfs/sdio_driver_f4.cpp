@@ -53,6 +53,25 @@ uint8_t SD_Cmd(uint8_t cmd, uint32_t arg, uint16_t response_type, uint32_t *resp
 	return 0;
 }
 
+void sd_reset(void){
+	(void)SD_Cmd(SD_CMD0,0x00,SDIO_RESP_NONE,(uint32_t*)response);  //NORESP
+	DMA2_Stream3->CR = 0;
+	DMA2_Stream3->M0AR=0;
+	DMA2_Stream3->PAR=0;
+	DMA2_Stream3->NDTR=0;
+	DMA2->LIFCR=DMA_S3_CLEAR;
+
+	SDIO->CLKCR = 0;
+	SDIO->POWER = 0;
+	RCC->APB2RSTR |= RCC_APB2RSTR_SDIORST;
+	__NOP();
+	RCC->APB2RSTR &= ~RCC_APB2RSTR_SDIORST;
+
+	RCC->APB2ENR &= ~RCC_APB2ENR_SDIOEN;
+	
+}
+
+
 uint32_t __attribute__((optimize("O0"))) SD_transfer(uint8_t *buf, uint32_t blk, uint32_t cnt, uint32_t dir){
 	uint32_t trials;
 	uint8_t cmd=0;

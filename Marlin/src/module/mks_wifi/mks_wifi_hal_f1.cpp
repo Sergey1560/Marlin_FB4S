@@ -1,8 +1,8 @@
 #include "mks_wifi_hal_f1.h"
 #include "../../libs/Segger/log.h"
 
-
 #ifdef STM32F1
+#include "../../libs/fatfs/sdio_driver_f1.h"
 
 #ifdef MAPLE_STM32F1
 #include "stm32f103xe.h"
@@ -50,18 +50,6 @@ void mks_wifi_hw_prepare(unsigned int buf, unsigned int count){
    DMA1_Channel5->CCR = DMA_CONF|DMA_CCR_EN;
 
    NVIC_EnableIRQ(DMA1_Channel5_IRQn);
-   // DEBUG("Start DMA %0X / %d",buf, count);
-   // DEBUG("CCRR %0X",DMA1_Channel5->CCR);
-   // DEBUG("CMAR %0X",DMA1_Channel5->CMAR);
-   // DEBUG("CPAR %0X",DMA1_Channel5->CPAR);
-   // DEBUG("NDTR %0X",DMA1_Channel5->CNDTR);
-   // DEBUG("IFC %0X",DMA1->IFCR);
-
-   // DEBUG("USART CR1 %0X",USART1->CR1);
-   // DEBUG("CR2 %0X",USART1->CR2);
-   // DEBUG("CR3 %0X",USART1->CR3);
-   // DEBUG("BRR %0X",USART1->BRR);
-   // DEBUG("SR %0X",USART1->SR);
 }
 
 
@@ -94,6 +82,10 @@ void wd_reset(void){
    hal.watchdog_refresh();
    #endif
 }
+
+void mks_wifi_hw_deinit_sd(void){
+    sd_reset();
+};
 
 #ifdef MAPLE_STM32F1
 extern "C" void __irq_dma1_channel5(void) {

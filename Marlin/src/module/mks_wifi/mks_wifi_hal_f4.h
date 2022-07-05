@@ -30,5 +30,6 @@ void mks_wifi_sys_rst(void);
 void wd_reset(void);
 void mks_wifi_empty_uart(void);
 void mks_wifi_disable_dma(void);
+void mks_wifi_hw_deinit_sd(void);
 
 #endif
