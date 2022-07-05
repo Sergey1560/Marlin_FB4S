@@ -65,6 +65,7 @@ portMUX_TYPE MarlinHAL::spinlock = portMUX_INITIALIZER_UNLOCKED;
 // ------------------------
 
 uint16_t MarlinHAL::adc_result;
+pwm_pin_t MarlinHAL::pwm_pin_data[MAX_EXPANDER_BITS];
 
 // ------------------------
 // Private Variables
@@ -180,6 +181,31 @@ void _delay_ms(int delay_ms) { delay(delay_ms); }
 int MarlinHAL::freeMemory() { return ESP.getFreeHeap(); }
 
 // ------------------------
+// Watchdog Timer
+// ------------------------
+
+#if ENABLED(USE_WATCHDOG)
+
+  #define WDT_TIMEOUT_US TERN(WATCHDOG_DURATION_8S, 8000000, 4000000) // 4 or 8 second timeout
+
+  extern "C" {
+    esp_err_t esp_task_wdt_reset();
+  }
+
+  void watchdogSetup() {
+    // do whatever. don't remove this function.
+  }
+
+  void MarlinHAL::watchdog_init() {
+    // TODO
+  }
+
+  // Reset watchdog.
+  void MarlinHAL::watchdog_refresh() { esp_task_wdt_reset(); }
+
+#endif
+
+// ------------------------
 // ADC
 // ------------------------
 
@@ -209,19 +235,19 @@ void MarlinHAL::adc_init() {
   adc1_config_width(ADC_WIDTH_12Bit);
 
   // Configure channels only if used as (re-)configuring a pin for ADC that is used elsewhere might have adverse effects
-  TERN_(HAS_TEMP_ADC_0, adc1_set_attenuation(get_channel(TEMP_0_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_1, adc1_set_attenuation(get_channel(TEMP_1_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_2, adc1_set_attenuation(get_channel(TEMP_2_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_3, adc1_set_attenuation(get_channel(TEMP_3_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_4, adc1_set_attenuation(get_channel(TEMP_4_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_5, adc1_set_attenuation(get_channel(TEMP_5_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_6, adc2_set_attenuation(get_channel(TEMP_6_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_ADC_7, adc3_set_attenuation(get_channel(TEMP_7_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_HEATED_BED, adc1_set_attenuation(get_channel(TEMP_BED_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_CHAMBER, adc1_set_attenuation(get_channel(TEMP_CHAMBER_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_PROBE, adc1_set_attenuation(get_channel(TEMP_PROBE_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_COOLER, adc1_set_attenuation(get_channel(TEMP_COOLER_PIN), ADC_ATTEN_11db));
-  TERN_(HAS_TEMP_BOARD, adc1_set_attenuation(get_channel(TEMP_BOARD_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_0,        adc1_set_attenuation(get_channel(TEMP_0_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_1,        adc1_set_attenuation(get_channel(TEMP_1_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_2,        adc1_set_attenuation(get_channel(TEMP_2_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_3,        adc1_set_attenuation(get_channel(TEMP_3_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_4,        adc1_set_attenuation(get_channel(TEMP_4_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_5,        adc1_set_attenuation(get_channel(TEMP_5_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_6,        adc2_set_attenuation(get_channel(TEMP_6_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_ADC_7,        adc3_set_attenuation(get_channel(TEMP_7_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_HEATED_BED,        adc1_set_attenuation(get_channel(TEMP_BED_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_CHAMBER,      adc1_set_attenuation(get_channel(TEMP_CHAMBER_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_PROBE,        adc1_set_attenuation(get_channel(TEMP_PROBE_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_COOLER,       adc1_set_attenuation(get_channel(TEMP_COOLER_PIN), ADC_ATTEN_11db));
+  TERN_(HAS_TEMP_BOARD,        adc1_set_attenuation(get_channel(TEMP_BOARD_PIN), ADC_ATTEN_11db));
   TERN_(FILAMENT_WIDTH_SENSOR, adc1_set_attenuation(get_channel(FILWIDTH_PIN), ADC_ATTEN_11db));
 
   // Note that adc2 is shared with the WiFi module, which has higher priority, so the conversion may fail.
@@ -305,21 +331,46 @@ int8_t get_pwm_channel(const pin_t pin, const uint32_t freq, const uint16_t res)
 }
 
 void MarlinHAL::set_pwm_duty(const pin_t pin, const uint16_t v, const uint16_t v_size/*=_BV(PWM_RESOLUTION)-1*/, const bool invert/*=false*/) {
-  const int8_t cid = get_pwm_channel(pin, PWM_FREQUENCY, PWM_RESOLUTION);
-  if (cid >= 0) {
-    uint32_t duty = map(invert ? v_size - v : v, 0, v_size, 0, _BV(PWM_RESOLUTION)-1);
-    ledcWrite(cid, duty);
-  }
+  #if ENABLED(I2S_STEPPER_STREAM)
+    if (pin > 127) {
+      const uint8_t pinlo = pin & 0x7F;
+      pwm_pin_t &pindata = pwm_pin_data[pinlo];
+      const uint32_t duty = map(invert ? v_size - v : v, 0, v_size, 0, pindata.pwm_cycle_ticks);
+      if (duty == 0 || duty == pindata.pwm_cycle_ticks) { // max or min (i.e., on/off)
+        pindata.pwm_duty_ticks = 0;  // turn off PWM for this pin
+        duty ? SBI32(i2s_port_data, pinlo) : CBI32(i2s_port_data, pinlo); // set pin level
+      }
+      else
+        pindata.pwm_duty_ticks = duty; // PWM duty count = # of 4µs ticks per full PWM cycle
+    }
+    else
+  #endif
+    {
+      const int8_t cid = get_pwm_channel(pin, PWM_FREQUENCY, PWM_RESOLUTION);
+      if (cid >= 0) {
+        const uint32_t duty = map(invert ? v_size - v : v, 0, v_size, 0, _BV(PWM_RESOLUTION)-1);
+        ledcWrite(cid, duty);
+      }
+    }
 }
 
 int8_t MarlinHAL::set_pwm_frequency(const pin_t pin, const uint32_t f_desired) {
-  const int8_t cid = channel_for_pin(pin);
-  if (cid >= 0) {
-    if (f_desired == ledcReadFreq(cid)) return cid; // no freq change
-    ledcDetachPin(chan_pin[cid]);
-    chan_pin[cid] = 0;              // remove old freq channel
-  }
-  return get_pwm_channel(pin, f_desired, PWM_RESOLUTION); // try for new one
+  #if ENABLED(I2S_STEPPER_STREAM)
+    if (pin > 127) {
+      pwm_pin_data[pin & 0x7F].pwm_cycle_ticks = 1000000UL / f_desired / 4; // # of 4µs ticks per full PWM cycle
+      return 0;
+    }
+    else
+  #endif
+    {
+      const int8_t cid = channel_for_pin(pin);
+      if (cid >= 0) {
+        if (f_desired == ledcReadFreq(cid)) return cid; // no freq change
+        ledcDetachPin(chan_pin[cid]);
+        chan_pin[cid] = 0;              // remove old freq channel
+      }
+      return get_pwm_channel(pin, f_desired, PWM_RESOLUTION); // try for new one
+    }
 }
 
 // use hardware PWM if avail, if not then ISR

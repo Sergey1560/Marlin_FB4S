@@ -66,7 +66,13 @@ class Probe {
 public:
 
   #if ENABLED(SENSORLESS_PROBING)
-    typedef struct { bool x:1, y:1, z:1; } sense_bool_t;
+    typedef struct {
+      #if HAS_DELTA_SENSORLESS_PROBING
+        bool x:1, y:1, z:1;
+      #else
+        bool z;
+      #endif
+    } sense_bool_t;
     static sense_bool_t test_sensitivity;
   #endif
 
@@ -77,6 +83,8 @@ public:
     #if EITHER(PREHEAT_BEFORE_PROBING, PREHEAT_BEFORE_LEVELING)
       static void preheat_for_probing(const celsius_t hotend_temp, const celsius_t bed_temp);
     #endif
+
+    static void probe_error_stop();
 
     static bool set_deployed(const bool deploy);
 
@@ -138,7 +146,7 @@ public:
 
   #else
 
-    static constexpr xyz_pos_t offset = xyz_pos_t(LINEAR_AXIS_ARRAY(0, 0, 0, 0, 0, 0)); // See #16767
+    static constexpr xyz_pos_t offset = xyz_pos_t(NUM_AXIS_ARRAY(0, 0, 0, 0, 0, 0)); // See #16767
 
     static bool set_deployed(const bool) { return false; }
 
@@ -297,7 +305,8 @@ public:
   #if USE_SENSORLESS
     static void enable_stallguard_diag1();
     static void disable_stallguard_diag1();
-    static void set_homing_current(const bool onoff);
+    static void set_offset_sensorless_adj(const_float_t sz);
+    static void refresh_largest_sensorless_adj();
   #endif
 
 private:

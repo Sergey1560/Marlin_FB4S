@@ -21,15 +21,12 @@
  */
 #pragma once
 
+#include "../inc/MarlinConfig.h"
 #include "../sd/cardreader.h"
 #include "../module/motion.h"
+#include "../libs/buzzer.h"
+
 #include "buttons.h"
-
-#include "../inc/MarlinConfig.h"
-
-#if HAS_BUZZER
-  #include "../libs/buzzer.h"
-#endif
 
 #if ENABLED(TOUCH_SCREEN_CALIBRATION)
   #include "tft_io/touch_calibration.h"
@@ -140,12 +137,16 @@ typedef bool (*statusResetFunc_t)();
       static xyze_pos_t all_axes_destination;
     #endif
   public:
+    static screenFunc_t screen_ptr;
     static float menu_scale;
     #if IS_KINEMATIC
       static float offset;
     #endif
+    #if ENABLED(MANUAL_E_MOVES_RELATIVE)
+      static float e_origin;
+    #endif
     template <typename T>
-    void set_destination(const T& dest) {
+    static void set_destination(const T& dest) {
       #if IS_KINEMATIC
         // Moves are segmented, so the entire move is not submitted at once.
         // Using a separate variable prevents corrupting the in-progress move.
@@ -156,10 +157,10 @@ typedef bool (*statusResetFunc_t)();
         current_position.set(dest);
       #endif
     }
-    float axis_value(const AxisEnum axis) {
+    static float axis_value(const AxisEnum axis) {
       return NATIVE_TO_LOGICAL(processing ? destination[axis] : SUM_TERN(IS_KINEMATIC, current_position[axis], offset), axis);
     }
-    bool apply_diff(const AxisEnum axis, const_float_t diff, const_float_t min, const_float_t max) {
+    static bool apply_diff(const AxisEnum axis, const_float_t diff, const_float_t min, const_float_t max) {
       #if IS_KINEMATIC
         float &valref = offset;
         const float rmin = min - current_position[axis], rmax = max - current_position[axis];
@@ -169,12 +170,7 @@ typedef bool (*statusResetFunc_t)();
       #endif
       valref += diff;
       const float pre = valref;
-      if (min != max) {
-        if (diff < 0)
-          NOLESS(valref, rmin);
-        else
-          NOMORE(valref, rmax);
-      }
+      if (min != max) { if (diff < 0) NOLESS(valref, rmin); else NOMORE(valref, rmax); }
       return pre != valref;
     }
     #if IS_KINEMATIC
@@ -191,6 +187,9 @@ typedef bool (*statusResetFunc_t)();
 ////////////////////////////////////////////
 //////////// MarlinUI Singleton ////////////
 ////////////////////////////////////////////
+
+class MarlinUI;
+extern MarlinUI ui;
 
 class MarlinUI {
 public:
@@ -225,9 +224,9 @@ public:
   #endif
 
   #if ENABLED(SOUND_MENU_ITEM)
-    static bool buzzer_enabled; // Initialized by settings.load()
+    static bool sound_on; // Initialized by settings.load()
   #else
-    static constexpr bool buzzer_enabled = true;
+    static constexpr bool sound_on = true;
   #endif
 
   #if HAS_BUZZER
@@ -235,7 +234,7 @@ public:
   #endif
 
   FORCE_INLINE static void chirp() {
-    TERN_(HAS_CHIRP, buzz(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ));
+    TERN_(HAS_CHIRP, TERN(HAS_BUZZER, buzz, BUZZ)(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ));
   }
 
   #if ENABLED(LCD_HAS_STATUS_INDICATORS)
@@ -279,6 +278,14 @@ public:
     static uint16_t lcd_backlight_timeout;
     static millis_t backlight_off_ms;
     static void refresh_backlight_timeout();
+  #elif HAS_DISPLAY_SLEEP
+    #define SLEEP_TIMEOUT_MIN 0
+    #define SLEEP_TIMEOUT_MAX 99
+    static uint8_t sleep_timeout_minutes;
+    static millis_t screen_timeout_millis;
+    static void refresh_screen_timeout();
+    static void sleep_on();
+    static void sleep_off();
   #endif
 
   #if HAS_DWIN_E3V2_BASIC
@@ -494,7 +501,6 @@ public:
   #else // No LCD
 
     static void update() {}
-    static void return_to_status() {}
     static void kill_screen(FSTR_P const, FSTR_P const) {}
 
   #endif
@@ -512,7 +518,7 @@ public:
   #if HAS_PREHEAT
     enum PreheatTarget : uint8_t { PT_HOTEND, PT_BED, PT_FAN, PT_CHAMBER, PT_ALL = 0xFF };
     static preheat_t material_preset[PREHEAT_COUNT];
-    static PGM_P get_preheat_label(const uint8_t m);
+    static FSTR_P get_preheat_label(const uint8_t m);
     static void apply_preheat(const uint8_t m, const uint8_t pmask, const uint8_t e=active_extruder);
     static void preheat_set_fan(const uint8_t m) { TERN_(HAS_FAN, apply_preheat(m, _BV(PT_FAN))); }
     static void preheat_hotend(const uint8_t m, const uint8_t e=active_extruder) { TERN_(HAS_HOTEND, apply_preheat(m, _BV(PT_HOTEND))); }
@@ -545,13 +551,14 @@ public:
 
     // Manual Movement
     static ManualMove manual_move;
+    static bool can_show_slider() { return !external_control && currentScreen != manual_move.screen_ptr; }
 
     // Select Screen (modal NO/YES style dialog)
     static bool selection;
     static void set_selection(const bool sel) { selection = sel; }
     static bool update_selection();
 
-    static void synchronize(PGM_P const msg=nullptr);
+    static void synchronize(FSTR_P const msg=nullptr);
 
     static screenFunc_t currentScreen;
     static bool screen_changed;
@@ -597,9 +604,11 @@ public:
       static float ubl_mesh_value();
     #endif
 
-    static void draw_select_screen_prompt(PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr);
+    static void draw_select_screen_prompt(FSTR_P const pref, const char * const string=nullptr, FSTR_P const suff=nullptr);
 
   #else
+
+    static void return_to_status() {}
 
     static constexpr bool on_status_screen() { return true; }
 
@@ -777,8 +786,6 @@ private:
     #endif
   #endif
 };
-
-extern MarlinUI ui;
 
 #define LCD_MESSAGE_F(S)       ui.set_status(F(S))
 #define LCD_MESSAGE(M)         ui.set_status(GET_TEXT_F(M))

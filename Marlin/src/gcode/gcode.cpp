@@ -21,7 +21,7 @@
  */
 
 /**
- * gcode.cpp - Temporary container for all gcode handlers
+ * gcode.cpp - Temporary container for all G-code handlers
  *             Most will migrate to classes, by feature.
  */
 
@@ -77,8 +77,11 @@ GcodeSuite gcode;
 
 // Inactivity shutdown
 millis_t GcodeSuite::previous_move_ms = 0,
-         GcodeSuite::max_inactive_time = 0,
-         GcodeSuite::stepper_inactive_time = SEC_TO_MS(DEFAULT_STEPPER_DEACTIVE_TIME);
+         GcodeSuite::max_inactive_time = 0;
+
+#if HAS_DISABLE_INACTIVE_AXIS
+  millis_t GcodeSuite::stepper_inactive_time = SEC_TO_MS(DEFAULT_STEPPER_DEACTIVE_TIME);
+#endif
 
 // Relative motion mode for each logical axis
 static constexpr xyze_bool_t ar_init = AXIS_RELATIVE_MODES;
@@ -89,7 +92,10 @@ axis_bits_t GcodeSuite::axis_relative = 0 LOGICAL_AXIS_GANG(
   | (ar_init.z << REL_Z),
   | (ar_init.i << REL_I),
   | (ar_init.j << REL_J),
-  | (ar_init.k << REL_K)
+  | (ar_init.k << REL_K),
+  | (ar_init.u << REL_U),
+  | (ar_init.v << REL_V),
+  | (ar_init.w << REL_W)
 );
 
 #if EITHER(HAS_AUTO_REPORTING, HOST_KEEPALIVE_FEATURE)
@@ -180,7 +186,7 @@ void GcodeSuite::get_destination_from_command() {
   #endif
 
   // Get new XYZ position, whether absolute or relative
-  LOOP_LINEAR_AXES(i) {
+  LOOP_NUM_AXES(i) {
     if ( (seen[i] = parser.seenval(AXIS_CHAR(i))) ) {
       const float v = parser.value_axis_units((AxisEnum)i);
       if (skip_move)
@@ -843,6 +849,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 305: M305(); break;                                  // M305: Set user thermistor parameters
       #endif
 
+      #if ENABLED(MPCTEMP)
+        case 306: M306(); break;                                  // M306: MPC autotune
+      #endif
+
       #if ENABLED(REPETIER_GCODE_M360)
         case 360: M360(); break;                                  // M360: Firmware settings
       #endif
@@ -892,6 +902,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       #if HAS_MESH
         case 421: M421(); break;                                  // M421: Set a Mesh Bed Leveling Z coordinate
+      #endif
+
+      #if ENABLED(X_AXIS_TWIST_COMPENSATION)
+        case 423: M423(); break;                                  // M423: Reset, modify, or report X-Twist Compensation data
       #endif
 
       #if ENABLED(BACKLASH_GCODE)

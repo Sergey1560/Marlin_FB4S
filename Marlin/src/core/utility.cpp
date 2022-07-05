@@ -125,18 +125,17 @@ void safe_delay(millis_t ms) {
         #endif
         #if ABL_PLANAR
           SERIAL_ECHOPGM("ABL Adjustment");
-          LOOP_LINEAR_AXES(a) {
-            SERIAL_CHAR(' ', AXIS_CHAR(a));
+          LOOP_NUM_AXES(a) {
+            SERIAL_ECHOPGM_P((PGM_P)pgm_read_ptr(&SP_AXIS_STR[a]));
             serial_offset(planner.get_axis_position_mm(AxisEnum(a)) - current_position[a]);
           }
         #else
           #if ENABLED(AUTO_BED_LEVELING_UBL)
             SERIAL_ECHOPGM("UBL Adjustment Z");
-            const float rz = ubl.get_z_correction(current_position);
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
             SERIAL_ECHOPGM("ABL Adjustment Z");
-            const float rz = bbl.get_z_correction(current_position);
           #endif
+          const float rz = bedlevel.get_z_correction(current_position);
           SERIAL_ECHO(ftostr43sign(rz, '+'));
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             if (planner.z_fade_height) {
@@ -156,11 +155,13 @@ void safe_delay(millis_t ms) {
       SERIAL_ECHOPGM("Mesh Bed Leveling");
       if (planner.leveling_active) {
         SERIAL_ECHOLNPGM(" (enabled)");
-        SERIAL_ECHOPGM("MBL Adjustment Z", ftostr43sign(mbl.get_z(current_position), '+'));
+        const float z_offset = bedlevel.get_z_offset(),
+                    z_correction = bedlevel.get_z_correction(current_position);
+        SERIAL_ECHOPGM("MBL Adjustment Z", ftostr43sign(z_offset + z_correction, '+'));
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           if (planner.z_fade_height) {
             SERIAL_ECHOPGM(" (", ftostr43sign(
-              mbl.get_z(current_position, planner.fade_scaling_factor_for_z(current_position.z)), '+'
+              z_offset + z_correction * planner.fade_scaling_factor_for_z(current_position.z), '+'
             ));
             SERIAL_CHAR(')');
           }

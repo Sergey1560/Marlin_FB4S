@@ -93,19 +93,56 @@ void GcodeSuite::G29() {
       SERIAL_ECHOPGM("Mesh Bed Leveling ");
       if (leveling_is_valid()) {
         serialprintln_onoff(planner.leveling_active);
-        mbl.report_mesh();
+        bedlevel.report_mesh();
       }
       else
         SERIAL_ECHOLNPGM("has no data.");
       break;
 
     case MeshStart:
-      mbl.reset();
+      bedlevel.reset();
       mbl_probe_index = 0;
       if (!ui.wait_for_move) {
         queue.inject(parser.seen_test('N') ? F("G28" TERN(CAN_SET_LEVELING_AFTER_G28, "L0", "") "\nG29S2") : F("G29S2"));
         TERN_(EXTENSIBLE_UI, ExtUI::onLevelingStart());
         TERN_(DWIN_LCD_PROUI, DWIN_LevelingStart());
+
+        // Position bed horizontally and Z probe vertically.
+        #if    defined(SAFE_BED_LEVELING_START_X) || defined(SAFE_BED_LEVELING_START_Y) || defined(SAFE_BED_LEVELING_START_Z) \
+            || defined(SAFE_BED_LEVELING_START_I) || defined(SAFE_BED_LEVELING_START_J) || defined(SAFE_BED_LEVELING_START_K) \
+            || defined(SAFE_BED_LEVELING_START_U) || defined(SAFE_BED_LEVELING_START_V) || defined(SAFE_BED_LEVELING_START_W)
+          xyze_pos_t safe_position = current_position;
+          #ifdef SAFE_BED_LEVELING_START_X
+            safe_position.x = SAFE_BED_LEVELING_START_X;
+          #endif
+          #ifdef SAFE_BED_LEVELING_START_Y
+            safe_position.y = SAFE_BED_LEVELING_START_Y;
+          #endif
+          #ifdef SAFE_BED_LEVELING_START_Z
+            safe_position.z = SAFE_BED_LEVELING_START_Z;
+          #endif
+          #ifdef SAFE_BED_LEVELING_START_I
+            safe_position.i = SAFE_BED_LEVELING_START_I;
+          #endif
+          #ifdef SAFE_BED_LEVELING_START_J
+            safe_position.j = SAFE_BED_LEVELING_START_J;
+          #endif
+          #ifdef SAFE_BED_LEVELING_START_K
+            safe_position.k = SAFE_BED_LEVELING_START_K;
+          #endif
+          #ifdef SAFE_BED_LEVELING_START_U
+            safe_position.u = SAFE_BED_LEVELING_START_U;
+          #endif
+          #ifdef SAFE_BED_LEVELING_START_V
+            safe_position.v = SAFE_BED_LEVELING_START_V;
+          #endif
+          #ifdef SAFE_BED_LEVELING_START_W
+            safe_position.w = SAFE_BED_LEVELING_START_W;
+          #endif
+
+          do_blocking_move_to(safe_position);
+        #endif
+
         return;
       }
       state = MeshNext;
@@ -128,7 +165,7 @@ void GcodeSuite::G29() {
       }
       else {
         // Save Z for the previous mesh position
-        mbl.set_zigzag_z(mbl_probe_index - 1, current_position.z);
+        bedlevel.set_zigzag_z(mbl_probe_index - 1, current_position.z);
         TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(ix, iy, current_position.z));
         TERN_(DWIN_LCD_PROUI, DWIN_MeshUpdate(_MIN(mbl_probe_index, GRID_MAX_POINTS), int(GRID_MAX_POINTS), current_position.z));
         SET_SOFT_ENDSTOP_LOOSE(false);
@@ -138,8 +175,8 @@ void GcodeSuite::G29() {
         // Disable software endstops to allow manual adjustment
         // If G29 is left hanging without completion they won't be re-enabled!
         SET_SOFT_ENDSTOP_LOOSE(true);
-        mbl.zigzag(mbl_probe_index++, ix, iy);
-        _manual_goto_xy({ mbl.index_to_xpos[ix], mbl.index_to_ypos[iy] });
+        bedlevel.zigzag(mbl_probe_index++, ix, iy);
+        _manual_goto_xy({ bedlevel.index_to_xpos[ix], bedlevel.index_to_ypos[iy] });
       }
       else {
         // Move to the after probing position
@@ -195,9 +232,9 @@ void GcodeSuite::G29() {
         return echo_not_entered('J');
 
       if (parser.seenval('Z')) {
-        mbl.z_values[ix][iy] = parser.value_linear_units();
-        TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(ix, iy, mbl.z_values[ix][iy]));
-        TERN_(DWIN_LCD_PROUI, DWIN_MeshUpdate(ix, iy, mbl.z_values[ix][iy]));
+        bedlevel.z_values[ix][iy] = parser.value_linear_units();
+        TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(ix, iy, bedlevel.z_values[ix][iy]));
+        TERN_(DWIN_LCD_PROUI, DWIN_MeshUpdate(ix, iy, bedlevel.z_values[ix][iy]));
       }
       else
         return echo_not_entered('Z');
@@ -205,7 +242,7 @@ void GcodeSuite::G29() {
 
     case MeshSetZOffset:
       if (parser.seenval('Z'))
-        mbl.z_offset = parser.value_linear_units();
+        bedlevel.z_offset = parser.value_linear_units();
       else
         return echo_not_entered('Z');
       break;

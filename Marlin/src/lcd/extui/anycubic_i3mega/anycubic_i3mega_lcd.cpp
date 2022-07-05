@@ -85,8 +85,8 @@ void AnycubicTFTClass::OnSetup() {
   SENDLINE_DBG_PGM("J17", "TFT Serial Debug: Main board reset... J17"); // J17 Main board reset
   delay_ms(10);
 
-  // initialise the state of the key pins running on the tft
-  #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
+  // Init the state of the key pins running on the TFT
+  #if BOTH(SDSUPPORT, HAS_SD_DETECT)
     SET_INPUT_PULLUP(SD_DETECT_PIN);
   #endif
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
@@ -916,7 +916,7 @@ void AnycubicTFTClass::GetCommandFromTFT() {
 }
 
 void AnycubicTFTClass::DoSDCardStateCheck() {
-  #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
+  #if BOTH(SDSUPPORT, HAS_SD_DETECT)
     bool isInserted = isMediaInserted();
     if (isInserted)
       SENDLINE_DBG_PGM("J00", "TFT Serial Debug: SD card state changed... isInserted");

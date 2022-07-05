@@ -739,7 +739,7 @@ block_t* Planner::get_current_block() {
     block_t * const block = &block_buffer[block_buffer_tail];
 
     // No trapezoid calculated? Don't execute yet.
-    if (TEST(block->flag, BLOCK_BIT_RECALCULATE)) return nullptr;
+    if (block->flag.recalculate) return nullptr;
 
     // We can't be sure how long an active block will take, so don't count it.
     TERN_(HAS_WIRED_LCD, block_buffer_runtime_us -= block->segment_time_us);
@@ -948,7 +948,7 @@ void Planner::reverse_pass_kernel(block_t * const current, const block_t * const
 
     // Compute maximum entry speed decelerating over the current block from its exit speed.
     // If not at the maximum entry speed, or the previous block entry speed changed
-    if (current->entry_speed_sqr != max_entry_speed_sqr || (next && TEST(next->flag, BLOCK_BIT_RECALCULATE))) {
+    if (current->entry_speed_sqr != max_entry_speed_sqr || (next && next->flag.recalculate)) {
 
       // If nominal length true, max junction speed is guaranteed to be reached.
       // If a block can de/ac-celerate from nominal speed to zero within the length of the block, then
@@ -958,14 +958,14 @@ void Planner::reverse_pass_kernel(block_t * const current, const block_t * const
       // the reverse and forward planners, the corresponding block junction speed will always be at the
       // the maximum junction speed and may always be ignored for any speed reduction checks.
 
-      const float new_entry_speed_sqr = TEST(current->flag, BLOCK_BIT_NOMINAL_LENGTH)
+      const float new_entry_speed_sqr = current->flag.nominal_length
         ? max_entry_speed_sqr
         : _MIN(max_entry_speed_sqr, max_allowable_speed_sqr(-current->acceleration, next ? next->entry_speed_sqr : sq(float(MINIMUM_PLANNER_SPEED)), current->millimeters));
       if (current->entry_speed_sqr != new_entry_speed_sqr) {
 
         // Need to recalculate the block speed - Mark it now, so the stepper
         // ISR does not consume the block before being recalculated
-        SBI(current->flag, BLOCK_BIT_RECALCULATE);
+        current->flag.recalculate = true;
 
         // But there is an inherent race condition here, as the block may have
         // become BUSY just before being marked RECALCULATE, so check for that!
@@ -973,7 +973,7 @@ void Planner::reverse_pass_kernel(block_t * const current, const block_t * const
           // Block became busy. Clear the RECALCULATE flag (no point in
           // recalculating BUSY blocks). And don't set its speed, as it can't
           // be updated at this time.
-          CBI(current->flag, BLOCK_BIT_RECALCULATE);
+          current->flag.recalculate = false;
         }
         else {
           // Block is not BUSY so this is ahead of the Stepper ISR:
@@ -1011,8 +1011,8 @@ void Planner::reverse_pass() {
     // Perform the reverse pass
     block_t *current = &block_buffer[block_index];
 
-    // Only consider non sync-and-page blocks
-    if (!(current->flag & BLOCK_MASK_SYNC) && !IS_PAGE(current)) {
+    // Only process movement blocks
+    if (current->is_move()) {
       reverse_pass_kernel(current, next);
       next = current;
     }
@@ -1041,8 +1041,7 @@ void Planner::forward_pass_kernel(const block_t * const previous, block_t * cons
     // change, adjust the entry speed accordingly. Entry speeds have already been reset,
     // maximized, and reverse-planned. If nominal length is set, max junction speed is
     // guaranteed to be reached. No need to recheck.
-    if (!TEST(previous->flag, BLOCK_BIT_NOMINAL_LENGTH) &&
-      previous->entry_speed_sqr < current->entry_speed_sqr) {
+    if (!previous->flag.nominal_length && previous->entry_speed_sqr < current->entry_speed_sqr) {
 
       // Compute the maximum allowable speed
       const float new_entry_speed_sqr = max_allowable_speed_sqr(-previous->acceleration, previous->entry_speed_sqr, previous->millimeters);
@@ -1052,7 +1051,7 @@ void Planner::forward_pass_kernel(const block_t * const previous, block_t * cons
 
         // Mark we need to recompute the trapezoidal shape, and do it now,
         // so the stepper ISR does not consume the block before being recalculated
-        SBI(current->flag, BLOCK_BIT_RECALCULATE);
+        current->flag.recalculate = true;
 
         // But there is an inherent race condition here, as the block maybe
         // became BUSY, just before it was marked as RECALCULATE, so check
@@ -1061,7 +1060,7 @@ void Planner::forward_pass_kernel(const block_t * const previous, block_t * cons
           // Block became busy. Clear the RECALCULATE flag (no point in
           //  recalculating BUSY blocks and don't set its speed, as it can't
           //  be updated at this time.
-          CBI(current->flag, BLOCK_BIT_RECALCULATE);
+          current->flag.recalculate = false;
         }
         else {
           // Block is not BUSY, we won the race against the Stepper ISR:
@@ -1106,8 +1105,8 @@ void Planner::forward_pass() {
     // Perform the forward pass
     block = &block_buffer[block_index];
 
-    // Skip SYNC and page blocks
-    if (!(block->flag & BLOCK_MASK_SYNC) && !IS_PAGE(block)) {
+    // Only process movement blocks
+    if (block->is_move()) {
       // If there's no previous block or the previous block is not
       // BUSY (thus, modifiable) run the forward_pass_kernel. Otherwise,
       // the previous block became BUSY, so assume the current block's
@@ -1131,9 +1130,10 @@ void Planner::recalculate_trapezoids() {
   // The tail may be changed by the ISR so get a local copy.
   uint8_t block_index = block_buffer_tail,
           head_block_index = block_buffer_head;
-  // Since there could be a sync block in the head of the queue, and the
+
+  // Since there could be non-move blocks in the head of the queue, and the
   // next loop must not recalculate the head block (as it needs to be
-  // specially handled), scan backwards to the first non-SYNC block.
+  // specially handled), scan backwards to the first move block.
   while (head_block_index != block_index) {
 
     // Go back (head always point to the first free block)
@@ -1142,8 +1142,8 @@ void Planner::recalculate_trapezoids() {
     // Get the pointer to the block
     block_t *prev = &block_buffer[prev_index];
 
-    // If not dealing with a sync block, we are done. The last block is not a SYNC block
-    if (!(prev->flag & BLOCK_MASK_SYNC)) break;
+    // It the block is a move, we're done with this loop
+    if (prev->is_move()) break;
 
     // Examine the previous block. This and all following are SYNC blocks
     head_block_index = prev_index;
@@ -1156,18 +1156,17 @@ void Planner::recalculate_trapezoids() {
 
     next = &block_buffer[block_index];
 
-    // Skip sync and page blocks
-    if (!(next->flag & BLOCK_MASK_SYNC) && !IS_PAGE(next)) {
+    // Only process movement blocks
+    if (next->is_move()) {
       next_entry_speed = SQRT(next->entry_speed_sqr);
 
       if (block) {
-        // Recalculate if current block entry or exit junction speed has changed.
-        if (TEST(block->flag, BLOCK_BIT_RECALCULATE) || TEST(next->flag, BLOCK_BIT_RECALCULATE)) {
 
-          // Mark the current block as RECALCULATE, to protect it from the Stepper ISR running it.
-          // Note that due to the above condition, there's a chance the current block isn't marked as
-          // RECALCULATE yet, but the next one is. That's the reason for the following line.
-          SBI(block->flag, BLOCK_BIT_RECALCULATE);
+        // If the next block is marked to RECALCULATE, also mark the previously-fetched one
+        if (next->flag.recalculate) block->flag.recalculate = true;
+
+        // Recalculate if current block entry or exit junction speed has changed.
+        if (block->flag.recalculate) {
 
           // But there is an inherent race condition here, as the block maybe
           // became BUSY, just before it was marked as RECALCULATE, so check
@@ -1190,7 +1189,7 @@ void Planner::recalculate_trapezoids() {
 
           // Reset current only to ensure next trapezoid is computed - The
           // stepper is free to use the block from now on.
-          CBI(block->flag, BLOCK_BIT_RECALCULATE);
+          block->flag.recalculate = false;
         }
       }
 
@@ -1204,10 +1203,10 @@ void Planner::recalculate_trapezoids() {
   // Last/newest block in buffer. Exit speed is set with MINIMUM_PLANNER_SPEED. Always recalculated.
   if (next) {
 
-    // Mark the next(last) block as RECALCULATE, to prevent the Stepper ISR running it.
+    // Mark the last block as RECALCULATE, to prevent the Stepper ISR running it.
     // As the last block is always recalculated here, there is a chance the block isn't
     // marked as RECALCULATE yet. That's the reason for the following line.
-    SBI(next->flag, BLOCK_BIT_RECALCULATE);
+    block->flag.recalculate = true;
 
     // But there is an inherent race condition here, as the block maybe
     // became BUSY, just before it was marked as RECALCULATE, so check
@@ -1229,7 +1228,7 @@ void Planner::recalculate_trapezoids() {
 
     // Reset next only to ensure its trapezoid is computed - The stepper is free to use
     // the block from now on.
-    CBI(next->flag, BLOCK_BIT_RECALCULATE);
+    next->flag.recalculate = false;
   }
 }
 
@@ -1300,7 +1299,7 @@ void Planner::recalculate() {
  */
 void Planner::check_axes_activity() {
 
-  #if ANY(DISABLE_X, DISABLE_Y, DISABLE_Z, DISABLE_I, DISABLE_J, DISABLE_K, DISABLE_E)
+  #if ANY(DISABLE_X, DISABLE_Y, DISABLE_Z, DISABLE_I, DISABLE_J, DISABLE_K, DISABLE_U, DISABLE_V, DISABLE_W, DISABLE_E)
     xyze_bool_t axis_active = { false };
   #endif
 
@@ -1350,7 +1349,10 @@ void Planner::check_axes_activity() {
           if (TERN0(DISABLE_Z, bnext->steps.z)) axis_active.z = true,
           if (TERN0(DISABLE_I, bnext->steps.i)) axis_active.i = true,
           if (TERN0(DISABLE_J, bnext->steps.j)) axis_active.j = true,
-          if (TERN0(DISABLE_K, bnext->steps.k)) axis_active.k = true
+          if (TERN0(DISABLE_K, bnext->steps.k)) axis_active.k = true,
+          if (TERN0(DISABLE_U, bnext->steps.u)) axis_active.u = true,
+          if (TERN0(DISABLE_V, bnext->steps.v)) axis_active.v = true,
+          if (TERN0(DISABLE_W, bnext->steps.w)) axis_active.w = true
         );
       }
     #endif
@@ -1385,7 +1387,10 @@ void Planner::check_axes_activity() {
     if (TERN0(DISABLE_Z, !axis_active.z)) stepper.disable_axis(Z_AXIS),
     if (TERN0(DISABLE_I, !axis_active.i)) stepper.disable_axis(I_AXIS),
     if (TERN0(DISABLE_J, !axis_active.j)) stepper.disable_axis(J_AXIS),
-    if (TERN0(DISABLE_K, !axis_active.k)) stepper.disable_axis(K_AXIS)
+    if (TERN0(DISABLE_K, !axis_active.k)) stepper.disable_axis(K_AXIS),
+    if (TERN0(DISABLE_U, !axis_active.u)) stepper.disable_axis(U_AXIS),
+    if (TERN0(DISABLE_V, !axis_active.v)) stepper.disable_axis(V_AXIS),
+    if (TERN0(DISABLE_W, !axis_active.w)) stepper.disable_axis(W_AXIS)
   );
 
   //
@@ -1453,8 +1458,8 @@ void Planner::check_axes_activity() {
     float high = 0.0f;
     for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
       const block_t * const block = &block_buffer[b];
-      if (LINEAR_AXIS_GANG(block->steps.x, || block->steps.y, || block->steps.z, || block->steps.i, || block->steps.j, || block->steps.k)) {
-        const float se = (float)block->steps.e / block->step_event_count * SQRT(block->nominal_speed_sqr); // mm/sec;
+      if (NUM_AXIS_GANG(block->steps.x, || block->steps.y, || block->steps.z, || block->steps.i, || block->steps.j, || block->steps.k, || block->steps.u, || block->steps.v, || block->steps.w)) {
+        const float se = (float)block->steps.e / block->step_event_count * SQRT(block->nominal_speed_sqr); // mm/sec
         NOLESS(high, se);
       }
     }
@@ -1552,7 +1557,7 @@ void Planner::check_axes_activity() {
       TERN_(DELTA, settings.max_acceleration_mm_per_s2[Z_AXIS] = saved_motion_state.acceleration.z);
       TERN_(HAS_CLASSIC_JERK, max_jerk = saved_motion_state.jerk_state);
     }
-    reset_acceleration_rates();
+    refresh_acceleration_rates();
   }
 
 #endif
@@ -1581,55 +1586,45 @@ void Planner::check_axes_activity() {
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         const float fade_scaling_factor = fade_scaling_factor_for_z(raw.z);
-      #elif DISABLED(MESH_BED_LEVELING)
-        constexpr float fade_scaling_factor = 1.0;
+        if (fade_scaling_factor) raw.z += fade_scaling_factor * bedlevel.get_z_correction(raw);
+      #else
+        raw.z += bedlevel.get_z_correction(raw);
       #endif
 
-      raw.z += (
-        #if ENABLED(MESH_BED_LEVELING)
-          mbl.get_z(raw OPTARG(ENABLE_LEVELING_FADE_HEIGHT, fade_scaling_factor))
-        #elif ENABLED(AUTO_BED_LEVELING_UBL)
-          fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw) : 0.0
-        #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          fade_scaling_factor ? fade_scaling_factor * bbl.get_z_correction(raw) : 0.0
-        #endif
-      );
+      TERN_(MESH_BED_LEVELING, raw.z += bedlevel.get_z_offset());
 
     #endif
   }
 
   void Planner::unapply_leveling(xyz_pos_t &raw) {
+    if (!leveling_active) return;
 
-    if (leveling_active) {
+    #if ABL_PLANAR
 
-      #if ABL_PLANAR
+      matrix_3x3 inverse = matrix_3x3::transpose(bed_level_matrix);
 
-        matrix_3x3 inverse = matrix_3x3::transpose(bed_level_matrix);
+      xy_pos_t d = raw - level_fulcrum;
+      inverse.apply_rotation_xyz(d.x, d.y, raw.z);
+      raw = d + level_fulcrum;
 
-        xy_pos_t d = raw - level_fulcrum;
-        inverse.apply_rotation_xyz(d.x, d.y, raw.z);
-        raw = d + level_fulcrum;
+    #elif HAS_MESH
 
-      #elif HAS_MESH
+      const float z_correction = bedlevel.get_z_correction(raw),
+                  z_full_fade = DIFF_TERN(MESH_BED_LEVELING, raw.z, bedlevel.get_z_offset()),
+                  z_no_fade = z_full_fade - z_correction;
 
-        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          const float fade_scaling_factor = fade_scaling_factor_for_z(raw.z);
-        #elif DISABLED(MESH_BED_LEVELING)
-          constexpr float fade_scaling_factor = 1.0;
-        #endif
-
-        raw.z -= (
-          #if ENABLED(MESH_BED_LEVELING)
-            mbl.get_z(raw OPTARG(ENABLE_LEVELING_FADE_HEIGHT, fade_scaling_factor))
-          #elif ENABLED(AUTO_BED_LEVELING_UBL)
-            fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw) : 0.0
-          #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            fade_scaling_factor ? fade_scaling_factor * bbl.get_z_correction(raw) : 0.0
-          #endif
-        );
-
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        if (!z_fade_height || z_no_fade <= 0.0f)                              // Not fading or at bed level?
+          raw.z = z_no_fade;                                                  //  Unapply full mesh Z.
+        else if (z_full_fade >= z_fade_height)                                // Above the fade height?
+          raw.z = z_full_fade;                                                //  Nothing more to unapply.
+        else                                                                  // Within the fade zone?
+          raw.z = z_no_fade / (1.0f - z_correction * inverse_z_fade_height);  // Unapply the faded Z offset
+      #else
+        raw.z = z_no_fade;
       #endif
-    }
+
+    #endif
   }
 
 #endif // HAS_LEVELING
@@ -1667,10 +1662,7 @@ void Planner::quick_stop() {
   // forced to empty, there's no risk the ISR will touch this.
   delay_before_delivering = BLOCK_DELAY_FOR_1ST_MOVE;
 
-  #if HAS_WIRED_LCD
-    // Clear the accumulated runtime
-    clear_block_buffer_runtime();
-  #endif
+  TERN_(HAS_WIRED_LCD, clear_block_buffer_runtime()); // Clear the accumulated runtime
 
   // Make sure to drop any attempt of queuing moves for 1 second
   cleaning_buffer_counter = TEMP_TIMER_FREQUENCY;
@@ -1789,7 +1781,7 @@ void Planner::synchronize() { while (busy()) idle(); }
 bool Planner::_buffer_steps(const xyze_long_t &target
   OPTARG(HAS_POSITION_FLOAT, const xyze_pos_t &target_float)
   OPTARG(HAS_DIST_MM_ARG, const xyze_float_t &cart_dist_mm)
-  , feedRate_t fr_mm_s, const uint8_t extruder, const_float_t millimeters
+  , feedRate_t fr_mm_s, const uint8_t extruder, const_float_t millimeters/*=0.0*/
 ) {
 
   // Wait for the next available block
@@ -1802,11 +1794,12 @@ bool Planner::_buffer_steps(const xyze_long_t &target
   if (cleaning_buffer_counter) return false;
 
   // Fill the block with the specified movement
-  if (!_populate_block(block, false, target
-    OPTARG(HAS_POSITION_FLOAT, target_float)
-    OPTARG(HAS_DIST_MM_ARG, cart_dist_mm)
-    , fr_mm_s, extruder, millimeters
-  )) {
+  if (!_populate_block(block, target
+        OPTARG(HAS_POSITION_FLOAT, target_float)
+        OPTARG(HAS_DIST_MM_ARG, cart_dist_mm)
+        , fr_mm_s, extruder, millimeters
+      )
+  ) {
     // Movement was not queued, probably because it was too short.
     //  Simply accept that as movement queued and done
     return true;
@@ -1833,17 +1826,24 @@ bool Planner::_buffer_steps(const xyze_long_t &target
 }
 
 /**
- * Planner::_populate_block
+ * @brief Populate a block in preparation for insertion
+ * @details Populate the fields of a new linear movement block
+ *          that will be added to the queue and processed soon
+ *          by the Stepper ISR.
  *
- * Fills a new linear movement in the block (in terms of steps).
+ * @param block         A block to populate
+ * @param target        Target position in steps units
+ * @param target_float  Target position in native mm
+ * @param cart_dist_mm  The pre-calculated move lengths for all axes, in mm
+ * @param fr_mm_s       (target) speed of the move
+ * @param extruder      target extruder
+ * @param millimeters   A pre-calculated linear distance for the move, in mm,
+ *                      or 0.0 to have the distance calculated here.
  *
- *  target      - target position in steps units
- *  fr_mm_s     - (target) speed of the move
- *  extruder    - target extruder
- *
- * Returns true if movement is acceptable, false otherwise
+ * @return  true if movement is acceptable, false otherwise
  */
-bool Planner::_populate_block(block_t * const block, bool split_move,
+bool Planner::_populate_block(
+  block_t * const block,
   const abce_long_t &target
   OPTARG(HAS_POSITION_FLOAT, const xyze_pos_t &target_float)
   OPTARG(HAS_DIST_MM_ARG, const xyze_float_t &cart_dist_mm)
@@ -1856,28 +1856,15 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
     dc = target.c - position.c,
     di = target.i - position.i,
     dj = target.j - position.j,
-    dk = target.k - position.k
+    dk = target.k - position.k,
+    du = target.u - position.u,
+    dv = target.v - position.v,
+    dw = target.w - position.w
   );
 
   /* <-- add a slash to enable
-    SERIAL_ECHOLNPGM(
-      "  _populate_block FR:", fr_mm_s,
-      " A:", target.a, " (", da, " steps)"
-      " B:", target.b, " (", db, " steps)"
-      " C:", target.c, " (", dc, " steps)"
-      #if HAS_I_AXIS
-        " " STR_I ":", target.i, " (", di, " steps)"
-      #endif
-      #if HAS_J_AXIS
-        " " STR_J ":", target.j, " (", dj, " steps)"
-      #endif
-      #if HAS_K_AXIS
-        " " STR_K ":", target.k, " (", dk, " steps)"
-      #endif
-      #if HAS_EXTRUDERS
-        " E:", target.e, " (", de, " steps)"
-      #endif
-    );
+    #define _ALINE(A) " " STR_##A  ":", target[_AXIS(A)], " (", int32_t(target[_AXIS(A)] - position[_AXIS(A)]), " steps)"
+    SERIAL_ECHOLNPGM("  _populate_block FR:", fr_mm_s, LOGICAL_AXIS_MAP(_ALINE));
   //*/
 
   #if EITHER(PREVENT_COLD_EXTRUSION, PREVENT_LENGTHY_EXTRUDE)
@@ -1938,15 +1925,6 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
       if (db + dc < 0) SBI(dm, B_AXIS);           // Motor B direction
       if (CORESIGN(db - dc) < 0) SBI(dm, C_AXIS); // Motor C direction
     #endif
-    #if HAS_I_AXIS
-      if (di < 0) SBI(dm, I_AXIS);
-    #endif
-    #if HAS_J_AXIS
-      if (dj < 0) SBI(dm, J_AXIS);
-    #endif
-    #if HAS_K_AXIS
-      if (dk < 0) SBI(dm, K_AXIS);
-    #endif
   #elif ENABLED(MARKFORGED_XY)
     if (da + db < 0) SBI(dm, A_AXIS);              // Motor A direction
     if (db < 0) SBI(dm, B_AXIS);                   // Motor B direction
@@ -1954,15 +1932,21 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
     if (da < 0) SBI(dm, A_AXIS);                   // Motor A direction
     if (db + da < 0) SBI(dm, B_AXIS);              // Motor B direction
   #else
-    LINEAR_AXIS_CODE(
+    XYZ_CODE(
       if (da < 0) SBI(dm, X_AXIS),
       if (db < 0) SBI(dm, Y_AXIS),
-      if (dc < 0) SBI(dm, Z_AXIS),
-      if (di < 0) SBI(dm, I_AXIS),
-      if (dj < 0) SBI(dm, J_AXIS),
-      if (dk < 0) SBI(dm, K_AXIS)
+      if (dc < 0) SBI(dm, Z_AXIS)
     );
   #endif
+
+  SECONDARY_AXIS_CODE(
+    if (di < 0) SBI(dm, I_AXIS),
+    if (dj < 0) SBI(dm, J_AXIS),
+    if (dk < 0) SBI(dm, K_AXIS),
+    if (du < 0) SBI(dm, U_AXIS),
+    if (dv < 0) SBI(dm, V_AXIS),
+    if (dw < 0) SBI(dm, W_AXIS)
+  );
 
   #if HAS_EXTRUDERS
     if (de < 0) SBI(dm, E_AXIS);
@@ -1973,7 +1957,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   #endif
 
   // Clear all flags, including the "busy" bit
-  block->flag = 0x00;
+  block->flag.clear();
 
   // Set direction bits
   block->direction_bits = dm;
@@ -1987,22 +1971,24 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
 
   // Number of steps for each axis
   // See https://www.corexy.com/theory.html
-  #if CORE_IS_XY
-    block->steps.set(LINEAR_AXIS_LIST(ABS(da + db), ABS(da - db), ABS(dc), ABS(di), ABS(dj), ABS(dk)));
-  #elif CORE_IS_XZ
-    block->steps.set(LINEAR_AXIS_LIST(ABS(da + dc), ABS(db), ABS(da - dc), ABS(di), ABS(dj), ABS(dk)));
-  #elif CORE_IS_YZ
-    block->steps.set(LINEAR_AXIS_LIST(ABS(da), ABS(db + dc), ABS(db - dc), ABS(di), ABS(dj), ABS(dk)));
-  #elif ENABLED(MARKFORGED_XY)
-    block->steps.set(LINEAR_AXIS_LIST(ABS(da + db), ABS(db), ABS(dc), ABS(di), ABS(dj), ABS(dk)));
-  #elif ENABLED(MARKFORGED_YX)
-    block->steps.set(LINEAR_AXIS_LIST(ABS(da), ABS(db + da), ABS(dc), ABS(di), ABS(dj), ABS(dk)));
-  #elif IS_SCARA
-    block->steps.set(LINEAR_AXIS_LIST(ABS(da), ABS(db), ABS(dc), ABS(di), ABS(dj), ABS(dk)));
-  #else
-    // default non-h-bot planning
-    block->steps.set(LINEAR_AXIS_LIST(ABS(da), ABS(db), ABS(dc), ABS(di), ABS(dj), ABS(dk)));
-  #endif
+  block->steps.set(NUM_AXIS_LIST(
+    #if CORE_IS_XY
+      ABS(da + db), ABS(da - db), ABS(dc)
+    #elif CORE_IS_XZ
+      ABS(da + dc), ABS(db), ABS(da - dc)
+    #elif CORE_IS_YZ
+      ABS(da), ABS(db + dc), ABS(db - dc)
+    #elif ENABLED(MARKFORGED_XY)
+      ABS(da + db), ABS(db), ABS(dc)
+    #elif ENABLED(MARKFORGED_YX)
+      ABS(da), ABS(db + da), ABS(dc)
+    #elif IS_SCARA
+      ABS(da), ABS(db), ABS(dc)
+    #else // default non-h-bot planning
+      ABS(da), ABS(db), ABS(dc)
+    #endif
+    , ABS(di), ABS(dj), ABS(dk), ABS(du), ABS(dv), ABS(dw)
+  ));
 
   /**
    * This part of the code calculates the total length of the movement.
@@ -2040,37 +2026,47 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
       steps_dist_mm.b      = (db + dc) * mm_per_step[B_AXIS];
       steps_dist_mm.c      = CORESIGN(db - dc) * mm_per_step[C_AXIS];
     #endif
-    TERN_(HAS_I_AXIS, steps_dist_mm.i = di * mm_per_step[I_AXIS]);
-    TERN_(HAS_J_AXIS, steps_dist_mm.j = dj * mm_per_step[J_AXIS]);
-    TERN_(HAS_K_AXIS, steps_dist_mm.k = dk * mm_per_step[K_AXIS]);
   #elif ENABLED(MARKFORGED_XY)
     steps_dist_mm.a      = (da - db) * mm_per_step[A_AXIS];
-    steps_dist_mm.b      = db * mm_per_step[B_AXIS];
+    steps_dist_mm.b      =       db  * mm_per_step[B_AXIS];
   #elif ENABLED(MARKFORGED_YX)
-    steps_dist_mm.a      = da * mm_per_step[A_AXIS];
+    steps_dist_mm.a      =       da  * mm_per_step[A_AXIS];
     steps_dist_mm.b      = (db - da) * mm_per_step[B_AXIS];
   #else
-    LINEAR_AXIS_CODE(
+    XYZ_CODE(
       steps_dist_mm.a = da * mm_per_step[A_AXIS],
       steps_dist_mm.b = db * mm_per_step[B_AXIS],
-      steps_dist_mm.c = dc * mm_per_step[C_AXIS],
-      steps_dist_mm.i = di * mm_per_step[I_AXIS],
-      steps_dist_mm.j = dj * mm_per_step[J_AXIS],
-      steps_dist_mm.k = dk * mm_per_step[K_AXIS]
+      steps_dist_mm.c = dc * mm_per_step[C_AXIS]
     );
   #endif
+
+  SECONDARY_AXIS_CODE(
+    steps_dist_mm.i = di * mm_per_step[I_AXIS],
+    steps_dist_mm.j = dj * mm_per_step[J_AXIS],
+    steps_dist_mm.k = dk * mm_per_step[K_AXIS],
+    steps_dist_mm.u = du * mm_per_step[U_AXIS],
+    steps_dist_mm.v = dv * mm_per_step[V_AXIS],
+    steps_dist_mm.w = dw * mm_per_step[W_AXIS]
+  );
 
   TERN_(HAS_EXTRUDERS, steps_dist_mm.e = esteps_float * mm_per_step[E_AXIS_N(extruder)]);
 
   TERN_(LCD_SHOW_E_TOTAL, e_move_accumulator += steps_dist_mm.e);
 
-  if (true LINEAR_AXIS_GANG(
+  #if BOTH(HAS_ROTATIONAL_AXES, INCH_MODE_SUPPORT)
+    bool cartesian_move = true;
+  #endif
+
+  if (true NUM_AXIS_GANG(
       && block->steps.a < MIN_STEPS_PER_SEGMENT,
       && block->steps.b < MIN_STEPS_PER_SEGMENT,
       && block->steps.c < MIN_STEPS_PER_SEGMENT,
       && block->steps.i < MIN_STEPS_PER_SEGMENT,
       && block->steps.j < MIN_STEPS_PER_SEGMENT,
-      && block->steps.k < MIN_STEPS_PER_SEGMENT
+      && block->steps.k < MIN_STEPS_PER_SEGMENT,
+      && block->steps.u < MIN_STEPS_PER_SEGMENT,
+      && block->steps.v < MIN_STEPS_PER_SEGMENT,
+      && block->steps.w < MIN_STEPS_PER_SEGMENT
     )
   ) {
     block->millimeters = TERN0(HAS_EXTRUDERS, ABS(steps_dist_mm.e));
@@ -2079,43 +2075,88 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
     if (millimeters)
       block->millimeters = millimeters;
     else {
-      block->millimeters = SQRT(
-        #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX)
-          LINEAR_AXIS_GANG(
-              sq(steps_dist_mm.head.x), + sq(steps_dist_mm.head.y), + sq(steps_dist_mm.z),
-            + sq(steps_dist_mm.i),      + sq(steps_dist_mm.j),      + sq(steps_dist_mm.k)
-          )
-        #elif CORE_IS_XZ
-          LINEAR_AXIS_GANG(
-              sq(steps_dist_mm.head.x), + sq(steps_dist_mm.y), + sq(steps_dist_mm.head.z),
-            + sq(steps_dist_mm.i),      + sq(steps_dist_mm.j), + sq(steps_dist_mm.k)
-          )
-        #elif CORE_IS_YZ
-          LINEAR_AXIS_GANG(
-              sq(steps_dist_mm.x)  + sq(steps_dist_mm.head.y) + sq(steps_dist_mm.head.z)
-            + sq(steps_dist_mm.i), + sq(steps_dist_mm.j),     + sq(steps_dist_mm.k)
-          )
+      /**
+       * Distance for interpretation of feedrate in accordance with LinuxCNC (the successor of
+       * NIST RS274NGC interpreter - version 3) and its default CANON_XYZ feed reference mode.
+       *
+       * Assume:
+       *   - X, Y, Z are the primary linear axes;
+       *   - U, V, W are secondary linear axes;
+       *   - A, B, C are rotational axes.
+       *
+       * Then:
+       *   - dX, dY, dZ are the displacements of the primary linear axes;
+       *   - dU, dV, dW are the displacements of linear axes;
+       *   - dA, dB, dC are the displacements of rotational axes.
+       *
+       * The time it takes to execute move command with feedrate F is t = D/F,
+       * where D is the total distance, calculated as follows:
+       *   D^2 = dX^2 + dY^2 + dZ^2
+       *   if D^2 == 0 (none of XYZ move but any secondary linear axes move, whether other axes are moved or not):
+       *     D^2 = dU^2 + dV^2 + dW^2
+       *   if D^2 == 0 (only rotational axes are moved):
+       *     D^2 = dA^2 + dB^2 + dC^2
+       */
+      float distance_sqr = (
+        #if ENABLED(ARTICULATED_ROBOT_ARM)
+          // For articulated robots, interpreting feedrate like LinuxCNC would require inverse kinematics. As a workaround,
+          // assume that motors sit on a mutually-orthogonal axes and we can think of distance as magnitude of an n-vector
+          // in an n-dimensional Euclidian space.
+          NUM_AXIS_GANG(
+              sq(steps_dist_mm.x), + sq(steps_dist_mm.y), + sq(steps_dist_mm.z),
+            + sq(steps_dist_mm.i), + sq(steps_dist_mm.j), + sq(steps_dist_mm.k),
+            + sq(steps_dist_mm.u), + sq(steps_dist_mm.v), + sq(steps_dist_mm.w)
+          );
         #elif ENABLED(FOAMCUTTER_XYUV)
-          // Return the largest distance move from either X/Y or I/J plane
           #if HAS_J_AXIS
+            // Special 5 axis kinematics. Return the largest distance move from either X/Y or I/J plane
             _MAX(sq(steps_dist_mm.x) + sq(steps_dist_mm.y), sq(steps_dist_mm.i) + sq(steps_dist_mm.j))
-          #else
+          #else // Foamcutter with only two axes (XY)
             sq(steps_dist_mm.x) + sq(steps_dist_mm.y)
           #endif
+        #elif ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX)
+          XYZ_GANG(sq(steps_dist_mm.head.x), + sq(steps_dist_mm.head.y), + sq(steps_dist_mm.z))
+        #elif CORE_IS_XZ
+          XYZ_GANG(sq(steps_dist_mm.head.x), + sq(steps_dist_mm.y),      + sq(steps_dist_mm.head.z))
+        #elif CORE_IS_YZ
+          XYZ_GANG(sq(steps_dist_mm.x),      + sq(steps_dist_mm.head.y), + sq(steps_dist_mm.head.z))
         #else
-          LINEAR_AXIS_GANG(
-              sq(steps_dist_mm.x), + sq(steps_dist_mm.y), + sq(steps_dist_mm.z),
-            + sq(steps_dist_mm.i), + sq(steps_dist_mm.j), + sq(steps_dist_mm.k)
-          )
+          XYZ_GANG(sq(steps_dist_mm.x),      + sq(steps_dist_mm.y),      + sq(steps_dist_mm.z))
         #endif
       );
+
+      #if SECONDARY_LINEAR_AXES >= 1 && NONE(FOAMCUTTER_XYUV, ARTICULATED_ROBOT_ARM)
+        if (NEAR_ZERO(distance_sqr)) {
+          // Move does not involve any primary linear axes (xyz) but might involve secondary linear axes
+          distance_sqr = (0.0
+            SECONDARY_AXIS_GANG(
+              IF_DISABLED(AXIS4_ROTATES, + sq(steps_dist_mm.i)),
+              IF_DISABLED(AXIS5_ROTATES, + sq(steps_dist_mm.j)),
+              IF_DISABLED(AXIS6_ROTATES, + sq(steps_dist_mm.k)),
+              IF_DISABLED(AXIS7_ROTATES, + sq(steps_dist_mm.u)),
+              IF_DISABLED(AXIS8_ROTATES, + sq(steps_dist_mm.v)),
+              IF_DISABLED(AXIS9_ROTATES, + sq(steps_dist_mm.w))
+            )
+          );
+        }
+      #endif
+
+      #if HAS_ROTATIONAL_AXES && NONE(FOAMCUTTER_XYUV, ARTICULATED_ROBOT_ARM)
+        if (NEAR_ZERO(distance_sqr)) {
+          // Move involves only rotational axes. Calculate angular distance in accordance with LinuxCNC
+          TERN_(INCH_MODE_SUPPORT, cartesian_move = false);
+          distance_sqr = ROTATIONAL_AXIS_GANG(sq(steps_dist_mm.i), + sq(steps_dist_mm.j), + sq(steps_dist_mm.k), + sq(steps_dist_mm.u), + sq(steps_dist_mm.v), + sq(steps_dist_mm.w));
+        }
+      #endif
+
+      block->millimeters = SQRT(distance_sqr);
     }
 
     /**
      * At this point at least one of the axes has more steps than
-     * MIN_STEPS_PER_SEGMENT, ensuring the segment won't get dropped as
-     * zero-length. It's important to not apply corrections
-     * to blocks that would get dropped!
+     * MIN_STEPS_PER_SEGMENT, ensuring the segment won't get dropped
+     * as zero-length. It's important to not apply corrections to blocks
+     * that would get dropped!
      *
      * A correction function is permitted to add steps to an axis, it
      * should *never* remove steps!
@@ -2125,8 +2166,10 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
 
   TERN_(HAS_EXTRUDERS, block->steps.e = esteps);
 
-  block->step_event_count = _MAX(LOGICAL_AXIS_LIST(
-    esteps, block->steps.a, block->steps.b, block->steps.c, block->steps.i, block->steps.j, block->steps.k
+  block->step_event_count = _MAX(LOGICAL_AXIS_LIST(esteps,
+    block->steps.a, block->steps.b, block->steps.c,
+    block->steps.i, block->steps.j, block->steps.k,
+    block->steps.u, block->steps.v, block->steps.w
   ));
 
   // Bail if this is a zero-length block
@@ -2148,13 +2191,10 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   E_TERN_(block->extruder = extruder);
 
   #if ENABLED(AUTO_POWER_CONTROL)
-    if (LINEAR_AXIS_GANG(
-         block->steps.x,
-      || block->steps.y,
-      || block->steps.z,
-      || block->steps.i,
-      || block->steps.j,
-      || block->steps.k
+    if (NUM_AXIS_GANG(
+         block->steps.x, || block->steps.y, || block->steps.z,
+      || block->steps.i, || block->steps.j, || block->steps.k,
+      || block->steps.u, || block->steps.v, || block->steps.w
     )) powerManager.power_on();
   #endif
 
@@ -2180,19 +2220,27 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
     }
     if (block->steps.x) stepper.enable_axis(X_AXIS);
   #else
-    LINEAR_AXIS_CODE(
+    NUM_AXIS_CODE(
       if (block->steps.x) stepper.enable_axis(X_AXIS),
       if (block->steps.y) stepper.enable_axis(Y_AXIS),
       if (TERN(Z_LATE_ENABLE, 0, block->steps.z)) stepper.enable_axis(Z_AXIS),
       if (block->steps.i) stepper.enable_axis(I_AXIS),
       if (block->steps.j) stepper.enable_axis(J_AXIS),
-      if (block->steps.k) stepper.enable_axis(K_AXIS)
+      if (block->steps.k) stepper.enable_axis(K_AXIS),
+      if (block->steps.u) stepper.enable_axis(U_AXIS),
+      if (block->steps.v) stepper.enable_axis(V_AXIS),
+      if (block->steps.w) stepper.enable_axis(W_AXIS)
     );
   #endif
   #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX)
-    TERN_(HAS_I_AXIS, if (block->steps.i) stepper.enable_axis(I_AXIS));
-    TERN_(HAS_J_AXIS, if (block->steps.j) stepper.enable_axis(J_AXIS));
-    TERN_(HAS_K_AXIS, if (block->steps.k) stepper.enable_axis(K_AXIS));
+    SECONDARY_AXIS_CODE(
+      if (block->steps.i) stepper.enable_axis(I_AXIS),
+      if (block->steps.j) stepper.enable_axis(J_AXIS),
+      if (block->steps.k) stepper.enable_axis(K_AXIS),
+      if (block->steps.u) stepper.enable_axis(U_AXIS),
+      if (block->steps.v) stepper.enable_axis(V_AXIS),
+      if (block->steps.w) stepper.enable_axis(W_AXIS)
+    );
   #endif
 
   // Enable extruder(s)
@@ -2239,8 +2287,14 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   const float inverse_millimeters = 1.0f / block->millimeters;  // Inverse millimeters to remove multiple divides
 
   // Calculate inverse time for this move. No divide by zero due to previous checks.
-  // Example: At 120mm/s a 60mm move takes 0.5s. So this will give 2.0.
-  float inverse_secs = fr_mm_s * inverse_millimeters;
+  // Example: At 120mm/s a 60mm move involving XYZ axes takes 0.5s. So this will give 2.0.
+  // Example 2: At 120°/s a 60° move involving only rotational axes takes 0.5s. So this will give 2.0.
+  float inverse_secs;
+  #if BOTH(HAS_ROTATIONAL_AXES, INCH_MODE_SUPPORT)
+    inverse_secs = inverse_millimeters * (cartesian_move ? fr_mm_s : LINEAR_UNIT(fr_mm_s));
+  #else
+    inverse_secs = fr_mm_s * inverse_millimeters;
+  #endif
 
   // Get the number of non busy movements in queue (non busy means that they can be altered)
   const uint8_t moves_queued = nonbusy_movesplanned();
@@ -2286,13 +2340,13 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
       filwidth.advance_e(steps_dist_mm.e);
   #endif
 
-  // Calculate and limit speed in mm/sec
+  // Calculate and limit speed in mm/sec (linear) or degrees/sec (rotational)
 
   xyze_float_t current_speed;
   float speed_factor = 1.0f; // factor <1 decreases speed
 
   // Linear axes first with less logic
-  LOOP_LINEAR_AXES(i) {
+  LOOP_NUM_AXES(i) {
     current_speed[i] = steps_dist_mm[i] * inverse_secs;
     const feedRate_t cs = ABS(current_speed[i]),
                  max_fr = settings.max_feedrate_mm_s[i];
@@ -2374,15 +2428,16 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   if (speed_factor < 1.0f) {
     current_speed *= speed_factor;
     block->nominal_rate *= speed_factor;
-    block->nominal_speed_sqr = block->nominal_speed_sqr * sq(speed_factor);
+    block->nominal_speed_sqr *= sq(speed_factor);
   }
 
   // Compute and limit the acceleration rate for the trapezoid generator.
   const float steps_per_mm = block->step_event_count * inverse_millimeters;
   uint32_t accel;
-  if (LINEAR_AXIS_GANG(
+  if (NUM_AXIS_GANG(
          !block->steps.a, && !block->steps.b, && !block->steps.c,
-      && !block->steps.i, && !block->steps.j, && !block->steps.k)
+      && !block->steps.i, && !block->steps.j, && !block->steps.k,
+      && !block->steps.u, && !block->steps.v, && !block->steps.w)
   ) {                                                             // Is this a retract / recover move?
     accel = CEIL(settings.retract_acceleration * steps_per_mm);   // Convert to: acceleration steps/sec^2
     TERN_(LIN_ADVANCE, block->use_advance_lead = false);          // No linear advance for simple retract/recover
@@ -2455,7 +2510,10 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
         LIMIT_ACCEL_LONG(C_AXIS, 0),
         LIMIT_ACCEL_LONG(I_AXIS, 0),
         LIMIT_ACCEL_LONG(J_AXIS, 0),
-        LIMIT_ACCEL_LONG(K_AXIS, 0)
+        LIMIT_ACCEL_LONG(K_AXIS, 0),
+        LIMIT_ACCEL_LONG(U_AXIS, 0),
+        LIMIT_ACCEL_LONG(V_AXIS, 0),
+        LIMIT_ACCEL_LONG(W_AXIS, 0)
       );
     }
     else {
@@ -2466,7 +2524,10 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
         LIMIT_ACCEL_FLOAT(C_AXIS, 0),
         LIMIT_ACCEL_FLOAT(I_AXIS, 0),
         LIMIT_ACCEL_FLOAT(J_AXIS, 0),
-        LIMIT_ACCEL_FLOAT(K_AXIS, 0)
+        LIMIT_ACCEL_FLOAT(K_AXIS, 0),
+        LIMIT_ACCEL_FLOAT(U_AXIS, 0),
+        LIMIT_ACCEL_FLOAT(V_AXIS, 0),
+        LIMIT_ACCEL_FLOAT(W_AXIS, 0)
       );
     }
   }
@@ -2531,7 +2592,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
       #if HAS_DIST_MM_ARG
         cart_dist_mm
       #else
-        LOGICAL_AXIS_ARRAY(steps_dist_mm.e, steps_dist_mm.x, steps_dist_mm.y, steps_dist_mm.z, steps_dist_mm.i, steps_dist_mm.j, steps_dist_mm.k)
+        LOGICAL_AXIS_ARRAY(steps_dist_mm.e, steps_dist_mm.x, steps_dist_mm.y, steps_dist_mm.z, steps_dist_mm.i, steps_dist_mm.j, steps_dist_mm.k, steps_dist_mm.u, steps_dist_mm.v, steps_dist_mm.w)
       #endif
     ;
 
@@ -2557,7 +2618,10 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
                                  + (-prev_unit_vec.z * unit_vec.z),
                                  + (-prev_unit_vec.i * unit_vec.i),
                                  + (-prev_unit_vec.j * unit_vec.j),
-                                 + (-prev_unit_vec.k * unit_vec.k)
+                                 + (-prev_unit_vec.k * unit_vec.k),
+                                 + (-prev_unit_vec.u * unit_vec.u),
+                                 + (-prev_unit_vec.v * unit_vec.v),
+                                 + (-prev_unit_vec.w * unit_vec.w)
                                );
 
       // NOTE: Computed without any expensive trig, sin() or acos(), by trig half angle identity of cos(theta).
@@ -2566,14 +2630,15 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
         vmax_junction_sqr = sq(float(MINIMUM_PLANNER_SPEED));
       }
       else {
-        NOLESS(junction_cos_theta, -0.999999f); // Check for numerical round-off to avoid divide by zero.
-
         // Convert delta vector to unit vector
         xyze_float_t junction_unit_vec = unit_vec - prev_unit_vec;
         normalize_junction_vector(junction_unit_vec);
 
-        const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec),
-                    sin_theta_d2 = SQRT(0.5f * (1.0f - junction_cos_theta)); // Trig half angle identity. Always positive.
+        const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec);
+
+        NOLESS(junction_cos_theta, -0.999999f); // Check for numerical round-off to avoid divide by zero.
+
+        const float sin_theta_d2 = SQRT(0.5f * (1.0f - junction_cos_theta)); // Trig half angle identity. Always positive.
 
         vmax_junction_sqr = junction_acceleration * junction_deviation_mm * sin_theta_d2 / (1.0f - sin_theta_d2);
 
@@ -2704,7 +2769,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
     const float extra_xyjerk = TERN0(HAS_EXTRUDERS, de <= 0) ? TRAVEL_EXTRA_XYJERK : 0;
 
     uint8_t limited = 0;
-    TERN(HAS_LINEAR_E_JERK, LOOP_LINEAR_AXES, LOOP_LOGICAL_AXES)(i) {
+    TERN(HAS_LINEAR_E_JERK, LOOP_NUM_AXES, LOOP_LOGICAL_AXES)(i) {
       const float jerk = ABS(current_speed[i]),   // cs : Starting from zero, change in speed for this axis
                   maxj = (max_jerk[i] + (i == X_AXIS || i == Y_AXIS ? extra_xyjerk : 0.0f)); // mj : The max jerk setting for this axis
       if (jerk > maxj) {                          // cs > mj : New current speed too fast?
@@ -2742,7 +2807,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
         vmax_junction = previous_nominal_speed;
 
       // Now limit the jerk in all axes.
-      TERN(HAS_LINEAR_E_JERK, LOOP_LINEAR_AXES, LOOP_LOGICAL_AXES)(axis) {
+      TERN(HAS_LINEAR_E_JERK, LOOP_NUM_AXES, LOOP_LOGICAL_AXES)(axis) {
         // Limit an axis. We have to differentiate: coasting, reversal of an axis, full stop.
         float v_exit = previous_speed[axis] * smaller_speed_factor,
               v_entry = current_speed[axis];
@@ -2791,9 +2856,8 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   // Initialize block entry speed. Compute based on deceleration to user-defined MINIMUM_PLANNER_SPEED.
   const float v_allowable_sqr = max_allowable_speed_sqr(-block->acceleration, sq(float(MINIMUM_PLANNER_SPEED)), block->millimeters);
 
-  // If we are trying to add a split block, start with the
-  // max. allowed speed to avoid an interrupted first move.
-  block->entry_speed_sqr = !split_move ? sq(float(MINIMUM_PLANNER_SPEED)) : _MIN(vmax_junction_sqr, v_allowable_sqr);
+  // Start with the minimum allowed speed
+  block->entry_speed_sqr = sq(float(MINIMUM_PLANNER_SPEED));
 
   // Initialize planner efficiency flags
   // Set flag if block will always reach maximum junction speed regardless of entry/exit speeds.
@@ -2803,7 +2867,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   // block nominal speed limits both the current and next maximum junction speeds. Hence, in both
   // the reverse and forward planners, the corresponding block junction speed will always be at the
   // the maximum junction speed and may always be ignored for any speed reduction checks.
-  block->flag |= block->nominal_speed_sqr <= v_allowable_sqr ? BLOCK_FLAG_RECALCULATE | BLOCK_FLAG_NOMINAL_LENGTH : BLOCK_FLAG_RECALCULATE;
+  block->flag.set_nominal(block->nominal_speed_sqr <= v_allowable_sqr);
 
   // Update previous path unit_vector and nominal speed
   previous_speed = current_speed;
@@ -2828,9 +2892,9 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
  * Add a block to the buffer that just updates the position,
  * or in case of LASER_SYNCHRONOUS_M106_M107 the fan PWM
  */
-void Planner::buffer_sync_block(TERN_(LASER_SYNCHRONOUS_M106_M107, uint8_t sync_flag)) {
+void Planner::buffer_sync_block(TERN_(LASER_SYNCHRONOUS_M106_M107, const BlockFlagBit sync_flag/*=BLOCK_BIT_SYNC_POSITION*/)) {
   #if DISABLED(LASER_SYNCHRONOUS_M106_M107)
-    constexpr uint8_t sync_flag = BLOCK_FLAG_SYNC_POSITION;
+    constexpr BlockFlagBit sync_flag = BLOCK_BIT_SYNC_POSITION;
   #endif
 
   // Wait for the next available block
@@ -2838,13 +2902,13 @@ void Planner::buffer_sync_block(TERN_(LASER_SYNCHRONOUS_M106_M107, uint8_t sync_
   block_t * const block = get_next_free_block(next_buffer_head);
 
   // Clear block
-  memset(block, 0, sizeof(block_t));
+  block->reset();
 
-  block->flag = sync_flag;
+  block->flag.apply(sync_flag);
 
   block->position = position;
   #if ENABLED(BACKLASH_COMPENSATION)
-    LOOP_LINEAR_AXES(axis) block->position[axis] += backlash.get_applied_steps((AxisEnum)axis);
+    LOOP_NUM_AXES(axis) block->position[axis] += backlash.get_applied_steps((AxisEnum)axis);
   #endif
 
   #if BOTH(HAS_FAN, LASER_SYNCHRONOUS_M106_M107)
@@ -2906,7 +2970,10 @@ bool Planner::buffer_segment(const abce_pos_t &abce
       int32_t(LROUND(abce.c * settings.axis_steps_per_mm[C_AXIS])),
       int32_t(LROUND(abce.i * settings.axis_steps_per_mm[I_AXIS])),
       int32_t(LROUND(abce.j * settings.axis_steps_per_mm[J_AXIS])),
-      int32_t(LROUND(abce.k * settings.axis_steps_per_mm[K_AXIS]))
+      int32_t(LROUND(abce.k * settings.axis_steps_per_mm[K_AXIS])),
+      int32_t(LROUND(abce.u * settings.axis_steps_per_mm[U_AXIS])),
+      int32_t(LROUND(abce.v * settings.axis_steps_per_mm[V_AXIS])),
+      int32_t(LROUND(abce.w * settings.axis_steps_per_mm[W_AXIS]))
     )
   };
 
@@ -2958,6 +3025,21 @@ bool Planner::buffer_segment(const abce_pos_t &abce
       SERIAL_ECHOPGM(" (", position.k, "->", target.k);
       SERIAL_CHAR(')');
     #endif
+    #if HAS_U_AXIS
+      SERIAL_ECHOPGM_P(SP_U_LBL, abce.u);
+      SERIAL_ECHOPGM(" (", position.u, "->", target.u);
+      SERIAL_CHAR(')');
+    #endif
+    #if HAS_V_AXIS
+      SERIAL_ECHOPGM_P(SP_V_LBL, abce.v);
+      SERIAL_ECHOPGM(" (", position.v, "->", target.v);
+      SERIAL_CHAR(')');
+    #endif
+    #if HAS_W_AXIS
+      SERIAL_ECHOPGM_P(SP_W_LBL, abce.w);
+      SERIAL_ECHOPGM(" (", position.w, "->", target.w);
+      SERIAL_CHAR(')');
+    #endif
     #if HAS_EXTRUDERS
       SERIAL_ECHOPGM_P(SP_E_LBL, abce.e);
       SERIAL_ECHOLNPGM(" (", position.e, "->", target.e, ")");
@@ -2970,8 +3052,8 @@ bool Planner::buffer_segment(const abce_pos_t &abce
   if (!_buffer_steps(target
       OPTARG(HAS_POSITION_FLOAT, target_float)
       OPTARG(HAS_DIST_MM_ARG, cart_dist_mm)
-      , fr_mm_s, extruder, millimeters)
-  ) return false;
+      , fr_mm_s, extruder, millimeters
+  )) return false;
 
   stepper.wake_up();
   return true;
@@ -3000,12 +3082,14 @@ bool Planner::buffer_line(const xyze_pos_t &cart, const_feedRate_t fr_mm_s, cons
       const xyze_pos_t cart_dist_mm = LOGICAL_AXIS_ARRAY(
         cart.e - position_cart.e,
         cart.x - position_cart.x, cart.y - position_cart.y, cart.z - position_cart.z,
-        cart.i - position_cart.i, cart.j - position_cart.j, cart.j - position_cart.k
+        cart.i - position_cart.i, cart.j - position_cart.j, cart.k - position_cart.k,
+        cart.u - position_cart.u, cart.v - position_cart.v, cart.w - position_cart.w
       );
     #else
-      const xyz_pos_t cart_dist_mm = LINEAR_AXIS_ARRAY(
+      const xyz_pos_t cart_dist_mm = NUM_AXIS_ARRAY(
         cart.x - position_cart.x, cart.y - position_cart.y, cart.z - position_cart.z,
-        cart.i - position_cart.i, cart.j - position_cart.j, cart.j - position_cart.k
+        cart.i - position_cart.i, cart.j - position_cart.j, cart.k - position_cart.k,
+        cart.u - position_cart.u, cart.v - position_cart.v, cart.w - position_cart.w
       );
     #endif
 
@@ -3036,6 +3120,14 @@ bool Planner::buffer_line(const xyze_pos_t &cart, const_feedRate_t fr_mm_s, cons
 
 #if ENABLED(DIRECT_STEPPING)
 
+  /**
+   * @brief Add a direct stepping page block to the buffer
+   *        and wake up the Stepper ISR to process it.
+   *
+   * @param page_idx Page index provided by G6 I<index>
+   * @param extruder The extruder to use in the move
+   * @param num_steps Number of steps to process in the ISR
+   */
   void Planner::buffer_page(const page_idx_t page_idx, const uint8_t extruder, const uint16_t num_steps) {
     if (!last_page_step_rate) {
       kill(GET_TEXT_F(MSG_BAD_PAGE_SPEED));
@@ -3045,7 +3137,7 @@ bool Planner::buffer_line(const xyze_pos_t &cart, const_feedRate_t fr_mm_s, cons
     uint8_t next_buffer_head;
     block_t * const block = get_next_free_block(next_buffer_head);
 
-    block->flag = BLOCK_FLAG_IS_PAGE;
+    block->flag.reset(BLOCK_BIT_PAGE);
 
     #if HAS_FAN
       FANS_LOOP(i) block->fan_speed[i] = thermalManager.fan_speed[i];
@@ -3110,7 +3202,10 @@ void Planner::set_machine_position_mm(const abce_pos_t &abce) {
       LROUND(abce.c * settings.axis_steps_per_mm[C_AXIS]),
       LROUND(abce.i * settings.axis_steps_per_mm[I_AXIS]),
       LROUND(abce.j * settings.axis_steps_per_mm[J_AXIS]),
-      LROUND(abce.k * settings.axis_steps_per_mm[K_AXIS])
+      LROUND(abce.k * settings.axis_steps_per_mm[K_AXIS]),
+      LROUND(abce.u * settings.axis_steps_per_mm[U_AXIS]),
+      LROUND(abce.v * settings.axis_steps_per_mm[V_AXIS]),
+      LROUND(abce.w * settings.axis_steps_per_mm[W_AXIS])
     )
   );
 
@@ -3122,7 +3217,7 @@ void Planner::set_machine_position_mm(const abce_pos_t &abce) {
   else {
     #if ENABLED(BACKLASH_COMPENSATION)
       abce_long_t stepper_pos = position;
-      LOOP_LINEAR_AXES(axis) stepper_pos[axis] += backlash.get_applied_steps((AxisEnum)axis);
+      LOOP_NUM_AXES(axis) stepper_pos[axis] += backlash.get_applied_steps((AxisEnum)axis);
       stepper.set_position(stepper_pos);
     #else
       stepper.set_position(position);
@@ -3130,6 +3225,12 @@ void Planner::set_machine_position_mm(const abce_pos_t &abce) {
   }
 }
 
+/**
+ * @brief Set the Planner position in mm
+ * @details Set the Planner position from a native machine position in mm
+ *
+ * @param xyze A native (Cartesian) machine position
+ */
 void Planner::set_position_mm(const xyze_pos_t &xyze) {
   xyze_pos_t machine = xyze;
   TERN_(HAS_POSITION_MODIFIERS, apply_modifiers(machine, true));
@@ -3165,8 +3266,14 @@ void Planner::set_position_mm(const xyze_pos_t &xyze) {
 
 #endif
 
-// Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
-void Planner::reset_acceleration_rates() {
+/**
+ * @brief Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
+ * @details Update planner movement factors after a change to certain settings:
+ *          - max_acceleration_steps_per_s2 from settings max_acceleration_mm_per_s2 * axis_steps_per_mm (M201, M92)
+ *          - acceleration_long_cutoff based on the largest max_acceleration_steps_per_s2 (M201)
+ *          - max_e_jerk for all extruders based on junction_deviation_mm (M205 J)
+ */
+void Planner::refresh_acceleration_rates() {
   uint32_t highest_rate = 1;
   LOOP_DISTINCT_AXES(i) {
     max_acceleration_steps_per_s2[i] = settings.max_acceleration_mm_per_s2[i] * settings.axis_steps_per_mm[i];
@@ -3178,17 +3285,17 @@ void Planner::reset_acceleration_rates() {
 }
 
 /**
- * Recalculate 'position' and 'mm_per_step'.
- * Must be called whenever settings.axis_steps_per_mm changes!
+ * @brief Recalculate 'position' and 'mm_per_step'.
+ * @details Required whenever settings.axis_steps_per_mm changes!
  */
 void Planner::refresh_positioning() {
   LOOP_DISTINCT_AXES(i) mm_per_step[i] = 1.0f / settings.axis_steps_per_mm[i];
   set_position_mm(current_position);
-  reset_acceleration_rates();
+  refresh_acceleration_rates();
 }
 
 // Apply limits to a variable and give a warning if the value was out of range
-inline void limit_and_warn(float &val, const uint8_t axis, PGM_P const setting_name, const xyze_float_t &max_limit) {
+inline void limit_and_warn(float &val, const AxisEnum axis, PGM_P const setting_name, const xyze_float_t &max_limit) {
   const uint8_t lim_axis = TERN_(HAS_EXTRUDERS, axis > E_AXIS ? E_AXIS :) axis;
   const float before = val;
   LIMIT(val, 0.1, max_limit[lim_axis]);
@@ -3203,11 +3310,11 @@ inline void limit_and_warn(float &val, const uint8_t axis, PGM_P const setting_n
 /**
  * For the specified 'axis' set the Maximum Acceleration to the given value (mm/s^2)
  * The value may be limited with warning feedback, if configured.
- * Calls reset_acceleration_rates to precalculate planner terms in steps.
+ * Calls refresh_acceleration_rates to precalculate planner terms in steps.
  *
  * This hard limit is applied as a block is being added to the planner queue.
  */
-void Planner::set_max_acceleration(const uint8_t axis, float inMaxAccelMMS2) {
+void Planner::set_max_acceleration(const AxisEnum axis, float inMaxAccelMMS2) {
   #if ENABLED(LIMITED_MAX_ACCEL_EDITING)
     #ifdef MAX_ACCEL_EDIT_VALUES
       constexpr xyze_float_t max_accel_edit = MAX_ACCEL_EDIT_VALUES;
@@ -3221,7 +3328,7 @@ void Planner::set_max_acceleration(const uint8_t axis, float inMaxAccelMMS2) {
   settings.max_acceleration_mm_per_s2[axis] = inMaxAccelMMS2;
 
   // Update steps per s2 to agree with the units per s2 (since they are used in the planner)
-  reset_acceleration_rates();
+  refresh_acceleration_rates();
 }
 
 /**
@@ -3230,7 +3337,7 @@ void Planner::set_max_acceleration(const uint8_t axis, float inMaxAccelMMS2) {
  *
  * This hard limit is applied as a block is being added to the planner queue.
  */
-void Planner::set_max_feedrate(const uint8_t axis, float inMaxFeedrateMMS) {
+void Planner::set_max_feedrate(const AxisEnum axis, float inMaxFeedrateMMS) {
   #if ENABLED(LIMITED_MAX_FR_EDITING)
     #ifdef MAX_FEEDRATE_EDIT_VALUES
       constexpr xyze_float_t max_fr_edit = MAX_FEEDRATE_EDIT_VALUES;
