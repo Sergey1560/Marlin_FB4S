@@ -19,7 +19,7 @@ void mks_update_status(char *filename,uint32_t current_filesize, uint32_t file_s
     
     thermalManager.setTargetBed(0);
     thermalManager.setTargetHotend(0,0);
-    thermalManager.manage_heater();
+    thermalManager.task();
     OUT_WRITE(FAN1_PIN,HIGH);
 
     //При расчете процентов размер файла превышает максимум для uint32_t
