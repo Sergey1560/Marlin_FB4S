@@ -84,13 +84,6 @@ https://easyeda.com/sst78rust/fb4s-led-control
 
 
 /*
-BlTouch
-*/
-#define SERVO_PIN                           PB2   
-#define BL_TOUCH_Z_PIN                      PC4
-
-
-/*
 Управление питанием
 https://sergey1560.github.io/fb4s_howto/mks_pwc/
 */

@@ -49,10 +49,11 @@
 
 #define SPI_DEVICE                             2
 
-//
-// Servos
-//
-#define SERVO0_PIN                          PA8   // Enable BLTOUCH
+/*
+BlTouch
+*/
+#define SERVO0_PIN                           PA8   
+#define BL_TOUCH_Z_PIN                      PA11
 
 //
 // Limit Switches
