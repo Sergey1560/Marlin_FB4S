@@ -598,6 +598,7 @@ void CardReader::release() {
   #if ALL(SDCARD_SORT_ALPHA, SDSORT_USES_RAM, SDSORT_CACHE_NAMES)
     nrFiles = 0;
   #endif
+  SERIAL_ECHO_MSG(STR_SD_CARD_RELEASED);
 }
 
 /**
@@ -693,7 +694,7 @@ void announceOpen(const uint8_t doing, const char * const path) {
 //   - 2 : Resuming from a sub-procedure
 //
 void CardReader::openFileRead(const char * const path, const uint8_t subcall_type/*=0*/) {
-  if (!isMounted()) return;
+  if (!isMounted()) return openFailed(path);
 
   switch (subcall_type) {
     case 0:      // Starting a new print. "Now fresh file: ..."
@@ -735,7 +736,7 @@ void CardReader::openFileRead(const char * const path, const uint8_t subcall_typ
 
   SdFile *diveDir;
   const char * const fname = diveToFile(true, diveDir, path);
-  if (!fname) return;
+  if (!fname) return openFailed(path);
 
   if (file.open(diveDir, fname, O_READ)) {
     filesize = file.fileSize();
@@ -771,21 +772,20 @@ void CardReader::openFileWrite(const char * const path) {
 
   SdFile *diveDir;
   const char * const fname = diveToFile(false, diveDir, path);
-  if (!fname) return;
+  if (!fname) return openFailed(path);
 
-  #if ENABLED(SDCARD_READONLY)
-    openFailed(fname);
-  #else
+  #if DISABLED(SDCARD_READONLY)
     if (file.open(diveDir, fname, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
       flag.saving = true;
       selectFileByName(fname);
       TERN_(EMERGENCY_PARSER, emergency_parser.disable());
       echo_write_to_file(fname);
       ui.set_status(fname);
+      return;
     }
-    else
-      openFailed(fname);
   #endif
+
+  openFailed(fname);
 }
 
 //
@@ -840,7 +840,7 @@ void CardReader::removeFile(const char * const name) {
 }
 
 void CardReader::report_status() {
-  if (isPrinting()) {
+  if (isPrinting() || isPaused()) {
     SERIAL_ECHOPGM(STR_SD_PRINTING_BYTE, sdpos);
     SERIAL_CHAR('/');
     SERIAL_ECHOLN(filesize);
