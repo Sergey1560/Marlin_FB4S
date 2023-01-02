@@ -1,6 +1,6 @@
 # Marlin 3D Printer Firmware for Flying Bear 4S and 5
 
-Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S и 5. На данный момент поддерживаются платы MKS Robin Nano 1.x, MKS Robin Nano v2, MKS Robin Nano-s v1.3, MKS Robin Nano v1.3
+Это конфигурация [официального Marlin](https://github.com/MarlinFirmware/Marlin) для принтера Flying Bear Ghost 4S и 5. На данный момент поддерживаются платы FlyingBear Reborn 2.0 (MKS Robin Nano 1.x), MKS Robin Nano v2, MKS Robin Nano-s v1.3, MKS Robin Nano v1.3, FlyingBear Reborn v3.0
 
 В данном репозитории есть несколько веток:
 
@@ -37,7 +37,7 @@
 
 Для настройки под свои нужды, прошивку нужно собрать самостоятельно.
 
-Плата Robin Nano-s v1.3 и Robin Nano v1.3  сделана на другом микроконтроллере (stm32f407), поэтому для сборки прошивки под эту плату нужно изменить:
+Плата Robin Nano-s v1.3 и Robin Nano v1.3  сделана на микроконтроллере STM32F407, для сборки прошивки под эту плату нужно изменить:
 
 * В файле Marlin/Configuration.h параметр MOTHERBOARD:
 
@@ -48,6 +48,19 @@
 ```
 
 * В файле platformio.ini в параметре default_envs указать mks_robin_nano_v1_3_f4
+
+Плата FlyingBear Reborn 2.0 (MKS Robin Nano 1.x), MKS Robin Nano v2, FlyingBear Reborn v3.0 сделаны на микроконтроллере STM32F103, для сборки прошивки под эту плату нужно изменить:
+
+* В файле Marlin/Configuration.h параметр MOTHERBOARD:
+
+```C
+#ifndef MOTHERBOARD
+  #define MOTHERBOARD BOARD_MKS_ROBIN_NANO
+#endif
+```
+
+* В файле platformio.ini в параметре default_envs указать mks_robin_nano_v1v2
+
 
 ### Первое, что нужно сделать, после прошивки
 
@@ -63,7 +76,7 @@
 
 В меню Platformio можно не выбирать плату, а использовать сочетание клавиш Ctrl+Alt+B.
 
-После компиляции, готовая прошивка лежит в .pio/build/mks_robin_nano35/Robin_nano35.bin для плат Robin Nano v1.1(1.2) и в .pio/build/mks_robin_nano_v1_3/Robin_nano35.bin для плат Robin Nano-s v1.3 и Robin Nano v1.3
+После компиляции, готовая прошивка лежит в .pio/build/mks_robin_nano_v1v2/Robin_nano35.bin для плат Robin Nano v1.1(1.2) и в .pio/build/mks_robin_nano_v1_3/Robin_nano35.bin для плат Robin Nano-s v1.3 и Robin Nano v1.3
 
 На SD карту нужно записывать именно Robin_nano35.bin, а не firmaware.bin
 
@@ -78,6 +91,7 @@
 * ALL_DRV_2208 - 4 драйвера TMC 2208/2209
 * FB_4S_STOCK - 4 драйвера A4988. Это конфигурация для FB4S с стандартными драйверами.
 * FB_5_STOCK - 2 TMC 2208 (на осях X,Y) и 2 A4988 (на осях Z,E)
+* FB_5_REBORN_3_0 - плата FlyingBear Reborn 3.0
 
 Для плат Robin Nano v1.3:
 
@@ -85,7 +99,7 @@
 * FB_5_NANO_V1_3_4TMC - Robin Nano v1.3 c 4 драйверами TMC 2208/2209
 * FB_5_NANO_V1_3 - Robin Nano v1.3 c 2 драйверами TMC 2208/2209 и 2 драйверами A4988
 
-В строке 1322 нужно выбрать только один из вариантов:
+В строке 1665 нужно выбрать только один из вариантов:
 
 ```C
 #define ALL_DRV_2208
@@ -94,6 +108,7 @@
 //#define FB_5_NANO_S_V1_3
 //#define FB_5_NANO_V1_3_4TMC
 //#define FB_5_NANO_V1_3
+//FB_5_REBORN_3_0
 ```
 
 ### Настройки WIFI, если вы используете готовую прошивку
@@ -208,7 +223,7 @@ EEPROM_W25Q
 
 ### Загрузка прошивки по WIFI
 
-Есть возможность отправлять прошивку на принтер через WIFI. Для этого в файле [platformio.ini](./platformio.ini) в разделе [env:mks_robin_nano35] нужно указать IP адрес принтера в опции upload_flags.
+Есть возможность отправлять прошивку на принтер через WIFI. Для этого в файле [platformio.ini](./platformio.ini) в разделе [env:mks_robin_nano_v1v2] нужно указать IP адрес принтера в опции upload_flags.
 
 Передача файла происходит при помощи curl, поэтому надо или добавить curl в $PATH, либо указать полный путь в файле [mks_robin_nano35.py](./buildroot/share/PlatformIO/scripts/mks_robin_nano35.py) в строке 43.
 
