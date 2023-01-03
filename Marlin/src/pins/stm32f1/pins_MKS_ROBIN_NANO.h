@@ -46,8 +46,13 @@
 
 #include "pins_MKS_ROBIN_NANO_common.h"
 
-//#define PRINTER_NAME_FB5
-#define PRINTER_NAME_FB4S
+#ifndef PRINTER_NAME_FB5
+  #ifndef PRINTER_NAME_FB4S
+   #define PRINTER_NAME_FB4S
+   //#define PRINTER_NAME_FB5
+  #endif
+#endif
+
 
 #ifdef PRINTER_NAME_FB5
   #ifdef PRINTER_NAME_FB4S

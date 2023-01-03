@@ -44,7 +44,13 @@
 
 #include "../stm32f1/pins_MKS_ROBIN_NANO_common.h"
 
-#define PRINTER_NAME_FB5
+#ifdef PRINTER_NAME_FB4S
+  #undef PRINTER_NAME_FB4S
+#endif
+
+#ifndef PRINTER_NAME_FB5
+  #define PRINTER_NAME_FB5
+#endif
 
 // Если нужен сменный драйвер в слоте второго экструдера как основной экструдер, нужно раскоментировать этот параметр
 //#define EXT_EXTRUDER_DRIVER

@@ -1639,6 +1639,7 @@
 // @section motion
 
 /**************** Driver DIR Configuration *******************/
+#ifndef AUTO_BUILD
 //Robin Nano v1.1 and v1.2 configs:
 // 4 x TMC 2208/2209
 #define ALL_DRV_2208
@@ -1661,6 +1662,7 @@
 
 //Flying Bear Reborn 3.0
 //#define FB_5_REBORN_3_0
+#endif
 
 #ifdef ALL_DRV_2208
 #define USR_E0_DIR true
@@ -1854,13 +1856,22 @@
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
   #define FIL_RUNOUT_ENABLED_DEFAULT false // Enable the sensor on startup. Override with M412 followed by M500.
   #define NUM_RUNOUT_SENSORS   1          // Number of sensors, up to one per extruder. Define a FIL_RUNOUT#_PIN for each.
-  #define FIL_RUNOUT_STATE     FIL_RUNOUT_LEVEL // Pin state indicating that filament is NOT present.
   
-  #if FIL_RUNOUT_LEVEL==LOW
-  #define FIL_RUNOUT_PULLUP               // Use internal pullup for filament runout pins.
-  #else
-  #define FIL_RUNOUT_PULLDOWN           // Use internal pulldown for filament runout pins.
+  #ifdef  PRINTER_NAME_FB5
+    #define FIL_RUNOUT_STATE     LOW // Pin state indicating that filament is NOT present.
+    #define FIL_RUNOUT_PULLUP               // Use internal pullup for filament runout pins.
   #endif
+
+  #ifdef  PRINTER_NAME_FB4S
+    #define FIL_RUNOUT_STATE     HIGH // Pin state indicating that filament is NOT present.
+    #define FIL_RUNOUT_PULLDOWN               // Use internal pullup for filament runout pins.
+  #endif
+  
+  #ifndef FIL_RUNOUT_STATE
+    #define FIL_RUNOUT_STATE     LOW // Pin state indicating that filament is NOT present.
+    #define FIL_RUNOUT_PULLUP               // Use internal pullup for filament runout pins.
+  #endif
+  
   //#define WATCH_ALL_RUNOUT_SENSORS      // Execute runout script on any triggering sensor, not only for the active extruder.
                                           // This is automatically enabled for MIXING_EXTRUDERs.
 
