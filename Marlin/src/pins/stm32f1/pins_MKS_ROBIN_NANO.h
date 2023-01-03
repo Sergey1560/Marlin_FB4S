@@ -97,18 +97,6 @@ https://sergey1560.github.io/fb4s_howto/mks_pwc/
     #define PS_ON_PIN                         PE5
 #endif
 
-#ifdef PRINTER_NAME_FB5
-  #define FIL_RUNOUT_LEVEL  LOW
-#endif 
-
-#ifdef PRINTER_NAME_FB4S
-  #define FIL_RUNOUT_LEVEL  HIGH
-#endif 
-
-#ifndef FIL_RUNOUT_LEVEL
-  #define FIL_RUNOUT_LEVEL HIGH
-#endif
-
 #if HAS_FSMC_TFT
     #undef TFT_BUFFER_SIZE
     #define TFT_BUFFER_SIZE                  480*8
