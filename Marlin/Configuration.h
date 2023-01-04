@@ -88,6 +88,7 @@
 // Choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
   #define MOTHERBOARD BOARD_MKS_ROBIN_NANO
+//  #define MOTHERBOARD BOARD_MKS_ROBIN_NANO_V1_3_F4
 #endif
 
 /**
@@ -655,7 +656,7 @@
 #define PID_K1 0.95      // Smoothing factor within any PID loop
 
 #if ENABLED(PIDTEMP)
-  //#define PID_DEBUG             // Print PID debug data to the serial port. Use 'M303 D' to toggle activation.
+  #define PID_DEBUG             // Print PID debug data to the serial port. Use 'M303 D' to toggle activation.
   //#define PID_PARAMS_PER_HOTEND // Use separate PID parameters for each extruder (useful for mismatched extruders)
                                   // Set/get with G-code: M301 E[extruder number, 0-2]
 
@@ -747,7 +748,7 @@
 
 #if ENABLED(PIDTEMPBED)
   //#define MIN_BED_POWER 0
-  //#define PID_BED_DEBUG // Print Bed PID debug data to the serial port.
+  #define PID_BED_DEBUG // Print Bed PID debug data to the serial port.
 
   // 120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
   // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
@@ -1203,7 +1204,7 @@
  */
 #define DEFAULT_ACCELERATION          1500    // X, Y, Z and E acceleration for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  2000    // E acceleration for retracts
-#define DEFAULT_TRAVEL_ACCELERATION   1000    // X, Y, Z acceleration for travel (non printing) moves
+#define DEFAULT_TRAVEL_ACCELERATION   1500    // X, Y, Z acceleration for travel (non printing) moves
 
 /**
  * Default Jerk limits (mm/s)
@@ -1637,9 +1638,31 @@
 
 // @section motion
 
+/**************** Driver DIR Configuration *******************/
+#ifndef AUTO_BUILD
+//Robin Nano v1.1 and v1.2 configs:
+// 4 x TMC 2208/2209
 #define ALL_DRV_2208
+
+// 4 x A4988
 //#define FB_4S_STOCK
+
+// 2 x A4988, 2 x TMC 2208/2209
 //#define FB_5_STOCK
+
+//Robin Nano v1.3 and Robin Nano-S v1.3:
+//Robin Nano-S v1.3
+//#define FB_5_NANO_S_V1_3
+
+//Robin Nano v1.3 with 4 x TMC 2208/2209
+//#define FB_5_NANO_V1_3_4TMC
+
+//Robin Nano v1.3 with 2x A4988 and 2 x TMC 2208/2209
+//#define FB_5_NANO_V1_3
+
+//Flying Bear Reborn 3.0
+//#define FB_5_REBORN_3_0
+#endif
 
 #ifdef ALL_DRV_2208
 #define USR_E0_DIR true
@@ -1656,18 +1679,45 @@
 #endif
 
 #ifdef FB_5_STOCK
-#if MOTHERBOARD == BOARD_MKS_ROBIN_NANO_S_V13
-#define USR_E0_DIR false
-#define USR_X_DIR true
-#define USR_Y_DIR true
-#define USR_Z_DIR false
-#else
 #define USR_E0_DIR false
 #define USR_X_DIR false
 #define USR_Y_DIR false
 #define USR_Z_DIR false
 #endif
+
+#ifdef FB_5_NANO_S_V1_3
+#ifdef EXT_EXTRUDER_DRIVER
+  #define USR_E0_DIR true
+#else
+  #define USR_E0_DIR false
 #endif
+#define USR_X_DIR true
+#define USR_Y_DIR true
+#define USR_Z_DIR false
+#endif
+
+#ifdef FB_5_REBORN_3_0
+#define USR_E0_DIR false
+#define USR_X_DIR true
+#define USR_Y_DIR true
+#define USR_Z_DIR false
+#endif
+
+
+#ifdef FB_5_NANO_V1_3
+#define USR_E0_DIR false
+#define USR_X_DIR false
+#define USR_Y_DIR false
+#define USR_Z_DIR false
+#endif
+
+#ifdef FB_5_NANO_V1_3_4TMC
+#define USR_E0_DIR true
+#define USR_X_DIR false
+#define USR_Y_DIR false
+#define USR_Z_DIR true
+#endif
+
 
 
 // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
@@ -1806,10 +1856,22 @@
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
   #define FIL_RUNOUT_ENABLED_DEFAULT false // Enable the sensor on startup. Override with M412 followed by M500.
   #define NUM_RUNOUT_SENSORS   1          // Number of sensors, up to one per extruder. Define a FIL_RUNOUT#_PIN for each.
+  
+  #ifdef  PRINTER_NAME_FB5
+    #define FIL_RUNOUT_STATE     LOW // Pin state indicating that filament is NOT present.
+    #define FIL_RUNOUT_PULLUP               // Use internal pullup for filament runout pins.
+  #endif
 
-  #define FIL_RUNOUT_STATE     LOW        // Pin state indicating that filament is NOT present.
-  #define FIL_RUNOUT_PULLUP               // Use internal pullup for filament runout pins.
-  //#define FIL_RUNOUT_PULLDOWN           // Use internal pulldown for filament runout pins.
+  #ifdef  PRINTER_NAME_FB4S
+    #define FIL_RUNOUT_STATE     HIGH // Pin state indicating that filament is NOT present.
+    #define FIL_RUNOUT_PULLDOWN               // Use internal pullup for filament runout pins.
+  #endif
+  
+  #ifndef FIL_RUNOUT_STATE
+    #define FIL_RUNOUT_STATE     LOW // Pin state indicating that filament is NOT present.
+    #define FIL_RUNOUT_PULLUP               // Use internal pullup for filament runout pins.
+  #endif
+  
   //#define WATCH_ALL_RUNOUT_SENSORS      // Execute runout script on any triggering sensor, not only for the active extruder.
                                           // This is automatically enabled for MIXING_EXTRUDERs.
 
@@ -2063,7 +2125,7 @@
   #define BED_TRAMMING_INSET_LFRB { 30, 30, 30, 30 } // (mm) Left, Front, Right, Back insets
   #define BED_TRAMMING_HEIGHT      0.0        // (mm) Z height of nozzle at leveling points
   #define BED_TRAMMING_Z_HOP       4.0        // (mm) Z height of nozzle between leveling points
-  //#define BED_TRAMMING_INCLUDE_CENTER       // Move to the center after the last corner
+  #define BED_TRAMMING_INCLUDE_CENTER       // Move to the center after the last corner
   //#define BED_TRAMMING_USE_PROBE
   #if ENABLED(BED_TRAMMING_USE_PROBE)
     #define BED_TRAMMING_PROBE_TOLERANCE 0.1  // (mm)
@@ -2212,8 +2274,8 @@
 #define EEPROM_CHITCHAT       // Give feedback on EEPROM commands. Disable to save PROGMEM.
 #define EEPROM_BOOT_SILENT    // Keep M503 quiet and only give errors during first load
 #if ENABLED(EEPROM_SETTINGS)
-  #define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
-  //#define EEPROM_INIT_NOW   // Init EEPROM on first boot after a new build.
+#define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
+//#define EEPROM_INIT_NOW   // Init EEPROM on first boot after a new build.
 #endif
 
 // @section host
@@ -2245,16 +2307,14 @@
 //
 // Preheat Constants - Up to 10 are supported without changes
 //
-#define PREHEAT_1_LABEL       "PLA"
-#define PREHEAT_1_TEMP_HOTEND 180
-#define PREHEAT_1_TEMP_BED     70
-#define PREHEAT_1_TEMP_CHAMBER 35
+#define PREHEAT_1_LABEL       "PETG"
+#define PREHEAT_1_TEMP_HOTEND  235
+#define PREHEAT_1_TEMP_BED     80
 #define PREHEAT_1_FAN_SPEED     0 // Value from 0 to 255
 
 #define PREHEAT_2_LABEL       "ABS"
-#define PREHEAT_2_TEMP_HOTEND 240
-#define PREHEAT_2_TEMP_BED    110
-#define PREHEAT_2_TEMP_CHAMBER 35
+#define PREHEAT_2_TEMP_HOTEND  250
+#define PREHEAT_2_TEMP_BED     100
 #define PREHEAT_2_FAN_SPEED     0 // Value from 0 to 255
 
 // @section motion
@@ -2399,7 +2459,7 @@
  *
  * View the current statistics with M78.
  */
-//#define PRINTCOUNTER
+#define PRINTCOUNTER
 #if ENABLED(PRINTCOUNTER)
   #define PRINTCOUNTER_SAVE_INTERVAL 60 // (minutes) EEPROM save interval during print. A value of 0 will save stats at end of print.
 #endif
