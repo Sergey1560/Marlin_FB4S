@@ -489,7 +489,7 @@
 /**
  * @brief 
  * 
- */
+ *
  * the temperature. This value should NOT be set to the time it takes the
  * hot end to reach the target temperature, but the time it takes to reach
  * the minimum temperature your thermistor can read. The lower the better/safer.

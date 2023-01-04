@@ -445,10 +445,10 @@ void CardReader::printSelectedFilename() {
 }
 
 void CardReader::mount() {
-  DEBUG("Card mount call"); 
+  
   flag.mounted = false;
   if (root.isOpen()) {
-    DEBUG("Root is open, closing"); 
+    
     root.close();
     }
 
@@ -458,7 +458,7 @@ void CardReader::mount() {
       && !driver->init(SD_SPI_SPEED, LCD_SDSS)
     #endif
   ) {
-    DEBUG("Driver init fail"); 
+    
     SERIAL_ECHO_MSG(STR_SD_INIT_FAIL);
   }
   else if (!volume.init(driver)){
