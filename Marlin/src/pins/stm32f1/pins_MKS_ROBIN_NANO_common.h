@@ -165,7 +165,7 @@ BlTouch
 #endif
 
 #define SDIO_SUPPORT
-#define SDIO_CLOCK                       18000000  // 4.5 MHz
+#define SDIO_CLOCK                       4500000  // 4.5 MHz
 #define SD_DETECT_PIN                       PD12
 #define ONBOARD_SD_CS_PIN                   PC11
 

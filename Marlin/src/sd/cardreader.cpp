@@ -332,9 +332,10 @@ void CardReader::printListing(SdFile parent,  const char * const prepend, const 
     else if (is_visible_entity(p OPTARG(CUSTOM_FIRMWARE_UPLOAD, onlyBin))) {
       if (prepend) { SERIAL_ECHO(prepend); SERIAL_CHAR('/'); }
       #if ENABLED(MKS_WIFI)      
-      if (port.index == MKS_WIFI_SERIAL_NUM){
-        printLongPath(createFilename(filename, p));
-      }else{
+        if (port.index == MKS_WIFI_SERIAL_NUM){
+          printLongPath(createFilename(filename, p));
+        }else{
+      #endif
       SERIAL_ECHO(createFilename(filename, p));
       SERIAL_CHAR(' ');
       SERIAL_ECHO(p.fileSize);
@@ -355,39 +356,14 @@ void CardReader::printListing(SdFile parent,  const char * const prepend, const 
           SERIAL_ECHO(longFilename[0] ? longFilename : filename);
         }
       #endif
-
       SERIAL_EOL();
-      }
-      #else
-      SERIAL_ECHO(createFilename(filename, p));
-      SERIAL_CHAR(' ');
-      SERIAL_ECHO(p.fileSize);
-
-      if (includeTime) {
-    		SERIAL_CHAR(' ');
-    		uint16_t crmodDate = p.lastWriteDate, crmodTime = p.lastWriteTime;
-    		if (crmodDate < p.creationDate || (crmodDate == p.creationDate && crmodTime < p.creationTime)) {
-    			crmodDate = p.creationDate;
-    			crmodTime = p.creationTime;
-    		}
-    		SERIAL_ECHOPGM("0x", hex_word(crmodDate));
-    		print_hex_word(crmodTime);
-    	}
-
-      #if ENABLED(LONG_FILENAME_HOST_SUPPORT)
-        if (includeLongNames) {
-          SERIAL_CHAR(' ');
-          if (prependLong) { SERIAL_ECHO(prependLong); SERIAL_CHAR('/'); }
-          SERIAL_ECHO(longFilename[0] ? longFilename : filename);
-        }
-      #endif
-
-      SERIAL_EOL();
-     
+      #if ENABLED(MKS_WIFI)      
+        };
       #endif
     }
   }
 }
+
 //
 // List all files on the SD card
 //
@@ -406,7 +382,6 @@ void CardReader::ls(const uint8_t lsflags) {
   void CardReader::printLongPath(char * const path) {
     #if ENABLED(MKS_WIFI)
     serial_index_t port = queue.ring_buffer.command_port();
-    char f_name_buf[100];
     #endif
     int i, pathLen = path ? strlen(path) : 0;
 
@@ -432,22 +407,17 @@ void CardReader::ls(const uint8_t lsflags) {
 
       // Find the item, setting the long filename
       diveDir.rewind();
-      #if ENABLED(MKS_WIFI)
-      strcpy(f_name_buf,segment);
-      selectByName(diveDir, f_name_buf);
-      #else
       selectByName(diveDir, segment);
-      #endif
 
       // Print /LongNamePart to serial output
       #if ENABLED(MKS_WIFI)
-      if(port.index != MKS_WIFI_SERIAL_NUM){
-      SERIAL_CHAR('/');
-      };
+        if(port.index != MKS_WIFI_SERIAL_NUM){
+          SERIAL_CHAR('/');
+        };
       #else
-      SERIAL_CHAR('/');
+        SERIAL_CHAR('/');
       #endif
-      SERIAL_ECHO(longFilename[0] ? longFilename : "???");
+      SERIAL_ECHO(longFilename[0] ? longFilename : filename);
 
       // If the filename was printed then that's it
       if (!flag.filenameIsDir) break;
