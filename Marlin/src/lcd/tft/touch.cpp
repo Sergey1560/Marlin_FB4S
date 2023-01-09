@@ -36,6 +36,11 @@
   #include "../../feature/bedlevel/bedlevel.h"
 #endif
 
+#if ENABLED(CASE_LIGHT_ENABLE)
+  #include "../../feature/caselight.h"
+#endif
+
+
 #include "tft.h"
 
 bool Touch::enabled = true;
@@ -244,6 +249,13 @@ void Touch::touch(touch_control_t *control) {
 
     // TODO: TOUCH could receive data to pass to the callback
     case BUTTON: ((screenFunc_t)control->data)(); break;
+    
+    #if ENABLED(CASE_LIGHT_ENABLE)
+      case LAMP:
+        caselight.on = caselight.on ? false : true;
+        caselight.update_enabled();
+      break;
+    #endif
 
     default: break;
   }

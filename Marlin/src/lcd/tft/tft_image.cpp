@@ -75,6 +75,9 @@ const tImage Leveling_32x32x4       = { (void *)leveling_32x32x4, 32, 32, GREYSC
 
 const tImage Slider8x16x4           = { (void *)slider_8x16x4, 8, 16, GREYSCALE4 };
 
+const tImage LampOff_64x64x4           = { (void *)lamp_off_64x64x4, 64, 64, GREYSCALE4 };
+const tImage LampOn_64x64x4           = { (void *)lamp_on_64x64x4, 64, 64, GREYSCALE4 };
+
 const tImage Images[imgCount] = {
   TERN(SHOW_BOOTSCREEN, TERN(BOOT_MARLIN_LOGO_SMALL, MarlinLogo195x59x16, MARLIN_LOGO_FULL_SIZE), NoLogo),
   HotEnd_64x64x4,
@@ -108,6 +111,8 @@ const tImage Images[imgCount] = {
   Home_64x64x4,
   BtnRounded_64x52x4,
   BtnRounded_42x39x4,
+  LampOff_64x64x4,
+  LampOn_64x64x4
 };
 
 #endif // HAS_GRAPHICAL_TFT

@@ -64,6 +64,9 @@ extern const uint8_t leveling_32x32x4[];
 
 extern const uint8_t slider_8x16x4[];
 
+extern const uint8_t lamp_off_64x64x4[];
+extern const uint8_t lamp_on_64x64x4[];
+
 enum MarlinImage : uint8_t {
   imgBootScreen = 0x00,
   imgHotEnd,
@@ -97,6 +100,8 @@ enum MarlinImage : uint8_t {
   imgHome,
   imgBtn52Rounded,
   imgBtn39Rounded,
+  imgLampOff,
+  imgLampOn,
   imgCount,
   noImage = imgCount,
   imgPageUp = imgLeft,
@@ -174,5 +179,8 @@ extern const tImage Refresh_32x32x4;
 extern const tImage Leveling_32x32x4;
 
 extern const tImage Slider8x16x4;
+
+extern const tImage LampOff_64x64x4;
+extern const tImage LampOn_64x64x4;
 
 extern const tImage Images[imgCount];
