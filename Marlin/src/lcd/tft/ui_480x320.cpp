@@ -221,6 +221,7 @@ void draw_fan_status(uint16_t x, uint16_t y, const bool blink) {
   tft.add_text(tft_string.center(80) + 6, 82, COLOR_FAN, tft_string);
 }
 
+// Drawing of case light button
 void draw_lamp_status(uint16_t x, uint16_t y) {
 #if ENABLED(CASE_LIGHT_ENABLE)
   TERN_(TOUCH_SCREEN, touch.add_control(LAMP, x, y, 80, 120));
@@ -242,7 +243,7 @@ void draw_lamp_status(uint16_t x, uint16_t y) {
     #else 
       {
     #endif    
-      tft_string.set(GET_TEXT_F(MSG_LCD_ON));
+        tft_string.set(GET_TEXT_F(MSG_LCD_ON));
       }
   }
   else {
@@ -291,7 +292,7 @@ void MarlinUI::draw_status_screen() {
       #ifdef ITEM_FAN
         case ITEM_FAN: draw_fan_status(x, y, blink); break;
       #endif
-      #ifdef ITEM_LAMP
+      #ifdef ITEM_LAMP                                      /* case light button*/
         case ITEM_LAMP: draw_lamp_status(x, y); break;
       #endif
     }

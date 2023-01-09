@@ -250,10 +250,12 @@ void Touch::touch(touch_control_t *control) {
     // TODO: TOUCH could receive data to pass to the callback
     case BUTTON: ((screenFunc_t)control->data)(); break;
     
+    // Case light button 
     #if ENABLED(CASE_LIGHT_ENABLE)
       case LAMP:
         caselight.on = caselight.on ? false : true;
         caselight.update_enabled();
+        ui.refresh();
       break;
     #endif
 
