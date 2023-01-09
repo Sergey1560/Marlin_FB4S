@@ -382,6 +382,7 @@ void CardReader::ls(const uint8_t lsflags) {
   void CardReader::printLongPath(char * const path) {
     #if ENABLED(MKS_WIFI)
     serial_index_t port = queue.ring_buffer.command_port();
+    char f_name_buf[100];
     #endif
     int i, pathLen = path ? strlen(path) : 0;
 
@@ -407,7 +408,12 @@ void CardReader::ls(const uint8_t lsflags) {
 
       // Find the item, setting the long filename
       diveDir.rewind();
-      selectByName(diveDir, segment);
+      #if ENABLED(MKS_WIFI)
+        strcpy(f_name_buf,segment);
+        selectByName(diveDir, f_name_buf);
+      #else
+        selectByName(diveDir, segment);
+      #endif
 
       // Print /LongNamePart to serial output
       #if ENABLED(MKS_WIFI)
