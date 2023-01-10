@@ -73,7 +73,7 @@ void menu_item(const uint8_t row, bool sel = false);
     #define ITEM_LAMP     4
     #define ITEMS_COUNT   5
   #else
-  #define ITEMS_COUNT     4
+    #define ITEMS_COUNT     4
   #endif
 #elif HAS_TEMP_COOLER
   #define ITEM_COOLER     0
@@ -82,7 +82,7 @@ void menu_item(const uint8_t row, bool sel = false);
     #define ITEM_LAMP     2
     #define ITEMS_COUNT   3
   #else
-  #define ITEMS_COUNT     2
+    #define ITEMS_COUNT     2
   #endif
 #elif HAS_MULTI_HOTEND
   #define ITEM_E0         0
@@ -93,7 +93,7 @@ void menu_item(const uint8_t row, bool sel = false);
     #define ITEM_LAMP     4
     #define ITEMS_COUNT   5
   #else
-  #define ITEMS_COUNT     4
+    #define ITEMS_COUNT     4
   #endif
 #else
   #define ITEM_E0         0
@@ -103,6 +103,6 @@ void menu_item(const uint8_t row, bool sel = false);
     #define ITEM_LAMP     3
     #define ITEMS_COUNT   4
   #else
-  #define ITEMS_COUNT     3
+    #define ITEMS_COUNT     3
   #endif
 #endif
