@@ -21,6 +21,128 @@
  */
 #pragma once
 
+#include "flying_bear_drivers.h"
+/***
+Конфигурация драйверов принтера. 
+ 
+В параметре PRINTER_DRV_TYPE нужно установить параметр, соответствующий вашей конфигурации:
+
+RN11_ALL_2208   - плата  Robin Nano 1.1 (FlyingBear Reborn 2.0), все драйвера 2208, 2225, 2209 или 2226
+RN11_A4988      - плата Robin Nano 1.1, все драйвера A4988
+RN11_A4988_2208 - плата Robin Nano 1.1, 2 драйвера A4988, 2 драйвера 2208
+RB30            - плата FlyingBear Reborn 3.0
+
+RN13_ALL2208    - плата Robin Nano v1.3, все драйвера TMC 2208/2209
+RN13_A4988_2208 - плата Robin Nano v1.3, 2 драйвра A4988, 2 драйвера TMC 2208/2209
+
+RN13S           - плата Robin Nano-s 1.3
+*/
+#ifndef AUTO_BUILD
+  #define PRINTER_DRV_TYPE RN11_ALL_2208
+#endif
+
+#if PRINTER_DRV_TYPE == RN11_ALL_2208
+  #define USR_E0_DIR true
+  #define USR_E0_TYPE TMC2208_STANDALONE
+  
+  #define USR_X_DIR false
+  #define USR_X_TYPE TMC2208_STANDALONE
+  
+  #define USR_Y_DIR false
+  #define USR_Y_TYPE TMC2208_STANDALONE
+  
+  #define USR_Z_DIR true
+  #define USR_Z_TYPE TMC2208_STANDALONE
+#endif
+
+#if PRINTER_DRV_TYPE == RN11_A4988
+  #define USR_E0_DIR false
+  #define USR_E0_TYPE A4988
+
+  #define USR_X_DIR true
+  #define USR_X_TYPE A4988
+
+  #define USR_Y_DIR true
+  #define USR_Y_TYPE A4988
+
+  #define USR_Z_DIR false
+  #define USR_Z_TYPE A4988
+#endif
+
+#if PRINTER_DRV_TYPE == RN11_A4988_2208
+  #define USR_E0_DIR false
+  #define USR_E0_TYPE A4988
+
+  #define USR_X_DIR false
+  #define USR_X_TYPE TMC2208_STANDALONE
+
+  #define USR_Y_DIR false
+  #define USR_X_TYPE TMC2208_STANDALONE
+
+  #define USR_Z_DIR false
+  #define USR_Z_TYPE A4988
+#endif
+
+#if PRINTER_DRV_TYPE == RB30
+  #define USR_E0_DIR false
+  #define USR_E0_TYPE TMC2208_STANDALONE
+
+  #define USR_X_DIR true
+  #define USR_X_TYPE TMC2208_STANDALONE
+
+  #define USR_Y_DIR true
+  #define USR_Y_TYPE TMC2208_STANDALONE
+
+  #define USR_Z_DIR false
+  #define USR_Z_TYPE TMC2208_STANDALONE
+#endif
+
+#if PRINTER_DRV_TYPE == RN13_ALL2208
+  #define USR_E0_DIR true
+  #define USR_E0_TYPE TMC2208_STANDALONE
+
+  #define USR_X_DIR false
+  #define USR_X_TYPE TMC2208_STANDALONE
+
+  #define USR_Y_DIR false
+  #define USR_Y_TYPE TMC2208_STANDALONE
+
+  #define USR_Z_DIR true
+  #define USR_Z_TYPE TMC2208_STANDALONE
+#endif
+
+#if PRINTER_DRV_TYPE == RN13_A4988_2208
+  #define USR_E0_DIR false
+  #define USR_E0_TYPE A4988
+  
+  #define USR_X_DIR false
+  #define USR_X_TYPE TMC2208_STANDALONE
+  
+  #define USR_Y_DIR false
+  #define USR_Y_TYPE TMC2208_STANDALONE
+  
+  #define USR_Z_DIR false
+  #define USR_Z_TYPE A4988
+#endif
+
+#if PRINTER_DRV_TYPE == RN13S
+  #ifdef EXT_EXTRUDER_DRIVER
+    #define USR_E0_DIR true
+    #define USR_E0_TYPE TMC2209_STANDALONE
+  #else
+    #define USR_E0_DIR false
+    #define USR_E0_TYPE TMC2208_STANDALONE
+  #endif
+  
+  #define USR_X_DIR true
+  #define USR_X_TYPE TMC2208_STANDALONE
+
+  #define USR_Y_DIR true
+  #define USR_Y_TYPE TMC2208_STANDALONE
+  
+  #define USR_Z_DIR false
+  #define USR_Z_TYPE TMC2208_STANDALONE
+#endif
 /**
  * Configuration.h
  *
@@ -158,9 +280,9 @@
  *          TMC5130, TMC5130_STANDALONE, TMC5160, TMC5160_STANDALONE
  * :['A4988', 'A5984', 'DRV8825', 'LV8729', 'TB6560', 'TB6600', 'TMC2100', 'TMC2130', 'TMC2130_STANDALONE', 'TMC2160', 'TMC2160_STANDALONE', 'TMC2208', 'TMC2208_STANDALONE', 'TMC2209', 'TMC2209_STANDALONE', 'TMC26X', 'TMC26X_STANDALONE', 'TMC2660', 'TMC2660_STANDALONE', 'TMC5130', 'TMC5130_STANDALONE', 'TMC5160', 'TMC5160_STANDALONE']
  */
-#define X_DRIVER_TYPE  A4988
-#define Y_DRIVER_TYPE  A4988
-#define Z_DRIVER_TYPE  A4988
+#define X_DRIVER_TYPE  USR_X_TYPE
+#define Y_DRIVER_TYPE  USR_Y_TYPE
+#define Z_DRIVER_TYPE  USR_Z_TYPE
 //#define X2_DRIVER_TYPE A4988
 //#define Y2_DRIVER_TYPE A4988
 //#define Z2_DRIVER_TYPE A4988
@@ -172,7 +294,7 @@
 //#define U_DRIVER_TYPE  A4988
 //#define V_DRIVER_TYPE  A4988
 //#define W_DRIVER_TYPE  A4988
-#define E0_DRIVER_TYPE A4988
+#define E0_DRIVER_TYPE USR_E0_TYPE
 //#define E1_DRIVER_TYPE A4988
 //#define E2_DRIVER_TYPE A4988
 //#define E3_DRIVER_TYPE A4988
@@ -1637,87 +1759,6 @@
 #define DISABLE_INACTIVE_EXTRUDER   // Keep only the active extruder enabled
 
 // @section motion
-
-/**************** Driver DIR Configuration *******************/
-#ifndef AUTO_BUILD
-//Robin Nano v1.1 and v1.2 configs:
-// 4 x TMC 2208/2209
-#define ALL_DRV_2208
-
-// 4 x A4988
-//#define FB_4S_STOCK
-
-// 2 x A4988, 2 x TMC 2208/2209
-//#define FB_5_STOCK
-
-//Robin Nano v1.3 and Robin Nano-S v1.3:
-//Robin Nano-S v1.3
-//#define FB_5_NANO_S_V1_3
-
-//Robin Nano v1.3 with 4 x TMC 2208/2209
-//#define FB_5_NANO_V1_3_4TMC
-
-//Robin Nano v1.3 with 2x A4988 and 2 x TMC 2208/2209
-//#define FB_5_NANO_V1_3
-
-//Flying Bear Reborn 3.0
-//#define FB_5_REBORN_3_0
-#endif
-
-#ifdef ALL_DRV_2208
-#define USR_E0_DIR true
-#define USR_X_DIR false
-#define USR_Y_DIR false
-#define USR_Z_DIR true
-#endif
-
-#ifdef FB_4S_STOCK
-#define USR_E0_DIR false
-#define USR_X_DIR true
-#define USR_Y_DIR true
-#define USR_Z_DIR false
-#endif
-
-#ifdef FB_5_STOCK
-#define USR_E0_DIR false
-#define USR_X_DIR false
-#define USR_Y_DIR false
-#define USR_Z_DIR false
-#endif
-
-#ifdef FB_5_NANO_S_V1_3
-#ifdef EXT_EXTRUDER_DRIVER
-  #define USR_E0_DIR true
-#else
-  #define USR_E0_DIR false
-#endif
-#define USR_X_DIR true
-#define USR_Y_DIR true
-#define USR_Z_DIR false
-#endif
-
-#ifdef FB_5_REBORN_3_0
-#define USR_E0_DIR false
-#define USR_X_DIR true
-#define USR_Y_DIR true
-#define USR_Z_DIR false
-#endif
-
-
-#ifdef FB_5_NANO_V1_3
-#define USR_E0_DIR false
-#define USR_X_DIR false
-#define USR_Y_DIR false
-#define USR_Z_DIR false
-#endif
-
-#ifdef FB_5_NANO_V1_3_4TMC
-#define USR_E0_DIR true
-#define USR_X_DIR false
-#define USR_Y_DIR false
-#define USR_Z_DIR true
-#endif
-
 
 
 // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
