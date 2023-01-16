@@ -77,7 +77,7 @@ RN13S           - плата Robin Nano-s 1.3
   #define USR_X_TYPE TMC2208_STANDALONE
 
   #define USR_Y_DIR false
-  #define USR_X_TYPE TMC2208_STANDALONE
+  #define USR_Y_TYPE TMC2208_STANDALONE
 
   #define USR_Z_DIR false
   #define USR_Z_TYPE A4988
