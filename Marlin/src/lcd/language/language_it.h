@@ -370,7 +370,6 @@ namespace Language_it {
   LSTR MSG_SENSOR_RESPONSIVENESS_E        = _UxGT("Reattiv.Sens. *");
   LSTR MSG_MPC_AMBIENT_XFER_COEFF_E       = _UxGT("H ambiente *");
   LSTR MSG_MPC_AMBIENT_XFER_COEFF_FAN_E   = _UxGT("H Amb. vent. *");
-  LSTR MSG_SELECT                         = _UxGT("Seleziona");
   LSTR MSG_SELECT_E                       = _UxGT("Seleziona *");
   LSTR MSG_ACC                            = _UxGT("Accel");
   LSTR MSG_JERK                           = _UxGT("Jerk");
@@ -565,7 +564,7 @@ namespace Language_it {
   LSTR MSG_MANUAL_DEPLOY                  = _UxGT("Estendi Sonda-Z");
   LSTR MSG_BLTOUCH_STOW                   = _UxGT("Ritrai BLTouch");
   LSTR MSG_MANUAL_STOW                    = _UxGT("Ritrai Sonda-Z");
-  LSTR MSG_HOME_FIRST                     = _UxGT("Home %s%s%s prima");
+  LSTR MSG_HOME_FIRST                     = _UxGT("Home %s prima");
   LSTR MSG_ZPROBE_SETTINGS                = _UxGT("Impostazioni sonda");
   LSTR MSG_ZPROBE_OFFSETS                 = _UxGT("Offsets sonda");
   LSTR MSG_ZPROBE_XOFFSET                 = _UxGT("Offset X sonda");
