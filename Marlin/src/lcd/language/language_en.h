@@ -629,6 +629,7 @@ namespace Language_en {
   LSTR MSG_CHAMBER_COOLING                = _UxGT("Chamber Cooling...");
   LSTR MSG_LASER_COOLING                  = _UxGT("Laser Cooling...");
   LSTR MSG_DELTA_CALIBRATE                = _UxGT("Delta Calibration");
+  LSTR MSG_DELTA_CALIBRATION_IN_PROGRESS  = _UxGT("Delta Calibration in progress");
   LSTR MSG_DELTA_CALIBRATE_X              = _UxGT("Calibrate X");
   LSTR MSG_DELTA_CALIBRATE_Y              = _UxGT("Calibrate Y");
   LSTR MSG_DELTA_CALIBRATE_Z              = _UxGT("Calibrate Z");
@@ -739,7 +740,8 @@ namespace Language_en {
   LSTR MSG_MMU2_FILAMENT_N                = _UxGT("Filament ~");
   LSTR MSG_MMU2_RESET                     = _UxGT("Reset MMU");
   LSTR MSG_MMU2_RESETTING                 = _UxGT("MMU Resetting...");
-  LSTR MSG_MMU2_EJECT_RECOVER             = _UxGT("Remove, click");
+  LSTR MSG_MMU2_EJECT_RECOVER             = _UxGT("MMU2 Eject Recover");
+  LSTR MSG_MMU2_REMOVE_AND_CLICK          = _UxGT("Remove and click...");
 
   LSTR MSG_MIX                            = _UxGT("Mix");
   LSTR MSG_MIX_COMPONENT_N                = _UxGT("Component =");
@@ -856,11 +858,12 @@ namespace Language_en {
 
   LSTR MSG_HOST_SHUTDOWN                  = _UxGT("Host Shutdown");
 
-  // These strings can be the same in all languages
-  LSTR MSG_MARLIN                         = _UxGT("Marlin");
   LSTR MSG_SHORT_DAY                      = _UxGT("d"); // One character only
   LSTR MSG_SHORT_HOUR                     = _UxGT("h"); // One character only
   LSTR MSG_SHORT_MINUTE                   = _UxGT("m"); // One character only
+
+  // These strings can be the same in all languages
+  LSTR MSG_MARLIN                         = _UxGT("Marlin");
   LSTR MSG_PID_P                          = _UxGT("PID-P");
   LSTR MSG_PID_P_E                        = _UxGT("PID-P *");
   LSTR MSG_PID_I                          = _UxGT("PID-I");
@@ -873,11 +876,3 @@ namespace Language_en {
   LSTR MSG_PID_F_E                        = _UxGT("PID-F *");
   LSTR MSG_BACKLASH_N                     = _UxGT("@");
 }
-
-#if FAN_COUNT == 1
-  #define MSG_FIRST_FAN_SPEED       MSG_FAN_SPEED
-  #define MSG_EXTRA_FIRST_FAN_SPEED MSG_EXTRA_FAN_SPEED
-#else
-  #define MSG_FIRST_FAN_SPEED       MSG_FAN_SPEED_N
-  #define MSG_EXTRA_FIRST_FAN_SPEED MSG_EXTRA_FAN_SPEED_N
-#endif

@@ -508,8 +508,12 @@ PGMSTR(str_t_heating_failed, STR_T_HEATING_FAILED);
   // Init min and max temp with extreme values to prevent false errors during startup
   raw_adc_t Temperature::mintemp_raw_BED = TEMP_SENSOR_BED_RAW_LO_TEMP,
             Temperature::maxtemp_raw_BED = TEMP_SENSOR_BED_RAW_HI_TEMP;
-  TERN_(WATCH_BED, bed_watch_t Temperature::watch_bed); // = { 0 }
-  IF_DISABLED(PIDTEMPBED, millis_t Temperature::next_bed_check_ms);
+  #if WATCH_BED
+    bed_watch_t Temperature::watch_bed; // = { 0 }
+  #endif
+  #if DISABLED(PIDTEMPBED)
+    millis_t Temperature::next_bed_check_ms;
+  #endif
 #endif
 
 #if HAS_TEMP_CHAMBER
@@ -519,8 +523,12 @@ PGMSTR(str_t_heating_failed, STR_T_HEATING_FAILED);
     celsius_float_t old_temp = 9999;
     raw_adc_t Temperature::mintemp_raw_CHAMBER = TEMP_SENSOR_CHAMBER_RAW_LO_TEMP,
               Temperature::maxtemp_raw_CHAMBER = TEMP_SENSOR_CHAMBER_RAW_HI_TEMP;
-    TERN_(WATCH_CHAMBER, chamber_watch_t Temperature::watch_chamber{0});
-    IF_DISABLED(PIDTEMPCHAMBER, millis_t Temperature::next_chamber_check_ms);
+    #if WATCH_CHAMBER
+      chamber_watch_t Temperature::watch_chamber; // = { 0 }
+    #endif
+    #if DISABLED(PIDTEMPCHAMBER)
+      millis_t Temperature::next_chamber_check_ms;
+    #endif
   #endif
 #endif
 
@@ -1158,19 +1166,24 @@ int16_t Temperature::getHeaterPower(const heater_id_t heater_id) {
   }
 }
 
-#define _EFANOVERLAP(A,B) _FANOVERLAP(E##A,B)
-
 #if HAS_AUTO_FAN
 
+  #define _EFANOVERLAP(I,N) ((I != N) && _FANOVERLAP(I,E##N))
+
   #if EXTRUDER_AUTO_FAN_SPEED != 255
-    #define INIT_E_AUTO_FAN_PIN(P) do{ if (P == FAN1_PIN || P == FAN2_PIN) { SET_PWM(P); SET_FAST_PWM_FREQ(P); } else SET_OUTPUT(P); }while(0)
+    #define INIT_E_AUTO_FAN_PIN(P) do{ if (PWM_PIN(P)) { SET_PWM(P); SET_FAST_PWM_FREQ(P); } else SET_OUTPUT(P); }while(0)
   #else
     #define INIT_E_AUTO_FAN_PIN(P) SET_OUTPUT(P)
   #endif
   #if CHAMBER_AUTO_FAN_SPEED != 255
-    #define INIT_CHAMBER_AUTO_FAN_PIN(P) do{ if (P == FAN1_PIN || P == FAN2_PIN) { SET_PWM(P); SET_FAST_PWM_FREQ(P); } else SET_OUTPUT(P); }while(0)
+    #define INIT_CHAMBER_AUTO_FAN_PIN(P) do{ if (PWM_PIN(P)) { SET_PWM(P); SET_FAST_PWM_FREQ(P); } else SET_OUTPUT(P); }while(0)
   #else
     #define INIT_CHAMBER_AUTO_FAN_PIN(P) SET_OUTPUT(P)
+  #endif
+  #if COOLER_AUTO_FAN_SPEED != 255
+    #define INIT_COOLER_AUTO_FAN_PIN(P) do{ if (PWM_PIN(P)) { SET_PWM(P); SET_FAST_PWM_FREQ(P); } else SET_OUTPUT(P); }while(0)
+  #else
+    #define INIT_COOLER_AUTO_FAN_PIN(P) SET_OUTPUT(P)
   #endif
 
   #ifndef CHAMBER_FAN_INDEX
@@ -1178,24 +1191,30 @@ int16_t Temperature::getHeaterPower(const heater_id_t heater_id) {
   #endif
 
   void Temperature::update_autofans() {
-    #define _EFAN(B,A) _EFANOVERLAP(A,B) ? B :
+    #define _EFAN(I,N) _EFANOVERLAP(I,N) ? I :
     static const uint8_t fanBit[] PROGMEM = {
       0
       #if HAS_MULTI_HOTEND
         #define _NEXT_FAN(N) , REPEAT2(N,_EFAN,N) N
         RREPEAT_S(1, HOTENDS, _NEXT_FAN)
       #endif
+      #define _NFAN HOTENDS
       #if HAS_AUTO_CHAMBER_FAN
-        #define _CFAN(B) _FANOVERLAP(CHAMBER,B) ? B :
-        , REPEAT(HOTENDS,_CFAN) (HOTENDS)
+        #define _CHFAN(I) _FANOVERLAP(I,CHAMBER) ? I :
+        , (REPEAT(HOTENDS,_CHFAN) (_NFAN))
+        #undef _NFAN
+        #define _NFAN INCREMENT(HOTENDS)
+      #endif
+      #if HAS_AUTO_COOLER_FAN
+        #define _COFAN(I) _FANOVERLAP(I,COOLER) ? I :
+        , (REPEAT(HOTENDS,_COFAN) (_NFAN))
       #endif
     };
 
     uint8_t fanState = 0;
     HOTEND_LOOP() {
-      if (temp_hotend[e].celsius >= EXTRUDER_AUTO_FAN_TEMPERATURE) {
+      if (temp_hotend[e].celsius >= EXTRUDER_AUTO_FAN_TEMPERATURE)
         SBI(fanState, pgm_read_byte(&fanBit[e]));
-      }
     }
 
     #if HAS_AUTO_CHAMBER_FAN
@@ -1226,6 +1245,11 @@ int16_t Temperature::getHeaterPower(const heater_id_t heater_id) {
             chamberfan_speed = fan_on ? CHAMBER_AUTO_FAN_SPEED : 0;
             break;
         #endif
+        #if ENABLED(AUTO_POWER_COOLER_FAN)
+          case COOLER_FAN_INDEX:
+            coolerfan_speed = fan_on ? COOLER_AUTO_FAN_SPEED : 0;
+            break;
+        #endif
         default:
           #if EITHER(AUTO_POWER_E_FANS, HAS_FANCHECK)
             autofan_speed[realFan] = fan_on ? EXTRUDER_AUTO_FAN_SPEED : 0;
@@ -1238,35 +1262,17 @@ int16_t Temperature::getHeaterPower(const heater_id_t heater_id) {
       #else
         #define _AUTOFAN_SPEED() EXTRUDER_AUTO_FAN_SPEED
       #endif
-      #define _AUTOFAN_CASE(N) case N: _UPDATE_AUTO_FAN(E##N, fan_on, _AUTOFAN_SPEED()); break
+      #define _AUTOFAN_CASE(N) case N: _UPDATE_AUTO_FAN(E##N, fan_on, _AUTOFAN_SPEED()); break;
+      #define _AUTOFAN_NOT(N)
+      #define AUTOFAN_CASE(N) TERN(HAS_AUTO_FAN_##N, _AUTOFAN_CASE, _AUTOFAN_NOT)(N)
 
       switch (f) {
-        #if HAS_AUTO_FAN_0
-          _AUTOFAN_CASE(0);
-        #endif
-        #if HAS_AUTO_FAN_1
-          _AUTOFAN_CASE(1);
-        #endif
-        #if HAS_AUTO_FAN_2
-          _AUTOFAN_CASE(2);
-        #endif
-        #if HAS_AUTO_FAN_3
-          _AUTOFAN_CASE(3);
-        #endif
-        #if HAS_AUTO_FAN_4
-          _AUTOFAN_CASE(4);
-        #endif
-        #if HAS_AUTO_FAN_5
-          _AUTOFAN_CASE(5);
-        #endif
-        #if HAS_AUTO_FAN_6
-          _AUTOFAN_CASE(6);
-        #endif
-        #if HAS_AUTO_FAN_7
-          _AUTOFAN_CASE(7);
-        #endif
+        REPEAT(8, AUTOFAN_CASE)
         #if HAS_AUTO_CHAMBER_FAN && !AUTO_CHAMBER_IS_E
           case CHAMBER_FAN_INDEX: _UPDATE_AUTO_FAN(CHAMBER, fan_on, CHAMBER_AUTO_FAN_SPEED); break;
+        #endif
+        #if HAS_AUTO_COOLER_FAN && !AUTO_COOLER_IS_E
+          case COOLER_FAN_INDEX: _UPDATE_AUTO_FAN(COOLER, fan_on, COOLER_AUTO_FAN_SPEED); break;
         #endif
       }
       SBI(fanDone, realFan);
@@ -2696,33 +2702,39 @@ void Temperature::init() {
   HAL_timer_start(MF_TIMER_TEMP, TEMP_TIMER_FREQUENCY);
   ENABLE_TEMPERATURE_INTERRUPT();
 
-  #if HAS_AUTO_FAN_0
-    INIT_E_AUTO_FAN_PIN(E0_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_1 && !_EFANOVERLAP(1,0)
-    INIT_E_AUTO_FAN_PIN(E1_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_2 && !(_EFANOVERLAP(2,0) || _EFANOVERLAP(2,1))
-    INIT_E_AUTO_FAN_PIN(E2_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_3 && !(_EFANOVERLAP(3,0) || _EFANOVERLAP(3,1) || _EFANOVERLAP(3,2))
-    INIT_E_AUTO_FAN_PIN(E3_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_4 && !(_EFANOVERLAP(4,0) || _EFANOVERLAP(4,1) || _EFANOVERLAP(4,2) || _EFANOVERLAP(4,3))
-    INIT_E_AUTO_FAN_PIN(E4_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_5 && !(_EFANOVERLAP(5,0) || _EFANOVERLAP(5,1) || _EFANOVERLAP(5,2) || _EFANOVERLAP(5,3) || _EFANOVERLAP(5,4))
-    INIT_E_AUTO_FAN_PIN(E5_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_6 && !(_EFANOVERLAP(6,0) || _EFANOVERLAP(6,1) || _EFANOVERLAP(6,2) || _EFANOVERLAP(6,3) || _EFANOVERLAP(6,4) || _EFANOVERLAP(6,5))
-    INIT_E_AUTO_FAN_PIN(E6_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_7 && !(_EFANOVERLAP(7,0) || _EFANOVERLAP(7,1) || _EFANOVERLAP(7,2) || _EFANOVERLAP(7,3) || _EFANOVERLAP(7,4) || _EFANOVERLAP(7,5) || _EFANOVERLAP(7,6))
-    INIT_E_AUTO_FAN_PIN(E7_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_CHAMBER_FAN && !AUTO_CHAMBER_IS_E
-    INIT_CHAMBER_AUTO_FAN_PIN(CHAMBER_AUTO_FAN_PIN);
-  #endif
+  #if HAS_AUTO_FAN
+    #define _OREFAN(I,N) || _EFANOVERLAP(I,N)
+    #if HAS_AUTO_FAN_0
+      INIT_E_AUTO_FAN_PIN(E0_AUTO_FAN_PIN);
+    #endif
+    #if HAS_AUTO_FAN_1 && !_EFANOVERLAP(0,1)
+      INIT_E_AUTO_FAN_PIN(E1_AUTO_FAN_PIN);
+    #endif
+    #if HAS_AUTO_FAN_2 && !(0 REPEAT2(2, _OREFAN, 2))
+      INIT_E_AUTO_FAN_PIN(E2_AUTO_FAN_PIN);
+    #endif
+    #if HAS_AUTO_FAN_3 && !(0 REPEAT2(3, _OREFAN, 3))
+      INIT_E_AUTO_FAN_PIN(E3_AUTO_FAN_PIN);
+    #endif
+    #if HAS_AUTO_FAN_4 && !(0 REPEAT2(4, _OREFAN, 4))
+      INIT_E_AUTO_FAN_PIN(E4_AUTO_FAN_PIN);
+    #endif
+    #if HAS_AUTO_FAN_5 && !(0 REPEAT2(5, _OREFAN, 5))
+      INIT_E_AUTO_FAN_PIN(E5_AUTO_FAN_PIN);
+    #endif
+    #if HAS_AUTO_FAN_6 && !(0 REPEAT2(6, _OREFAN, 6))
+      INIT_E_AUTO_FAN_PIN(E6_AUTO_FAN_PIN);
+    #endif
+    #if HAS_AUTO_FAN_7 && !(0 REPEAT2(7, _OREFAN, 7))
+      INIT_E_AUTO_FAN_PIN(E7_AUTO_FAN_PIN);
+    #endif
+    #if HAS_AUTO_CHAMBER_FAN && !AUTO_CHAMBER_IS_E
+      INIT_CHAMBER_AUTO_FAN_PIN(CHAMBER_AUTO_FAN_PIN);
+    #endif
+    #if HAS_AUTO_COOLER_FAN && !AUTO_COOLER_IS_E
+      INIT_COOLER_AUTO_FAN_PIN(COOLER_AUTO_FAN_PIN);
+    #endif
+  #endif // HAS_AUTO_FAN
 
   #if HAS_HOTEND
     #define _TEMP_MIN_E(NR) do{ \
@@ -2849,7 +2861,7 @@ void Temperature::init() {
    *
    * TODO: Embed the last 3 parameters during init, if not less optimal
    */
-  void Temperature::tr_state_machine_t::run(const_celsius_float_t current, const_celsius_float_t target, const heater_id_t heater_id, const uint16_t period_seconds, const celsius_t hysteresis_degc) {
+  void Temperature::tr_state_machine_t::run(const_celsius_float_t current, const_celsius_float_t target, const heater_id_t heater_id, const uint16_t period_seconds, const celsius_float_t hysteresis_degc) {
 
     #if HEATER_IDLE_HANDLER
       // Convert the given heater_id_t to an idle array index
@@ -2911,21 +2923,26 @@ void Temperature::init() {
       // While the temperature is stable watch for a bad temperature
       case TRStable: {
 
+        const celsius_float_t rdiff = running_temp - current;
+
         #if ENABLED(ADAPTIVE_FAN_SLOWING)
           if (adaptive_fan_slowing && heater_id >= 0) {
-            const int fan_index = _MIN(heater_id, FAN_COUNT - 1);
-            if (fan_speed[fan_index] == 0 || current >= running_temp - (hysteresis_degc * 0.25f))
-              fan_speed_scaler[fan_index] = 128;
-            else if (current >= running_temp - (hysteresis_degc * 0.3335f))
-              fan_speed_scaler[fan_index] = 96;
-            else if (current >= running_temp - (hysteresis_degc * 0.5f))
-              fan_speed_scaler[fan_index] = 64;
-            else if (current >= running_temp - (hysteresis_degc * 0.8f))
-              fan_speed_scaler[fan_index] = 32;
+            const int_fast8_t fan_index = _MIN(heater_id, FAN_COUNT - 1);
+            uint8_t scale;
+            if (fan_speed[fan_index] == 0 || rdiff <= hysteresis_degc * 0.25f)
+              scale = 128;
+            else if (rdiff <= hysteresis_degc * 0.3335f)
+              scale = 96;
+            else if (rdiff <= hysteresis_degc * 0.5f)
+              scale = 64;
+            else if (rdiff <= hysteresis_degc * 0.8f)
+              scale = 32;
             else
-              fan_speed_scaler[fan_index] = 0;
+              scale = 0;
+
+            fan_speed_scaler[fan_index] = scale;
           }
-        #endif
+        #endif // ADAPTIVE_FAN_SLOWING
 
         const millis_t now = millis();
 
@@ -2945,7 +2962,7 @@ void Temperature::init() {
           }
         #endif
 
-        if (current >= running_temp - hysteresis_degc) {
+        if (rdiff <= hysteresis_degc) {
           timer = now + SEC_TO_MS(period_seconds);
           break;
         }
@@ -3384,6 +3401,10 @@ void Temperature::isr() {
 
   static int8_t temp_count = -1;
   static ADCSensorState adc_sensor_state = StartupDelay;
+
+  #ifndef SOFT_PWM_SCALE
+    #define SOFT_PWM_SCALE 0
+  #endif
   static uint8_t pwm_count = _BV(SOFT_PWM_SCALE);
 
   // Avoid multiple loads of pwm_count
