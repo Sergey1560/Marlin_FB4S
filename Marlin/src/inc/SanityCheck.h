@@ -652,6 +652,8 @@
   #error "USE_M73_REMAINING_TIME is now SET_REMAINING_TIME."
 #elif defined(SHOW_SD_PERCENT)
   #error "SHOW_SD_PERCENT is now SHOW_PROGRESS_PERCENT."
+#elif defined(LIN_ADVANCE_K)
+  #error "LIN_ADVANCE_K is now ADVANCE_K."
 #elif defined(EXTRA_LIN_ADVANCE_K)
   #error "EXTRA_LIN_ADVANCE_K is now ADVANCE_K_EXTRA."
 #elif defined(POLAR_SEGMENTS_PER_SECOND) || defined(DELTA_SEGMENTS_PER_SECOND)  || defined(SCARA_SEGMENTS_PER_SECOND) || defined(TPARA_SEGMENTS_PER_SECOND)
@@ -814,15 +816,13 @@ static_assert(COUNT(arm) == LOGICAL_AXES, "AXIS_RELATIVE_MODES must contain " _L
 /**
  * Multiple Stepper Drivers Per Axis
  */
-#define GOOD_AXIS_PINS(A) (HAS_##A##_ENABLE && HAS_##A##_STEP && HAS_##A##_DIR)
-#if HAS_X2_STEPPER && !GOOD_AXIS_PINS(X)
+#define GOOD_AXIS_PINS(A) PINS_EXIST(A##_ENABLE, A##_STEP, A##_DIR)
+#if HAS_X2_STEPPER && !GOOD_AXIS_PINS(X2)
   #error "If X2_DRIVER_TYPE is defined, then X2 ENABLE/STEP/DIR pins are also needed."
 #endif
-
-#if HAS_DUAL_Y_STEPPERS && !GOOD_AXIS_PINS(Y)
+#if HAS_DUAL_Y_STEPPERS && !GOOD_AXIS_PINS(Y2)
   #error "If Y2_DRIVER_TYPE is defined, then Y2 ENABLE/STEP/DIR pins are also needed."
 #endif
-
 #if HAS_Z_AXIS
   #if NUM_Z_STEPPERS >= 2 && !GOOD_AXIS_PINS(Z2)
     #error "If Z2_DRIVER_TYPE is defined, then Z2 ENABLE/STEP/DIR pins are also needed."
@@ -2948,24 +2948,9 @@ static_assert(X_MAX_LENGTH >= X_BED_SIZE, "Movement bounds (X_MIN_POS, X_MAX_POS
  * Auto Fan check for PWM pins
  */
 #if HAS_AUTO_FAN && EXTRUDER_AUTO_FAN_SPEED != 255
-  #define AF_ERR_SUFF "_AUTO_FAN_PIN is not a PWM pin. Set EXTRUDER_AUTO_FAN_SPEED to 255."
-  #if HAS_AUTO_FAN_0
-    static_assert(_TEST_PWM(E0_AUTO_FAN_PIN), "E0" AF_ERR_SUFF);
-  #elif HAS_AUTO_FAN_1
-    static_assert(_TEST_PWM(E1_AUTO_FAN_PIN), "E1" AF_ERR_SUFF);
-  #elif HAS_AUTO_FAN_2
-    static_assert(_TEST_PWM(E2_AUTO_FAN_PIN), "E2" AF_ERR_SUFF);
-  #elif HAS_AUTO_FAN_3
-    static_assert(_TEST_PWM(E3_AUTO_FAN_PIN), "E3" AF_ERR_SUFF);
-  #elif HAS_AUTO_FAN_4
-    static_assert(_TEST_PWM(E4_AUTO_FAN_PIN), "E4" AF_ERR_SUFF);
-  #elif HAS_AUTO_FAN_5
-    static_assert(_TEST_PWM(E5_AUTO_FAN_PIN), "E5" AF_ERR_SUFF);
-  #elif HAS_AUTO_FAN_6
-    static_assert(_TEST_PWM(E6_AUTO_FAN_PIN), "E6" AF_ERR_SUFF);
-  #elif HAS_AUTO_FAN_7
-    static_assert(_TEST_PWM(E7_AUTO_FAN_PIN), "E7" AF_ERR_SUFF);
-  #endif
+  #define AF_ASSERT(N) OPTCODE(HAS_AUTO_FAN_##N, static_assert(_TEST_PWM(E##N##_AUTO_FAN_PIN), "E" STRINGIFY(N) "_AUTO_FAN_PIN is not a PWM pin. Set EXTRUDER_AUTO_FAN_SPEED to 255."))
+  REPEAT(8, AF_ASSERT)
+  #undef AF_ASSERT
 #endif
 
 /**
@@ -3164,7 +3149,7 @@ static_assert(X_MAX_LENGTH >= X_BED_SIZE, "Movement bounds (X_MIN_POS, X_MAX_POS
 #endif
 
 /**
- * Ender 3 V2 controller has some limitations
+ * Ender-3 V2 controller has some limitations
  */
 #if ENABLED(DWIN_CREALITY_LCD)
   #if DISABLED(SDSUPPORT)
@@ -4175,16 +4160,20 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
 /**
  * Touch Screen Calibration
  */
-#if !MB(LINUX_RAMPS) && ENABLED(TFT_TOUCH_DEVICE_XPT2046) && DISABLED(TOUCH_SCREEN_CALIBRATION) \
+#if !MB(SIMULATED) && ENABLED(TFT_TOUCH_DEVICE_XPT2046) && DISABLED(TOUCH_SCREEN_CALIBRATION) \
     && !(defined(TOUCH_CALIBRATION_X) && defined(TOUCH_CALIBRATION_Y) && defined(TOUCH_OFFSET_X) && defined(TOUCH_OFFSET_Y))
   #error "TOUCH_CALIBRATION_[XY] and TOUCH_OFFSET_[XY] are required for resistive touch screens with TOUCH_SCREEN_CALIBRATION disabled."
 #endif
 
 /**
- * Sanity check for WIFI
+ * Sanity check WiFi options
  */
-#if EITHER(ESP3D_WIFISUPPORT, WIFISUPPORT) && DISABLED(ARDUINO_ARCH_ESP32)
-  #error "ESP3D_WIFISUPPORT or WIFISUPPORT requires an ESP32 MOTHERBOARD."
+#if ENABLED(ESP3D_WIFISUPPORT) && DISABLED(ARDUINO_ARCH_ESP32)
+  #error "ESP3D_WIFISUPPORT requires an ESP32 MOTHERBOARD."
+#elif ENABLED(WEBSUPPORT) && NONE(ARDUINO_ARCH_ESP32, WIFISUPPORT)
+  #error "WEBSUPPORT requires WIFISUPPORT and an ESP32 MOTHERBOARD."
+#elif BOTH(ESP3D_WIFISUPPORT, WIFISUPPORT)
+  #error "Enable only one of ESP3D_WIFISUPPORT or WIFISUPPORT."
 #endif
 
 /**
@@ -4376,13 +4365,13 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
     #endif
   #endif
 
+  #ifdef SHAPING_MIN_FREQ
+    static_assert((SHAPING_MIN_FREQ) > 0, "SHAPING_MIN_FREQ must be > 0.");
+  #else
+    TERN_(INPUT_SHAPING_X, static_assert((SHAPING_FREQ_X) > 0, "SHAPING_FREQ_X must be > 0 or SHAPING_MIN_FREQ must be set."));
+    TERN_(INPUT_SHAPING_Y, static_assert((SHAPING_FREQ_Y) > 0, "SHAPING_FREQ_Y must be > 0 or SHAPING_MIN_FREQ must be set."));
+  #endif
   #ifdef __AVR__
-    #ifdef SHAPING_MIN_FREQ
-      static_assert((SHAPING_MIN_FREQ) > 0, "SHAPING_MIN_FREQ must be > 0.");
-    #else
-      TERN_(INPUT_SHAPING_X, static_assert((SHAPING_FREQ_X) > 0, "SHAPING_FREQ_X must be > 0 or SHAPING_MIN_FREQ must be set."));
-      TERN_(INPUT_SHAPING_Y, static_assert((SHAPING_FREQ_Y) > 0, "SHAPING_FREQ_Y must be > 0 or SHAPING_MIN_FREQ must be set."));
-    #endif
     #if ENABLED(INPUT_SHAPING_X)
       #if F_CPU > 16000000
         static_assert((SHAPING_FREQ_X) == 0 || (SHAPING_FREQ_X) * 2 * 0x10000 >= (STEPPER_TIMER_RATE), "SHAPING_FREQ_X is below the minimum (20) for AVR 20MHz.");

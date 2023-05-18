@@ -341,21 +341,21 @@
   #ifdef MANUAL_U_HOME_POS
     #define U_HOME_POS MANUAL_U_HOME_POS
   #else
-    #define U_HOME_POS (U_HOME_DIR < 0 ? U_MIN_POS : U_MAX_POS)
+    #define U_HOME_POS TERN(U_HOME_TO_MIN, U_MIN_POS, U_MAX_POS)
   #endif
 #endif
 #if HAS_V_AXIS
   #ifdef MANUAL_V_HOME_POS
     #define V_HOME_POS MANUAL_V_HOME_POS
   #else
-    #define V_HOME_POS (V_HOME_DIR < 0 ? V_MIN_POS : V_MAX_POS)
+    #define V_HOME_POS TERN(V_HOME_TO_MIN, V_MIN_POS, V_MAX_POS)
   #endif
 #endif
 #if HAS_W_AXIS
   #ifdef MANUAL_W_HOME_POS
     #define W_HOME_POS MANUAL_W_HOME_POS
   #else
-    #define W_HOME_POS (W_HOME_DIR < 0 ? W_MIN_POS : W_MAX_POS)
+    #define W_HOME_POS TERN(W_HOME_TO_MIN, W_MIN_POS, W_MAX_POS)
   #endif
 #endif
 
@@ -511,7 +511,7 @@
  */
 #if ENABLED(SDSUPPORT)
 
-  #if HAS_SD_HOST_DRIVE && SD_CONNECTION_IS(ONBOARD)
+  #if HAS_SD_HOST_DRIVE && SD_CONNECTION_IS(ONBOARD) && DISABLED(KEEP_SD_DETECT)
     //
     // The external SD card is not used. Hardware SPI is used to access the card.
     // When sharing the SD card with a PC we want the menu options to
@@ -1264,6 +1264,24 @@
   #if ENABLED(USE_ZMAX_PLUG)
     #define ENDSTOPPULLDOWN_ZMAX
   #endif
+  #if ENABLED(USE_IMAX_PLUG)
+    #define ENDSTOPPULLDOWN_IMAX
+  #endif
+  #if ENABLED(USE_JMAX_PLUG)
+    #define ENDSTOPPULLDOWN_JMAX
+  #endif
+  #if ENABLED(USE_KMAX_PLUG)
+    #define ENDSTOPPULLDOWN_KMAX
+  #endif
+  #if ENABLED(USE_UMAX_PLUG)
+    #define ENDSTOPPULLDOWN_UMAX
+  #endif
+  #if ENABLED(USE_VMAX_PLUG)
+    #define ENDSTOPPULLDOWN_VMAX
+  #endif
+  #if ENABLED(USE_WMAX_PLUG)
+    #define ENDSTOPPULLDOWN_WMAX
+  #endif
   #if ENABLED(USE_XMIN_PLUG)
     #define ENDSTOPPULLDOWN_XMIN
   #endif
@@ -1272,6 +1290,24 @@
   #endif
   #if ENABLED(USE_ZMIN_PLUG)
     #define ENDSTOPPULLDOWN_ZMIN
+  #endif
+  #if ENABLED(USE_IMIN_PLUG)
+    #define ENDSTOPPULLDOWN_IMIN
+  #endif
+  #if ENABLED(USE_JMIN_PLUG)
+    #define ENDSTOPPULLDOWN_JMIN
+  #endif
+  #if ENABLED(USE_KMIN_PLUG)
+    #define ENDSTOPPULLDOWN_KMIN
+  #endif
+  #if ENABLED(USE_UMIN_PLUG)
+    #define ENDSTOPPULLDOWN_UMIN
+  #endif
+  #if ENABLED(USE_VMIN_PLUG)
+    #define ENDSTOPPULLDOWN_VMIN
+  #endif
+  #if ENABLED(USE_WMIN_PLUG)
+    #define ENDSTOPPULLDOWN_WMIN
   #endif
 #endif
 
@@ -2567,10 +2603,21 @@
 
 #if ANY(HAS_AUTO_FAN_0, HAS_AUTO_FAN_1, HAS_AUTO_FAN_2, HAS_AUTO_FAN_3, HAS_AUTO_FAN_4, HAS_AUTO_FAN_5, HAS_AUTO_FAN_6, HAS_AUTO_FAN_7, HAS_AUTO_CHAMBER_FAN, HAS_AUTO_COOLER_FAN)
   #define HAS_AUTO_FAN 1
-#endif
-#define _FANOVERLAP(A,B) (A##_AUTO_FAN_PIN == E##B##_AUTO_FAN_PIN)
-#if HAS_AUTO_FAN && (_FANOVERLAP(CHAMBER,0) || _FANOVERLAP(CHAMBER,1) || _FANOVERLAP(CHAMBER,2) || _FANOVERLAP(CHAMBER,3) || _FANOVERLAP(CHAMBER,4) || _FANOVERLAP(CHAMBER,5) || _FANOVERLAP(CHAMBER,6) || _FANOVERLAP(CHAMBER,7))
-  #define AUTO_CHAMBER_IS_E 1
+  #define _FANOVERLAP(I,T) (T##_AUTO_FAN_PIN == E##I##_AUTO_FAN_PIN)
+  #if HAS_AUTO_CHAMBER_FAN
+    #define _CHFANOVERLAP(I) || _FANOVERLAP(I,CHAMBER)
+    #if (0 REPEAT(8, _CHFANOVERLAP))
+      #define AUTO_CHAMBER_IS_E 1
+    #endif
+    #undef _CHFANOVERLAP
+  #endif
+  #if HAS_AUTO_COOLER_FAN
+    #define _COFANOVERLAP(I) || _FANOVERLAP(I,COOLER)
+    #if (0 REPEAT(8, _COFANOVERLAP))
+      #define AUTO_COOLER_IS_E 1
+    #endif
+    #undef _COFANOVERLAP
+  #endif
 #endif
 
 // Fans check
@@ -2614,6 +2661,9 @@
 
 #if !HAS_AUTO_CHAMBER_FAN || AUTO_CHAMBER_IS_E
   #undef AUTO_POWER_CHAMBER_FAN
+#endif
+#if !HAS_AUTO_COOLER_FAN || AUTO_COOLER_IS_E
+  #undef AUTO_POWER_COOLER_FAN
 #endif
 
 // Print Cooling fans (limit)

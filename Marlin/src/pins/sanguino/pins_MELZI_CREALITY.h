@@ -23,6 +23,9 @@
 
 /**
  * Melzi (Creality) pin assignments
+ * Schematic: https://green-candy.osdn.jp/external/MarlinFW/board_schematics/Melzi%20(Creality)/CR-10%20Schematic.pdf
+ * Origin: https://github.com/Creality3DPrinting/CR10-Melzi-1.1.2/blob/master/Circuit%20diagram/Motherboard/CR-10%20Schematic.pdf
+ * ATmega1284P
  *
  * The Creality board needs a bootloader installed before Marlin can be uploaded.
  * If you don't have a chip programmer you can use a spare Arduino plus a few
@@ -46,11 +49,12 @@
 // LCD / Controller
 //
 #if ANY(MKS_MINI_12864, CR10_STOCKDISPLAY, ENDER2_STOCKDISPLAY)
-  #if ENABLED(CR10_STOCKDISPLAY)
+  #if EITHER(CR10_STOCKDISPLAY, ENDER2_STOCKDISPLAY)
     #define LCD_PINS_RS                       28  // ST9720 CS
     #define LCD_PINS_ENABLE                   17  // ST9720 DAT
     #define LCD_PINS_D4                       30  // ST9720 CLK
-  #elif EITHER(MKS_MINI_12864, ENDER2_STOCKDISPLAY)
+  #endif
+  #if EITHER(MKS_MINI_12864, ENDER2_STOCKDISPLAY)
     #define DOGLCD_CS                         28
     #define DOGLCD_A0                         30
   #endif

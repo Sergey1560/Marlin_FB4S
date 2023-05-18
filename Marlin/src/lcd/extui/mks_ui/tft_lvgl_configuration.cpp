@@ -38,7 +38,7 @@
 #include "../../../MarlinCore.h"
 #include "../../../inc/MarlinConfig.h"
 
-#include HAL_PATH(../../../HAL, tft/xpt2046.h)
+#include HAL_PATH(../../.., tft/xpt2046.h)
 #include "../../marlinui.h"
 XPT2046 touch;
 
@@ -494,6 +494,7 @@ void lv_encoder_pin_init() {
 }
 
 #if 1 // HAS_ENCODER_ACTION
+
   void lv_update_encoder() {
     static uint32_t encoder_time1;
     uint32_t tmpTime, diffTime = 0;
@@ -554,7 +555,7 @@ void lv_encoder_pin_init() {
 
       #endif // HAS_ENCODER_WHEEL
 
-    } // next_button_update_ms
+    } // encoder_time1
   }
 
 #endif // HAS_ENCODER_ACTION

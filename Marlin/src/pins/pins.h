@@ -627,6 +627,8 @@
   #include "stm32f1/pins_ERYONE_ERY32_MINI.h"   // STM32F103VET6                          env:ERYONE_ERY32_MINI_maple
 #elif MB(PANDA_PI_V29)
   #include "stm32f1/pins_PANDA_PI_V29.h"        // STM32F103RCT6                          env:PANDA_PI_V29
+#elif MB(SOVOL_V131)
+  #include "stm32f1/pins_SOVOL_V131.h"          // GD32F1                                 env:GD32F103RET6_sovol_maple
 
 //
 // ARM Cortex-M4F
@@ -690,7 +692,7 @@
 #elif MB(FLYF407ZG)
   #include "stm32f4/pins_FLYF407ZG.h"           // STM32F4                                env:FLYF407ZG
 #elif MB(MKS_ROBIN2)
-  #include "stm32f4/pins_MKS_ROBIN2.h"          // STM32F4                                env:MKS_ROBIN2
+  #include "stm32f4/pins_MKS_ROBIN2.h"          // STM32F4                                env:mks_robin2
 #elif MB(MKS_ROBIN_PRO_V2)
   #include "stm32f4/pins_MKS_ROBIN_PRO_V2.h"    // STM32F4                                env:mks_robin_pro2
 #elif MB(MKS_ROBIN_NANO_V3)
@@ -805,7 +807,7 @@
 // Linux Native Debug board
 //
 
-#elif MB(LINUX_RAMPS)
+#elif MB(SIMULATED)
   #include "linux/pins_RAMPS_LINUX.h"           // Native or Simulation                   lin:linux_native mac:simulator_macos_debug mac:simulator_macos_release win:simulator_windows lin:simulator_linux_debug lin:simulator_linux_release
 
 #else
@@ -841,6 +843,7 @@
   #define BOARD_TH3D_EZBOARD_LITE_V2    99923
   #define BOARD_BTT_SKR_SE_BX           99924
   #define BOARD_MKS_MONSTER8            99925
+  #define BOARD_LINUX_RAMPS             99926
 
   #if MB(MKS_13)
     #error "BOARD_MKS_13 has been renamed BOARD_MKS_GEN_13. Please update your configuration."
@@ -896,6 +899,8 @@
     #error "BOARD_BTT_SKR_SE_BX is now BOARD_BTT_SKR_SE_BX_V2 or BOARD_BTT_SKR_SE_BX_V3. Please update your configuration."
   #elif MB(MKS_MONSTER8)
     #error "BOARD_MKS_MONSTER8 is now BOARD_MKS_MONSTER8_V1 or BOARD_MKS_MONSTER8_V2. Please update your configuration."
+  #elif MB(LINUX_RAMPS)
+    #error "BOARD_LINUX_RAMPS is now BOARD_SIMULATED. Please update your configuration."
   #elif defined(MOTHERBOARD)
     #error "Unknown MOTHERBOARD value set in Configuration.h."
   #else
@@ -929,6 +934,7 @@
   #undef BOARD_TH3D_EZBOARD_LITE_V2
   #undef BOARD_BTT_SKR_SE_BX
   #undef BOARD_MKS_MONSTER8
+  #undef BOARD_LINUX_RAMPS
 
 #endif
 

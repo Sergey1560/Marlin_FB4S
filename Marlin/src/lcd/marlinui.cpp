@@ -127,7 +127,7 @@ constexpr uint8_t epps = ENCODER_PULSES_PER_STEP;
 #endif
 
 #if ENABLED(PCA9632_BUZZER)
-  void MarlinUI::buzz(const long duration, const uint16_t freq) {
+  void MarlinUI::buzz(const long duration, const uint16_t freq/*=0*/) {
     if (sound_on) PCA9632_buzz(duration, freq);
   }
 #endif
@@ -174,7 +174,7 @@ constexpr uint8_t epps = ENCODER_PULSES_PER_STEP;
 #endif
 
 #if HAS_U8GLIB_I2C_OLED && PINS_EXIST(I2C_SCL, I2C_SDA) && DISABLED(SOFT_I2C_EEPROM)
-  #include "Wire.h"
+  #include <Wire.h>
 #endif
 
 // Encoder Handling
@@ -346,7 +346,6 @@ void MarlinUI::init() {
 
   #if IS_DWIN_MARLINUI
     bool MarlinUI::did_first_redraw;
-    bool MarlinUI::old_is_printing;
   #endif
 
   #if ENABLED(SDSUPPORT)
@@ -667,7 +666,7 @@ void MarlinUI::init() {
     #if HAS_MARLINUI_MENU
       if (use_click()) {
         #if BOTH(FILAMENT_LCD_DISPLAY, SDSUPPORT)
-          next_filament_display = millis() + 5000UL;  // Show status message for 5s
+          pause_filament_display();
         #endif
         goto_screen(menu_main);
         reinit_lcd(); // Revive a noisy shared SPI LCD
@@ -1414,6 +1413,13 @@ void MarlinUI::init() {
 
   #endif // HAS_ENCODER_ACTION
 
+  #if HAS_SOUND
+    void MarlinUI::completion_feedback(const bool good/*=true*/) {
+      TERN_(HAS_TOUCH_SLEEP, wakeup_screen()); // Wake up on rotary encoder click...
+      if (good) OKAY_BUZZ(); else ERR_BUZZ();
+    }
+  #endif
+
 #endif // HAS_WIRED_LCD
 
 #if HAS_STATUS_MESSAGE
@@ -1582,7 +1588,7 @@ void MarlinUI::init() {
       #endif
 
       #if BOTH(FILAMENT_LCD_DISPLAY, SDSUPPORT)
-        next_filament_display = ms + 5000UL; // Show status message for 5s
+        pause_filament_display(ms); // Show status message for 5s
       #endif
 
     #endif
