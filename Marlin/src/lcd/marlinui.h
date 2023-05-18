@@ -228,7 +228,7 @@ public:
   #endif
 
   #if USE_MARLINUI_BUZZER
-    static void buzz(const long duration, const uint16_t freq);
+    static void buzz(const long duration, const uint16_t freq=0);
   #endif
 
   static void chirp() {
@@ -467,6 +467,7 @@ public:
 
       #if BOTH(FILAMENT_LCD_DISPLAY, SDSUPPORT)
         static millis_t next_filament_display;
+        static void pause_filament_display(const millis_t ms=millis()) { next_filament_display = ms + 5000UL; }
       #endif
 
       #if HAS_TOUCH_SLEEP
@@ -501,7 +502,6 @@ public:
 
     #if IS_DWIN_MARLINUI
       static bool did_first_redraw;
-      static bool old_is_printing;
     #endif
 
     #if EITHER(BABYSTEP_ZPROBE_GFX_OVERLAY, MESH_EDIT_GFX_OVERLAY)
@@ -520,6 +520,11 @@ public:
     static void update() {}
     static void kill_screen(FSTR_P const, FSTR_P const) {}
 
+  #endif
+
+  #if !HAS_WIRED_LCD
+    static void quick_feedback(const bool=true) {}
+    static void completion_feedback(const bool=true) {}
   #endif
 
   #if ENABLED(SDSUPPORT)
@@ -802,5 +807,7 @@ private:
 
 #define LCD_MESSAGE_F(S)       ui.set_status(F(S))
 #define LCD_MESSAGE(M)         ui.set_status(GET_TEXT_F(M))
+#define LCD_MESSAGE_MIN(M)     ui.set_status(GET_TEXT_F(M), -1)
+#define LCD_MESSAGE_MAX(M)     ui.set_status(GET_TEXT_F(M), 99)
 #define LCD_ALERTMESSAGE_F(S)  ui.set_alert_status(F(S))
 #define LCD_ALERTMESSAGE(M)    ui.set_alert_status(GET_TEXT_F(M))

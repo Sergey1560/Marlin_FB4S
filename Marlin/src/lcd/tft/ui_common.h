@@ -57,52 +57,15 @@ void menu_item(const uint8_t row, bool sel = false);
 
 #define ABSOLUTE_ZERO     -273.15
 
-#if HAS_TEMP_CHAMBER && HAS_MULTI_HOTEND
-  #define ITEM_E0         0
-  #define ITEM_E1         1
-  #define ITEM_BED        2
-  #define ITEM_CHAMBER    3
-  #define ITEM_FAN        4
-  #define ITEMS_COUNT     5
-#elif HAS_TEMP_CHAMBER
-  #define ITEM_E0         0
-  #define ITEM_BED        1
-  #define ITEM_CHAMBER    2
-  #define ITEM_FAN        3
-  #if ENABLED(CASE_LIGHT_ENABLE)
-    #define ITEM_LAMP     4
-    #define ITEMS_COUNT   5
-  #else
-    #define ITEMS_COUNT   4
+enum {
+  OPTITEM(HAS_EXTRUDERS, ITEM_E0)
+  OPTITEM(HAS_MULTI_HOTEND, ITEM_E1)
+  #if HOTENDS > 2
+    ITEM_E2,
   #endif
-#elif HAS_TEMP_COOLER
-  #define ITEM_COOLER     0
-  #define ITEM_FAN        1
-  #if ENABLED(CASE_LIGHT_ENABLE)
-    #define ITEM_LAMP     2
-    #define ITEMS_COUNT   3
-  #else
-    #define ITEMS_COUNT   2
-  #endif
-#elif HAS_MULTI_HOTEND
-  #define ITEM_E0         0
-  #define ITEM_E1         1
-  #define ITEM_BED        2
-  #define ITEM_FAN        3
-  #if ENABLED(CASE_LIGHT_ENABLE)
-    #define ITEM_LAMP     4
-    #define ITEMS_COUNT   5
-  #else
-    #define ITEMS_COUNT   4
-  #endif
-#else
-  #define ITEM_E0         0
-  #define ITEM_BED        1
-  #define ITEM_FAN        2
-  #if ENABLED(CASE_LIGHT_ENABLE)
-    #define ITEM_LAMP     3
-    #define ITEMS_COUNT   4
-  #else
-    #define ITEMS_COUNT   3
-  #endif
-#endif
+  OPTITEM(HAS_HEATED_BED, ITEM_BED)
+  OPTITEM(HAS_TEMP_CHAMBER, ITEM_CHAMBER)
+  OPTITEM(HAS_TEMP_COOLER, ITEM_COOLER)
+  OPTITEM(HAS_FAN, ITEM_FAN)
+  ITEMS_COUNT
+};
