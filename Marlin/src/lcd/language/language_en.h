@@ -138,6 +138,26 @@ namespace Language_en {
   LSTR MSG_PREHEAT_CUSTOM                 = _UxGT("Preheat Custom");
   LSTR MSG_COOLDOWN                       = _UxGT("Cooldown");
 
+  LSTR MSG_MKSWIFI_MENU                   = _UxGT("MKS Wifi");
+  LSTR MSG_MKSWIFI_STATUS_NOTCONN         = _UxGT("Not connected");
+  LSTR MSG_MKSWIFI_STATUS_CONN            = _UxGT("Connected");
+  LSTR MSG_MKSWIFI_STATUS_EXC             = _UxGT("Exception");
+  LSTR MSG_MKSWIFI_NETNAME                = _UxGT("Net: ");
+  LSTR MSG_MKSWIFI_ADDR                   = _UxGT("IP: ");
+  LSTR MSG_MKSWIFI_DISC                   = _UxGT("Disconnect");
+  LSTR MSG_MKSWIFI_CONNSAVED              = _UxGT("Connect");
+  LSTR MSG_MKSWIFI_FORGET                 = _UxGT("Forget network");
+  LSTR MSG_MKSWIFI_UNBIND                 = _UxGT("Unbind");
+  LSTR MSG_MKSWIFI_RESET                  = _UxGT("Reset module");
+  LSTR MSG_MKSWIFI_SAVEDNETNAME           = _UxGT("Saved net: ");
+  LSTR MSG_MKSWIFI_SCAN                   = _UxGT("Scan");
+  LSTR MSG_MKSWIFI_SCAN_WAIT              = _UxGT("Wait...");
+  LSTR MSG_MKSWIFI_CONNECTING             = _UxGT("Connecting to ");
+  LSTR MSG_MKSWIFI_PASSWORD               = _UxGT("PASS: ");
+
+  LSTR MSG_GCODEIN_MENU                   = _UxGT("GCODE input");
+  LSTR MSG_GCODEIN_CODE                   = _UxGT("CODE: ");
+
   LSTR MSG_CUTTER_FREQUENCY               = _UxGT("Frequency");
   LSTR MSG_LASER_MENU                     = _UxGT("Laser Control");
   LSTR MSG_SPINDLE_MENU                   = _UxGT("Spindle Control");

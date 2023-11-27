@@ -11,16 +11,18 @@
 extern TFT tft;
 char str[100];
 
+uint32_t last_status_value = 200;
+
 void mks_update_status(char *filename,uint32_t current_filesize, uint32_t file_size){
     static uint32_t call_count = 0;
-    static uint32_t last_value = 200;
+
     uint32_t percent_done;
     uint16_t width;
     
-    thermalManager.setTargetBed(0);
-    thermalManager.setTargetHotend(0,0);
-    thermalManager.task();
-    OUT_WRITE(FAN1_PIN,HIGH);
+    // thermalManager.setTargetBed(0);
+    // thermalManager.setTargetHotend(0,0);
+    // thermalManager.task();
+    // OUT_WRITE(FAN1_PIN,HIGH);
 
     //При расчете процентов размер файла превышает максимум для uint32_t
     if(current_filesize >= (UINT32_MAX/100) ){
@@ -29,7 +31,7 @@ void mks_update_status(char *filename,uint32_t current_filesize, uint32_t file_s
     }
 
     percent_done = (current_filesize*100)/file_size;
-    if(((uint8_t)percent_done != last_value)){
+    if(((uint8_t)percent_done != last_status_value)){
       call_count++;
       DEBUG("LCD call %ld CF: %ld  FS: %ld",call_count,current_filesize,file_size);
       tft.queue.reset();
@@ -46,8 +48,7 @@ void mks_update_status(char *filename,uint32_t current_filesize, uint32_t file_s
       tft.add_text(100, 150, COLOR_WHITE, str);
       
       tft.queue.sync();
-      last_value = percent_done;
-      //ui.update();
+      last_status_value = percent_done;
     };
 
 }
@@ -63,7 +64,8 @@ void mks_upload_screen(void){
 }
 
 
-void mks_end_transmit(void){
+void mks_end_transmit(void) {
+  last_status_value = 200;
   tft.queue.reset();
   tft.fill(0, 0, TFT_WIDTH, TFT_HEIGHT, COLOR_BACKGROUND);
   tft.queue.sync();

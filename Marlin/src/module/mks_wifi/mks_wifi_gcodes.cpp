@@ -7,7 +7,7 @@ const uint8_t pak[5]={0xA5,0x07,0x00,0x00,0xFC};
 const char m997_idle[]="M997 IDLE\n";
 const char m997_printing[]="M997 PRINTING\n";
 const char m997_pause[]="M997 PAUSE\n";
-const char m115_firmware[]="FIRMWARE_NAME:TFT24\n";
+const char m115_firmware[]="FIRMWARE_NAME:MARLIN FB4S\n";
 
 void mks_m991(void){
   char tempBuf[100];
@@ -21,10 +21,9 @@ void mks_m991(void){
   (int)Temperature::degBed(),Temperature::degTargetBed(),
   (int)Temperature::degHotend(target_extruder),Temperature::degTargetHotend(target_extruder));
 
-  mks_wifi_out_add((uint8_t *)tempBuf,strlen(tempBuf));
-
   SERIAL_ECHOPGM(STR_OK);
   SERIAL_EOL();
+  mks_wifi_out_add((uint8_t *)tempBuf,strlen(tempBuf));
 }
 
 void mks_m105(void){
@@ -39,16 +38,16 @@ void mks_m105(void){
   Temperature::degBed(),(float)Temperature::degTargetBed(),
   Temperature::degHotend(target_extruder),(float)Temperature::degTargetHotend(target_extruder));
 
-  mks_wifi_out_add((uint8_t *)tempBuf,strlen(tempBuf));
-
   SERIAL_ECHOPGM(STR_OK);
   SERIAL_EOL();
-
+  mks_wifi_out_add((uint8_t *)tempBuf,strlen(tempBuf));
 }
 
 
 
 void mks_m997(void){
+  SERIAL_ECHOPGM(STR_OK);
+  SERIAL_EOL();
   if(CardReader::isPrinting()){
     mks_wifi_out_add((uint8_t *)m997_printing,strlen(m997_printing));
   }else if(CardReader::isPaused()){
@@ -60,6 +59,8 @@ void mks_m997(void){
 
 
 void mks_m115(void){
+  SERIAL_ECHOPGM(STR_OK);
+  SERIAL_EOL();
   mks_wifi_out_add((uint8_t *)m115_firmware,strlen(m115_firmware));
 }
 
@@ -73,6 +74,8 @@ void mks_m992(void){
 
   if(CardReader::isPrinting()){
     sprintf((char *)buffer, "M992 %02d:%02d:%02d\r\n", hours, minutes, seconds);
+    SERIAL_ECHOPGM(STR_OK);
+    SERIAL_EOL();
     mks_wifi_out_add((uint8_t *)buffer,strlen(buffer));
   };
 }
@@ -84,6 +87,8 @@ void mks_m994(void){
   if(CardReader::isPrinting()){
     CardReader::GetSelectedFilename(filename);
     sprintf((char *)buffer, ("M994 %s;%ld\n"), filename, CardReader::GetSelectedFilesize());
+    SERIAL_ECHOPGM(STR_OK);
+    SERIAL_EOL();
     mks_wifi_out_add((uint8_t *)buffer,strlen(buffer));
   }
   
@@ -91,17 +96,13 @@ void mks_m994(void){
 
 
 void mks_m27(void){
-
-  // if (CardReader::isPrinting()) {
-  //   SERIAL_ECHOPGM(STR_SD_PRINTING_BYTE);
-  //   SERIAL_ECHO(0);
-  //   SERIAL_CHAR('/');
-  //   SERIAL_ECHOLN(100);
-  
-  //   SERIAL_ECHOPGM(STR_OK);
-  //   SERIAL_EOL();
-
-  // }
+  if (CardReader::isPrinting()) {
+    SERIAL_ECHOPGM(STR_OK);
+    SERIAL_EOL();
+    const uint8_t progress = CardReader::percentDone();
+    SERIAL_ECHOPGM("M27 ");
+    SERIAL_ECHOPGM(progress);
+  }
 }
 
 void mks_m30(char *filename){

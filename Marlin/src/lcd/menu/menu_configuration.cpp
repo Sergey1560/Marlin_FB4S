@@ -60,6 +60,14 @@
 #define HAS_DEBUG_MENU ENABLED(LCD_PROGRESS_BAR_TEST)
 
 void menu_advanced_settings();
+
+#if ENABLED(MENU_ENABLE_MKS_WIFI)
+  void menu_mkswifi();
+#endif
+#if ENABLED(MENU_ENABLE_GCODE_INPUT)
+  void menu_gcodeinput();
+#endif
+
 #if EITHER(DELTA_CALIBRATION_MENU, DELTA_AUTO_CALIBRATION)
   void menu_delta_calibrate();
 #endif
@@ -492,6 +500,13 @@ void menu_configuration() {
   #endif
 
   SUBMENU(MSG_ADVANCED_SETTINGS, menu_advanced_settings);
+
+  #if ENABLED(MENU_ENABLE_MKS_WIFI)
+    SUBMENU(MSG_MKSWIFI_MENU, menu_mkswifi);
+  #endif
+  #if ENABLED(MENU_ENABLE_GCODE_INPUT)
+    SUBMENU(MSG_GCODEIN_MENU, menu_gcodeinput);
+  #endif
 
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
     SUBMENU(MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);

@@ -270,6 +270,12 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
 
             file_size_writen+=bytes_writen;
             file_data_size -= data_to_write;
+
+            #if ENABLED(TFT_480x320) || ENABLED(TFT_480x320_SPI)
+               #ifdef SHOW_PROGRESS
+                  mks_update_status(file_name+3, file_size_writen, file_size);
+               #endif
+            #endif
             
             memcpy((uint8_t *)file_buff,(uint8_t *)(file_buff+data_to_write),file_data_size);
          }
@@ -325,6 +331,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
    
    if((dma_timeout == 0) || (dma_stopped == 2)) {
       //Restart ESP8266
+      mks_wifi_send_exception(0x01);
       WRITE(MKS_WIFI_IO_RST, LOW);
       delay(200);	
       WRITE(MKS_WIFI_IO_RST, HIGH);
@@ -350,7 +357,8 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          #endif
          ui.set_status((const char *)"Upload done",true);
          DEBUG("Upload ok");
-         BUZZ(1000,260);
+         mks_wifi_send_exception(0x02);
+         BUZZ(75,260);
 
          if(!strcmp(file_name,"0:/Robin_Nano35.bin")){
             TERN_(USE_WATCHDOG, wd_reset());
@@ -381,6 +389,7 @@ void mks_wifi_start_file_upload(ESP_PROTOC_FRAME *packet){
          mks_wifi_sd_deinit();
          DEBUG("Remount SD");
 
+         mks_wifi_send_exception(0x01);
          BUZZ(436,392);
          BUZZ(109,0);
          BUZZ(436,392);

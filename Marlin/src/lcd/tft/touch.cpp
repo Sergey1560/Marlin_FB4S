@@ -246,7 +246,7 @@ void Touch::touch(touch_control_t *control) {
       break;
 
     // TODO: TOUCH could receive data to pass to the callback
-    case BUTTON: ((screenFunc_t)control->data)(); break;
+    case BUTTON: ((touchscreenFunc_t)control->data)(x, y); break;
     
     // Case light button 
     #if ENABLED(CASE_LIGHT_ENABLE)

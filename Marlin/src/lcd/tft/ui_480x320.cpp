@@ -375,22 +375,40 @@ void MarlinUI::draw_status_screen() {
   y += TERN(HAS_UI_480x272, 36, 44);
   // print duration
   char buffer[14];
+  char buffer2[14];
+  char prefix[] = " / \0";
   duration_t elapsed = print_job_timer.duration();
+  duration_t remaining = get_remaining_time();
+  duration_t total;
+  total.value = elapsed.value + remaining.value;
   elapsed.toDigital(buffer);
+  total.toDigital(buffer2);
 
-  tft.canvas((TFT_WIDTH - 128) / 2, y, 128, 29);
+  tft.canvas((TFT_WIDTH - 256) / 2, y, 256, 29);
   tft.set_background(COLOR_BACKGROUND);
   tft_string.set(buffer);
+  tft_string.add(prefix);
+  tft_string.add(buffer2);
+
+  const progress_t progress = TERN(HAS_PRINT_PROGRESS_PERMYRIAD, ui.get_progress_permyriad, ui.get_progress_percent)();
+  if(progress) {
+    tft_string.add(' ');
+    tft_string.add(TERN(PRINT_PROGRESS_SHOW_DECIMALS, permyriadtostr4(progress), ui8tostr3rj(progress / (PROGRESS_SCALE))));
+    tft_string.add('%');
+  }
   tft.add_text(tft_string.center(128), 0, COLOR_PRINT_TIME, tft_string);
 
   y += TERN(HAS_UI_480x272, 28, 36);
   // progress bar
-  const uint8_t progress = ui.get_progress_percent();
+
   tft.canvas(4, y, TFT_WIDTH - 8, 9);
   tft.set_background(COLOR_PROGRESS_BG);
   tft.add_rectangle(0, 0, TFT_WIDTH - 8, 9, COLOR_PROGRESS_FRAME);
-  if (progress)
-    tft.add_bar(1, 1, ((TFT_WIDTH - 10) * progress) / 100, 7, COLOR_PROGRESS_BAR);
+
+  if (progress) {
+    tft.add_bar(1, 1, ((TFT_WIDTH - 10) * (progress / (PROGRESS_SCALE))) / 100, 7, COLOR_PROGRESS_BAR);
+  }
+
 
   y += 20;
   // status message

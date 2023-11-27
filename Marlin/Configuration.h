@@ -2042,7 +2042,7 @@ RN13S           - плата Robin Nano-s 1.3
  * Turn on with the command 'M111 S32'.
  * NOTE: Requires a lot of PROGMEM!
  */
-#define DEBUG_LEVELING_FEATURE
+//#define DEBUG_LEVELING_FEATURE
 
 #if ANY(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL, PROBE_MANUALLY)
   // Set a height for the start of manual adjustment
@@ -2379,15 +2379,20 @@ EEPROM_W25Q
 //
 // Preheat Constants - Up to 10 are supported without changes
 //
-#define PREHEAT_1_LABEL       "PETG"
-#define PREHEAT_1_TEMP_HOTEND  235
-#define PREHEAT_1_TEMP_BED     80
+#define PREHEAT_1_LABEL       "PLA"
+#define PREHEAT_1_TEMP_HOTEND  210
+#define PREHEAT_1_TEMP_BED     60
 #define PREHEAT_1_FAN_SPEED     0 // Value from 0 to 255
 
 #define PREHEAT_2_LABEL       "ABS"
 #define PREHEAT_2_TEMP_HOTEND  250
 #define PREHEAT_2_TEMP_BED     100
 #define PREHEAT_2_FAN_SPEED     0 // Value from 0 to 255
+
+#define PREHEAT_3_LABEL       "PETG"
+#define PREHEAT_3_TEMP_HOTEND  235
+#define PREHEAT_3_TEMP_BED     80
+#define PREHEAT_3_FAN_SPEED     0 // Value from 0 to 255
 
 // @section motion
 
@@ -2609,7 +2614,7 @@ EEPROM_W25Q
  *
  * :['JAPANESE', 'WESTERN', 'CYRILLIC']
  */
-#define DISPLAY_CHARSET_HD44780 JAPANESE
+#define DISPLAY_CHARSET_HD44780 CYRILLIC
 
 /**
  * Info Screen Style (0:Classic, 1:Průša)
@@ -2641,6 +2646,11 @@ EEPROM_W25Q
  */
 //#define NO_LCD_MENUS
 //#define SLIM_LCD_MENUS
+
+#define MENU_ENABLE_MKS_WIFI
+#define MKS_WIFI_SHOW_IP_IN_STATUS
+// #define MKS_WIFI_CLOUD_SUPPORT //TODO
+#define MENU_ENABLE_GCODE_INPUT
 
 //
 // ENCODER SETTINGS

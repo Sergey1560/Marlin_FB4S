@@ -69,6 +69,7 @@ enum TouchControlType : uint16_t {
   LAMP,
 };
 
+typedef void (*touchscreenFunc_t)(uint16_t x, uint16_t y);
 typedef void (*screenFunc_t)();
 
 void add_control(uint16_t x, uint16_t y, TouchControlType control_type, intptr_t data, MarlinImage image, bool is_enabled = true, uint16_t color_enabled = COLOR_CONTROL_ENABLED, uint16_t color_disabled = COLOR_CONTROL_DISABLED);
