@@ -6,7 +6,8 @@
 
 #ifdef MKS_WIFI
 
-//#define SHOW_PROGRESS
+// #define SHOW_PROGRESS
+//так и не заработало
 
 #define DMA_TIMEOUT 0x1ffffff
 #define ESP_PACKET_SIZE     1024
